@@ -1,0 +1,2 @@
+Qt using LGPL
+https://www.qt.io/faq/

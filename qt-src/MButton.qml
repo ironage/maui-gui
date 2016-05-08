@@ -7,10 +7,8 @@ Item {
 
     signal clicked();
 
-    property int h_padding: 10
-    property int v_padding: 14
-    width: m_text.implicitWidth + (2 * h_padding)
-    height: m_text.implicitHeight + (2 * v_padding)
+    width: m_text.implicitWidth + (2 * Style.h_padding)
+    height: m_text.implicitHeight + (2 * Style.v_padding)
 
     Rectangle {
         id: m_rect

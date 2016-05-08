@@ -36,6 +36,12 @@ ApplicationWindow {
                 text: "Start"
                 onClicked: Qt.quit();
             }
+
+            MExpander {
+                id: import_video
+                title: "Import Video"
+
+            }
         }
     }
 

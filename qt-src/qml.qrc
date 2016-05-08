@@ -6,5 +6,6 @@
         <file>Style.qml</file>
         <file>qmldir</file>
         <file>MText.qml</file>
+        <file>MExpander.qml</file>
     </qresource>
 </RCC>

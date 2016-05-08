@@ -19,18 +19,8 @@ Item {
         anchors.fill: parent
         color: Style.ui_component_bg
 
-        Text {
+        MText {
             id: m_text
-            color: "#c5bfbf"
-            text: qsTr("Text")
-            styleColor: "#343434"
-            style: Text.Outline
-            font.bold: true
-            horizontalAlignment: Text.AlignHCenter
-            verticalAlignment: Text.AlignVCenter
-            anchors.fill: parent
-            font.family: "Arial"
-            font.pixelSize: 14
         }
         MouseArea {
             id: m_area
@@ -39,6 +29,7 @@ Item {
             onClicked: {
                 m_root.clicked()
             }
+        }
     }
     states: [
         State {

@@ -6,9 +6,10 @@ QtObject {
     property int titleFontSize: 50
     property color titleColor: "green"
 
-    property color ui_form_bg: "#f1f1f5"
-    property color ui_component_bg: "#010120"
-    property color ui_component_selected: "#0101f0"
-    property color ui_component_highlight: "#1010f0"
+    property color ui_form_bg: "#EAEAEA"
+    property color ui_component_bg: "#54606D"
+    property color ui_component_selected: "#343942"
+    property color ui_component_highlight: "#24B0B2"
     property color ui_text: "#eeeeee"
+    property color ui_text_style: "#343434"
 }

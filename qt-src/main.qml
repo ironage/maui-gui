@@ -4,11 +4,12 @@ import QtQuick.Controls 1.4
 import QtQuick.Layouts 1.1
 import QtQuick.Controls.Styles 1.4
 import QtQuick.Dialogs 1.2
+import "."
 
 ApplicationWindow {
     visible: true
     //visibility: "FullScreen"
-    color: "#1c1c1e"
+    color: Style.ui_form_bg
 
     FileDialog {
         id: videoSelectDialog
@@ -16,14 +17,14 @@ ApplicationWindow {
 
     Rectangle {
         id: leftPanel
-       // height: parent.height
         width: 200
         height: 300
+        color: Style.ui_form_bg
         border.color: "#040409"
-        color: "#1c1c1e"
+        border.width: 0
 
-        border.width: 2
         ColumnLayout {
+            anchors.centerIn: parent
             MButton {
                 id: fileSelect
                 text: "Open video"

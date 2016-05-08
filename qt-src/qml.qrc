@@ -5,5 +5,6 @@
         <file>MButton.qml</file>
         <file>Style.qml</file>
         <file>qmldir</file>
+        <file>MText.qml</file>
     </qresource>
 </RCC>

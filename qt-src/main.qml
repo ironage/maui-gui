@@ -40,7 +40,28 @@ ApplicationWindow {
             MExpander {
                 id: import_video
                 title: "Import Video"
+                payload: load_video
+            }
 
+            Component {
+                id: load_video
+                ColumnLayout {
+
+                    Layout.topMargin: Style.v_padding
+                    Layout.bottomMargin: Style.v_padding
+                    Layout.leftMargin: Style.h_padding
+                    Layout.rightMargin: Style.h_padding
+                    MButton {
+                        id: open_video
+                        text: "Open Video"
+                        Layout.alignment: Qt.AlignCenter
+                    }
+                    MButton {
+                        id: test_temp
+                        text: "Test"
+                        Layout.alignment: Qt.AlignCenter
+                    }
+                }
             }
         }
     }

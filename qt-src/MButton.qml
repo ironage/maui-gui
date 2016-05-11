@@ -45,4 +45,10 @@ Item {
             when: m_area.containsMouse && !m_area.containsPress
         }
     ]
+    transitions: [
+           Transition {
+               from: "*"; to: "*"
+               ColorAnimation { target: m_rect; properties: "color"; duration: 100 }
+           }
+       ]
 }

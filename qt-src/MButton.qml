@@ -5,10 +5,14 @@ Item {
     id: m_root
     property alias text: m_text.text
 
+    property int h_padding: Style.h_padding
+    property int v_padding: Style.v_padding
+    property alias border: m_rect.border
+
     signal clicked();
 
-    width: m_text.implicitWidth + (2 * Style.h_padding)
-    height: m_text.implicitHeight + (2 * Style.v_padding)
+    width: m_text.implicitWidth + (2 * h_padding)
+    height: m_text.implicitHeight + (2 * v_padding)
 
     Rectangle {
         id: m_rect

@@ -7,36 +7,40 @@ Item {
 
     property alias title: m_header.text
     property alias payload: m_loader.sourceComponent
-
+    property alias override_width: m_header.width
     width: m_header.width
-    height: m_header.height
+    height: m_header.height + m_body.height
+
+    function close() {
+        m_root.state = "collapsed"
+    }
+    function open() {
+        m_root.state = "expanded"
+    }
+
+    signal opened()
+    signal closed()
 
     ColumnLayout {
         MButton {
             id: m_header
-            //border.width: Style.ui_border_width
-            //border.color: Style.ui_border_color
+            border.width: 2
+            border.color: Style.ui_border_color
             Layout.minimumHeight: 20
             Layout.minimumWidth: 30
+            h_padding: 5
+            v_padding: 5
             onClicked: {
-                m_root.state = (m_root.state == "collapsed") ? "expanded" : "collapsed";
-//                m_body.height = 0;
+                if (m_root.state == "collapsed") {
+                    m_root.state = "expanded"
+                    opened()
+                } else {
+                    m_root.state = "collapsed"
+                    closed()
+                }
             }
         }
 
-//        Rectangle {
-//            id: m_header
-//            color: Style.ui_component_bg
-//            border.width: Style.ui_border_width
-//            border.color: Style.ui_border_color
-//            Layout.minimumHeight: 20
-//            Layout.minimumWidth: 30
-//            width: m_header_text.implicitWidth + (2 * Style.h_padding)
-//            height: m_header_text.implicitHeight + (2 * Style.v_padding)
-//            MText {
-//                id: m_header_text
-//            }
-//        }
         Rectangle {
             id: m_body
             color: Style.ui_form_bg2
@@ -46,7 +50,7 @@ Item {
             clip: true
             Loader {
                 id: m_loader
-//                anchors.centerIn: parent
+                //anchors.centerIn: parent
                 anchors.bottom: m_body.bottom
                 anchors.horizontalCenter: parent.horizontalCenter
             }

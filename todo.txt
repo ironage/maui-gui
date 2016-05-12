@@ -1,0 +1,13 @@
+
+-expander
+-scrollbar
+-load video (+OpenCV)
+-crop
+-scale
+-zoom on mouse scroll
+-settings, color chooser
+-help / about
+...
+
+-frameless window     flags: Qt.FramelessWindowHint
+-installer

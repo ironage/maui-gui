@@ -8,6 +8,7 @@ Item {
     property int h_padding: Style.h_padding
     property int v_padding: Style.v_padding
     property alias border: m_rect.border
+    property color color: Style.ui_component_bg
 
     signal clicked();
 
@@ -19,7 +20,7 @@ Item {
         radius: 1
         border.width: 0
         anchors.fill: parent
-        color: Style.ui_component_bg
+        color: m_root.color
 
         MText {
             id: m_text

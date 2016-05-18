@@ -15,6 +15,7 @@ QtObject {
     property color ui_text_style: "#343434"
     property color ui_border_color: "#181818"
     property int ui_border_width: 2
+    property color ui_red_color: "#C02E1D"
 
     property int h_padding: 10
     property int v_padding: 10

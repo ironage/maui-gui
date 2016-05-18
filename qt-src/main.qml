@@ -40,12 +40,6 @@ ApplicationWindow {
             ColumnLayout {
                 //            anchors.centerIn: parent
 
-                MButton {
-                    id: start
-                    text: "Start"
-                    //onClicked: Qt.quit();
-                }
-
                 MExpander {
                     id: import_video
                     title: "Step 1: Select Input"
@@ -152,31 +146,52 @@ ApplicationWindow {
                 }
             }
         }
-        Rectangle {
-            color: "black"
-            Layout.fillWidth: true
-            Layout.fillHeight: true
-            Layout.minimumWidth: 100
-            Layout.margins: Style.h_padding
+        ColumnLayout {
+            Rectangle {
+                color: "black"
+                Layout.fillWidth: true
+                Layout.fillHeight: true
+                Layout.minimumWidth: 100
+                Layout.margins: Style.h_padding
 
-            Video {
-                id: m_video
-                anchors.fill: parent
-                onSourceChanged: {
-                    seek(1)
-                }
-
-                MouseArea {
+                Video {
+                    id: m_video
                     anchors.fill: parent
-                    onClicked: {
-                        m_video.play()
+                    onSourceChanged: {
+                        seek(1)
                     }
-                }
 
-                focus: true
-                Keys.onSpacePressed: m_video.playbackState == MediaPlayer.PlayingState ? m_video.pause() : m_video.play()
-                Keys.onLeftPressed: m_video.seek(m_video.position - 5000)
-                Keys.onRightPressed: m_video.seek(m_video.position + 5000)
+                    MouseArea {
+                        anchors.fill: parent
+                        onClicked: {
+                            m_video.play()
+                        }
+                    }
+
+                    focus: true
+                    Keys.onSpacePressed: m_video.playbackState == MediaPlayer.PlayingState ? m_video.pause() : m_video.play()
+                    Keys.onLeftPressed: m_video.seek(m_video.position - 5000)
+                    Keys.onRightPressed: m_video.seek(m_video.position + 5000)
+                }
+            }
+            RowLayout {
+                MButton {
+                    id: start
+                    text: "Start"
+                    color: Style.ui_red_color
+                    Layout.leftMargin: Style.h_padding
+                    Layout.rightMargin: Style.h_padding
+                    Layout.bottomMargin: Style.v_padding
+                    //onClicked: Qt.quit();
+                }
+                MVideoControl {
+                    id: m_video_control
+                    Layout.fillWidth: true
+                    Layout.bottomMargin: Style.v_padding
+                    Layout.rightMargin: (2 * Style.h_padding)
+                    Layout.leftMargin: Style.h_padding
+                    Layout.topMargin: 0
+                }
             }
         }
     }

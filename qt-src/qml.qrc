@@ -7,5 +7,6 @@
         <file>qmldir</file>
         <file>MText.qml</file>
         <file>MExpander.qml</file>
+        <file>MVideoControl.qml</file>
     </qresource>
 </RCC>

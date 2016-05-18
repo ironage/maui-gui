@@ -5,6 +5,11 @@ Item {
     id: m_root
     property alias source: m_player.source
     property double progress: 0
+    property alias duration: m_player.duration
+
+    function seek(offset) {
+        m_player.seek(offset)
+    }
 
     Rectangle {
         anchors.fill: parent
@@ -14,7 +19,6 @@ Item {
     MediaPlayer {
         id: m_player
         onPositionChanged: {
-            console.log("position changed: " + position)
             if (duration > 0) {
                 m_root.progress = (position / duration)
             } else {

@@ -167,6 +167,7 @@ ApplicationWindow {
                 MVideoControl {
                     id: m_video_control
                     progress: m_video.progress
+                    onSetProgress: m_video.seek(percent * m_video.duration)
                     Layout.fillWidth: true
                     Layout.bottomMargin: Style.v_padding
                     Layout.rightMargin: (2 * Style.h_padding)

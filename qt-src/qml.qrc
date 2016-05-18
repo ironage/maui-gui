@@ -8,5 +8,6 @@
         <file>MText.qml</file>
         <file>MExpander.qml</file>
         <file>MVideoControl.qml</file>
+        <file>MVideoDisplay.qml</file>
     </qresource>
 </RCC>

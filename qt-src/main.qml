@@ -147,38 +147,18 @@ ApplicationWindow {
             }
         }
         ColumnLayout {
-            Rectangle {
-                color: "black"
+            MVideoDisplay {
+                id: m_video
                 Layout.fillWidth: true
                 Layout.fillHeight: true
                 Layout.minimumWidth: 100
                 Layout.margins: Style.h_padding
-
-                Video {
-                    id: m_video
-                    anchors.fill: parent
-                    onSourceChanged: {
-                        seek(1)
-                    }
-
-                    MouseArea {
-                        anchors.fill: parent
-                        onClicked: {
-                            m_video.play()
-                        }
-                    }
-
-                    focus: true
-                    Keys.onSpacePressed: m_video.playbackState == MediaPlayer.PlayingState ? m_video.pause() : m_video.play()
-                    Keys.onLeftPressed: m_video.seek(m_video.position - 5000)
-                    Keys.onRightPressed: m_video.seek(m_video.position + 5000)
-                }
             }
             RowLayout {
                 MButton {
                     id: start
                     text: "Start"
-                    color: Style.ui_red_color
+                    color: Style.ui_color_red
                     Layout.leftMargin: Style.h_padding
                     Layout.rightMargin: Style.h_padding
                     Layout.bottomMargin: Style.v_padding
@@ -186,6 +166,7 @@ ApplicationWindow {
                 }
                 MVideoControl {
                     id: m_video_control
+                    progress: m_video.progress
                     Layout.fillWidth: true
                     Layout.bottomMargin: Style.v_padding
                     Layout.rightMargin: (2 * Style.h_padding)

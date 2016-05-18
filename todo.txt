@@ -4,6 +4,7 @@
 -crop
 -scale
 -zoom on mouse scroll
+-checkmark icons for settings progress
 -settings, color chooser
 -help / about
 ...

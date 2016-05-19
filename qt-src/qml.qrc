@@ -9,5 +9,6 @@
         <file>MExpander.qml</file>
         <file>MVideoControl.qml</file>
         <file>MVideoDisplay.qml</file>
+        <file>MPin.qml</file>
     </qresource>
 </RCC>

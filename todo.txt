@@ -1,9 +1,12 @@
 
 -scrollbar
 -load video (+OpenCV)
--crop
--scale
--zoom on mouse scroll
+-ruler, vertical lines + adjustable mm/cm scale
+-roi box
+-3 dot adjustable line
+-interface specs for matlab library
+-zoom
+-zoom on mouse scroll? or advance video progress?
 -checkmark icons for settings progress
 -settings, color chooser
 -help / about

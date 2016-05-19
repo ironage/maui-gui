@@ -14,8 +14,8 @@ ApplicationWindow {
 
     width: 900
     height: 600
-    minimumWidth: 500
-    minimumHeight: 400
+    minimumWidth: 400
+    minimumHeight: 300
 
     FileDialog {
         id: videoSelectDialog
@@ -36,9 +36,8 @@ ApplicationWindow {
             color: Style.ui_form_bg
             Layout.minimumWidth: header_width
             Layout.leftMargin: Style.h_padding
-
+            //anchors.verticalCenter: parent.verticalCenter
             ColumnLayout {
-                //            anchors.centerIn: parent
 
                 MExpander {
                     id: import_video
@@ -144,6 +143,10 @@ ApplicationWindow {
                         }
                     }
                 }
+//                MText {
+//                    text: "height: " + wall_detection.height
+//                    color: "#ff0000"
+//                }
             }
         }
         ColumnLayout {
@@ -153,6 +156,8 @@ ApplicationWindow {
                 Layout.fillHeight: true
                 Layout.minimumWidth: 100
                 Layout.margins: Style.h_padding
+                progress_min: m_video_control.start_percent
+                progress_max: m_video_control.end_percent
             }
             RowLayout {
                 MButton {

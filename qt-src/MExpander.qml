@@ -8,8 +8,12 @@ Item {
     property alias title: m_header.text
     property alias payload: m_loader.sourceComponent
     property alias override_width: m_header.width
-    width: m_header.width
+    //width: m_header.width
     height: m_header.height + m_body.height
+
+    onHeightChanged: {
+        //console.log("Expander " + title + " height: " + height + " header: " + m_header.height + " body: " + m_body.height + " state: " + m_root.state)
+    }
 
     function close() {
         m_root.state = "collapsed"

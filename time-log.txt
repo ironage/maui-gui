@@ -4,3 +4,5 @@ wed, 11 may 2016 - 2 hours: expander, color animation
 thur, 12 may 2016 - 3 hours: 3 step expander 
 mon, 16 may 2016 - 2 hours: layout, video element
 wed, 18 may 2016 - 1 hour: layout, start video controls
+thur, 19 may 2016 - 2 hours: video controls, start/end pins
+sun, 22 may 2016 - 2 hours: video controls, start button logic

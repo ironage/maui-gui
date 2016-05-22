@@ -15,7 +15,8 @@ QtObject {
     property color ui_text_style: "#343434"
     property color ui_border_color: "#181818"
     property int ui_border_width: 2
-    property color ui_color_red: "#C02E1D"
+    property color ui_color_light_red: "#e74c3c"
+    property color ui_color_dark_red: "#c0392b"
     property color ui_color_light_grey: "#95a5a6"
     property color ui_color_dark_grey: "#7f8c8d"
     property color ui_color_light_green: "#2ecc71"

@@ -10,7 +10,7 @@ Rectangle {
 
     x: (value * parent.width) - width/2
     anchors.bottom: parent.top
-    width: 16
+    width: 18
     height: width
     radius: width/2
     color: Style.ui_color_dark_dblue

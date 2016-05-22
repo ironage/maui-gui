@@ -10,6 +10,9 @@ Item {
     property alias border: m_rect.border
     property color color: Style.ui_component_bg
 
+    property color selected_color: Style.ui_component_selected
+    property color highlight_color: Style.ui_component_highlight
+
     signal clicked();
 
     width: m_text.implicitWidth + (2 * h_padding)
@@ -33,27 +36,27 @@ Item {
                 m_root.clicked()
             }
         }
+        states: [
+            State {
+                name: ""    // default
+                PropertyChanges { target: m_rect; color: m_root.color }
+            },
+            State {
+                name: "pressed"
+                PropertyChanges { target: m_rect; color: m_root.selected_color}
+                when: m_area.containsPress
+            },
+            State {
+                name: "hover"
+                PropertyChanges { target: m_rect; color: m_root.highlight_color}
+                when: m_area.containsMouse && !m_area.containsPress
+            }
+        ]
+        transitions: [
+               Transition {
+                   from: "*"; to: "*"
+                   ColorAnimation { target: m_rect; properties: "color"; duration: 100 }
+               }
+           ]
     }
-    states: [
-        State {
-            name: ""    // default
-            PropertyChanges { target: m_rect; color: Style.ui_component_bg}
-        },
-        State {
-            name: "pressed"
-            PropertyChanges { target: m_rect; color: Style.ui_component_selected}
-            when: m_area.containsPress
-        },
-        State {
-            name: "hover"
-            PropertyChanges { target: m_rect; color: Style.ui_component_highlight}
-            when: m_area.containsMouse && !m_area.containsPress
-        }
-    ]
-    transitions: [
-           Transition {
-               from: "*"; to: "*"
-               ColorAnimation { target: m_rect; properties: "color"; duration: 100 }
-           }
-       ]
 }

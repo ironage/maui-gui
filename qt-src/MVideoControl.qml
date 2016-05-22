@@ -5,19 +5,22 @@ import "."
 Item {
     id: m_root
     width: 10
-    height: 10
+    height: 15
     property double progress: 0
     property alias start_percent: m_start_pin.value
     property alias end_percent: m_end_pin.value
+    property bool movable: true
 
     signal setProgress(double percent)
 
     onProgressChanged: {
-        if (progress < start_percent) {
-            start_percent = progress
-        }
-        if (progress > end_percent) {
-            end_percent = progress
+        if (movable) {
+            if (progress < start_percent) {
+                start_percent = progress
+            }
+            if (progress > end_percent) {
+                end_percent = progress
+            }
         }
     }
 

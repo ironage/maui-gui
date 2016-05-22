@@ -8,24 +8,30 @@ Item {
     property alias duration: m_player.duration
     property double progress_min: 0.0
     property double progress_max: 1.0
+    property alias playback_state: m_player.playbackState
 
 
     function seek(offset) {
         m_player.seek(offset)
     }
+    function play() {
+        m_player.play()
+    }
+    function pause() {
+        m_player.pause()
+    }
 
     onProgress_minChanged: {
-        if (progress < progress_min) {
-            m_player.seek(progress_min * m_player.duration)
+        if (m_player.playbackState === MediaPlayer.PlayingState) {
+            m_player.pause()
         }
+        m_player.seek(progress_min * m_player.duration)
     }
     onProgress_maxChanged: {
-        if (progress > progress_max) {
-            if (m_player.playbackState === MediaPlayer.PlayingState) {
-                m_player.pause()
-            }
-            m_player.seek(progress_max * m_player.duration)
+        if (m_player.playbackState === MediaPlayer.PlayingState) {
+            m_player.pause()
         }
+        m_player.seek(progress_max * m_player.duration)
     }
 
     Rectangle {
@@ -35,6 +41,7 @@ Item {
 
     MediaPlayer {
         id: m_player
+        property bool show_first_frame: false
         onPositionChanged: {
             if (duration > 0) {
                 m_root.progress = (position / duration)
@@ -43,17 +50,25 @@ Item {
                 }
                 if (position > duration * progress_max) {
                     seek(duration * progress_max)
-                    if (playbackState === MediaPlayer.playbackState) {
-                        stop()
+                    if (playbackState === MediaPlayer.PlayingState) {
+                        pause()
                     }
                 }
             } else {
                 m_root.progress = 0
             }
         }
+        onBufferProgressChanged: {
+            if (show_first_frame && bufferProgress >= 1.0) {
+                show_first_frame = false
+                play()
+                seek(1)
+                pause()
+            }
+        }
+
         onDurationChanged: {
-            pause()
-            seek(0)
+            show_first_frame = true
         }
     }
 

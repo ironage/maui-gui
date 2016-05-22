@@ -158,20 +158,63 @@ ApplicationWindow {
                 Layout.margins: Style.h_padding
                 progress_min: m_video_control.start_percent
                 progress_max: m_video_control.end_percent
+                onSourceChanged: {
+                    start.state = "ready"
+                }
             }
             RowLayout {
                 MButton {
                     id: start
                     text: "Start"
-                    color: Style.ui_color_red
                     Layout.leftMargin: Style.h_padding
                     Layout.rightMargin: Style.h_padding
                     Layout.bottomMargin: Style.v_padding
-                    //onClicked: Qt.quit();
+                    state: "not_ready"
+                    onClicked: {
+                        if (state === "ready") {
+                            m_video.play()
+                            state = "playing"
+                        } else if (state === "playing") {
+                            m_video.pause()
+                            state = "ready"
+                        }
+                    }
+
+                    states: [
+                        State {
+                            name: "not_ready"
+                            PropertyChanges { target: start; color: Style.ui_color_dark_red }
+                            PropertyChanges { target: start; highlight_color: Style.ui_color_light_red }
+                            PropertyChanges { target: start; selected_color: Style.ui_color_dark_red }
+                            PropertyChanges { target: start; text: "Start" }
+                        },
+                        State {
+                            name: "ready"
+                            PropertyChanges { target: start; color: Style.ui_color_dark_green }
+                            PropertyChanges { target: start; highlight_color: Style.ui_color_light_green }
+                            PropertyChanges { target: start; selected_color: Style.ui_color_dark_green }
+                            PropertyChanges { target: start; text: "Play" }
+                        },
+                        State {
+                            name: "playing"
+                            PropertyChanges { target: start; color: Style.ui_color_dark_grey }
+                            PropertyChanges { target: start; highlight_color: Style.ui_color_light_grey }
+                            PropertyChanges { target: start; selected_color: Style.ui_color_dark_grey }
+                            PropertyChanges { target: start; text: "Pause" }
+                        }
+
+                    ]
+                    transitions: [
+                        Transition {
+                            from: "*"; to: "*"
+                            ColorAnimation { target: start; properties: "color"; duration: 100 }
+                        }
+                    ]
                 }
                 MVideoControl {
                     id: m_video_control
                     progress: m_video.progress
+                    movable: m_video.playback_state !== MediaPlayer.PlayingState
                     onSetProgress: m_video.seek(percent * m_video.duration)
                     Layout.fillWidth: true
                     Layout.bottomMargin: Style.v_padding

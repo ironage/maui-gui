@@ -27,6 +27,7 @@ Item {
 
         MText {
             id: m_text
+            anchors.centerIn: parent
         }
         MouseArea {
             id: m_area

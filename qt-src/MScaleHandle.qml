@@ -2,45 +2,48 @@ import QtQuick 2.2
 import "."
 
 Rectangle {
-    id: root
+    id: m_root
     color: "transparent"
     radius: 5
-    property alias value: grip.value
-    property color gripColor: "transparent"
+    property alias h_value: grip.h_value
+    property alias v_value: grip.v_value
+    property color fill_color: Style.ui_color_dark_dblue
+    property color stroke_color: Style.ui_color_dark_dblue
+    property color fill_color_highlight: Style.ui_color_light_dblue
+    property color stroke_color_highlight: Style.ui_color_light_dblue
     property real gripSize: 20
     property real increment: 0.1
     property bool enabled: true
+    property real bound_width: parent.width
+    property real bound_height: parent.height
+    property alias alpha: grip.alpha
+    width: grip.width
+    height: grip.height
 
-//    Rectangle {
-//        id: grip
-//        property real value: 0.5
-//        x: (value * parent.width) - width/2
-//        anchors.verticalCenter: parent.verticalCenter
-//        width: root.gripSize
-//        height: width
-//        radius: width/2
-//        color: "red"
     MTriangle {
         id: grip
-        property real value: 0.5
-        x: (value * parent.width) - width/2
-        //anchors.verticalCenter: parent.verticalCenter
-        //anchors.left: parent.right
-        //anchors.verticalCenter: parent.top
-        triangle_width: root.gripSize
+        property real h_value: 0.5
+        property real v_value: 0.5
+        x: (h_value * m_root.bound_width)
+        y: (v_value * m_root.bound_height) - (height/2)
+        triangle_width: m_root.gripSize
         triangle_height: triangle_width
-        stroke_color: Style.ui_color_light_dblue
-        fill_color: Style.ui_color_dark_dblue
+        stroke_color: m_root.stroke_color
+        fill_color: m_root.fill_color
+        stroke_color_highlight: m_root.stroke_color_highlight
+        fill_color_highlight: m_root.fill_color_highlight
 
         MouseArea {
             id: mouseArea
-            enabled: root.enabled
+            enabled: m_root.enabled
             anchors.fill:  parent
             drag {
                 target: grip
-                axis: Drag.XAxis
-                minimumX: -parent.width/2
-                maximumX: root.width - parent.width/2
+                axis: Drag.XAndYAxis
+                minimumX: 0
+                maximumX: m_root.bound_width - (grip.width)
+                minimumY: -(grip.height/2)
+                maximumY: m_root.bound_height - (grip.height/2)
                 threshold: Style.drag_threshold
             }
             onPositionChanged:  {
@@ -51,7 +54,8 @@ Rectangle {
                 updatePosition()
             }
             function updatePosition() {
-                value = (grip.x + grip.width/2) / grip.parent.width
+                h_value = (grip.x) / m_root.bound_width
+                v_value = (grip.y + (grip.height/2)) / m_root.bound_height
             }
         }
     }

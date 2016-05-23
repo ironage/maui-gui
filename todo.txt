@@ -1,7 +1,10 @@
-
--scrollbar
 -load video (+OpenCV)
 -ruler, vertical lines + adjustable mm/cm scale
+	- adjust cm/mm
+	- adjust numerics
+	- adjust visible via expander open
+	- horizontal lines on press
+	- bounds check (no negative line)
 -roi box
 -3 dot adjustable line
 -interface specs for matlab library

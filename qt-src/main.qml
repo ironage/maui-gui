@@ -60,11 +60,6 @@ ApplicationWindow {
                                 Layout.alignment: Qt.AlignCenter
                                 onClicked: videoSelectDialog.open()
                             }
-                            MButton {
-                                id: test_temp
-                                text: "Test"
-                                Layout.alignment: Qt.AlignCenter
-                            }
                             Item {
                                 width: parent.width
                                 height: leftPanel.body_v_padding
@@ -90,7 +85,7 @@ ApplicationWindow {
                             }
                             MButton {
                                 id: cal_crop
-                                text: "Crop ROI"
+                                text: "Show scale"
                                 Layout.alignment: Qt.AlignCenter
                             }
                             MButton {
@@ -160,6 +155,12 @@ ApplicationWindow {
                 progress_max: m_video_control.end_percent
                 onSourceChanged: {
                     start.state = "ready"
+                }
+                onPlayback_stateChanged: {
+                    if (playback_state === MediaPlayer.PausedState
+                            || playback_state === MediaPlayer.StoppedState) {
+                        start.state = "ready"
+                    }
                 }
             }
             RowLayout {

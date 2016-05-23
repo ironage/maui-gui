@@ -10,5 +10,8 @@
         <file>MVideoControl.qml</file>
         <file>MVideoDisplay.qml</file>
         <file>MPin.qml</file>
+        <file>MScaleAdjuster.qml</file>
+        <file>MScaleHandle.qml</file>
+        <file>MTriangle.qml</file>
     </qresource>
 </RCC>

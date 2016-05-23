@@ -26,4 +26,5 @@ QtObject {
 
     property int h_padding: 10
     property int v_padding: 10
+    property int drag_threshold: 1
 }

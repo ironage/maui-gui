@@ -24,6 +24,7 @@ Rectangle {
             axis: Drag.XAxis
             minimumX: -parent.width/2
             maximumX: width_bound - parent.width/2
+            threshold: Style.drag_threshold
         }
         onPositionChanged:  {
             if (drag.active)

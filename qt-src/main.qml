@@ -162,6 +162,9 @@ ApplicationWindow {
                         start.state = "ready"
                     }
                 }
+                MScaleAdjuster {
+                    id: scale
+                }
             }
             RowLayout {
                 MButton {

@@ -12,7 +12,14 @@ Rectangle {
     property alias gripSize: slider.gripSize
     property real alpha: 0.70
     property int end_mark_width: 5
+    property int min_line_height: 20
 
+    MText {
+        text: "10 cm"
+        x: line.x + slider.width
+        y: line.y + (line.height/2) - (width/2)
+        transform: Rotation { origin.x: 0; origin.y: 0; angle: 90}
+    }
     MScaleHandle {
         id: slider
         increment: 0.0
@@ -20,22 +27,10 @@ Rectangle {
         alpha: m_root.alpha
         v_value: 0.25
         h_value: 0.80
+        onH_valueChanged: if (slider2 !== null) slider2.h_value = slider.h_value
         fill_color_highlight: Style.ui_color_light_dblue
         stroke_color_highlight: Style.ui_color_light_dblue
-    }
-    MText {
-        text: "10 cm"
-        x: line.x + slider.width
-        y: line.y + (line.height/2) - (width/2)
-        transform: Rotation { origin.x: 0; origin.y: 0; angle: 90}
-    }
-    Rectangle {
-        x: line.x - end_mark_width
-        y: line.y
-        width: end_mark_width
-        color: line.color
-        opacity: alpha
-        height: 1
+        drag_specs.maximumY: (slider2.v_value * parent.height) - min_line_height - height
     }
     Rectangle {
         id: line
@@ -48,14 +43,6 @@ Rectangle {
         color: Style.ui_color_light_dblue
         opacity: alpha
     }
-    Rectangle {
-        x: line.x - end_mark_width
-        y: line.y + line.height - 1
-        width: end_mark_width
-        color: line.color
-        opacity: alpha
-        height: 1
-    }
     MScaleHandle {
         id: slider2
         increment: 0.0
@@ -66,5 +53,6 @@ Rectangle {
         onH_valueChanged: slider.h_value = slider2.h_value
         fill_color_highlight: Style.ui_color_light_dblue
         stroke_color_highlight: Style.ui_color_light_dblue
+        drag_specs.minimumY: (slider.v_value * parent.height) + min_line_height
     }
 }

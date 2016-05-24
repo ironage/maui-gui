@@ -7,6 +7,7 @@ Item {
 
     property alias title: m_header.text
     property alias payload: m_loader.sourceComponent
+    property alias loader_item: m_loader.item
     property alias override_width: m_header.width
     //width: m_header.width
     height: m_header.height + m_body.height
@@ -17,9 +18,11 @@ Item {
 
     function close() {
         m_root.state = "collapsed"
+        closed()
     }
     function open() {
         m_root.state = "expanded"
+        opened()
     }
 
     signal opened()

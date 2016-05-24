@@ -37,13 +37,13 @@ Canvas {
             when: ma1.containsMouse
         }
     ]
-    transitions: [
-           Transition {
-               from: "*"; to: "*"
-               ColorAnimation { target: triangle; properties: "stroke_color"; duration: 1000 }
-               ColorAnimation { target: triangle; properties: "fill_color"; duration: 1000 }
-           }
-       ]
+//    transitions: [
+//           Transition {
+//               from: "*"; to: "*"
+//               ColorAnimation { target: triangle; properties: "stroke_color"; duration: 1000 }
+//               ColorAnimation { target: triangle; properties: "fill_color"; duration: 1000 }
+//           }
+//       ]
 
     onCur_fill_colorChanged: requestPaint()
     onCur_stroke_colorChanged: requestPaint()

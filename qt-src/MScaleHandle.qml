@@ -17,9 +17,22 @@ Rectangle {
     property real bound_width: parent.width
     property real bound_height: parent.height
     property alias alpha: grip.alpha
+    property int end_mark_width: 10
+    property alias drag_specs: mouse_area.drag
+
     width: grip.width
     height: grip.height
 
+    Rectangle {
+        id: end_line
+        x: grip.x + 1
+        width: end_mark_width
+        y: grip.y + (grip.height/2) + 1
+        color: stroke_color
+        opacity: grip.alpha
+        height: 1
+        transform: Rotation { origin.x: 0; origin.y: 0; angle: 180 }
+    }
     MTriangle {
         id: grip
         property real h_value: 0.5
@@ -34,7 +47,7 @@ Rectangle {
         fill_color_highlight: m_root.fill_color_highlight
 
         MouseArea {
-            id: mouseArea
+            id: mouse_area
             enabled: m_root.enabled
             anchors.fill:  parent
             drag {
@@ -59,4 +72,28 @@ Rectangle {
             }
         }
     }
+    states: [
+        State {
+            name: ""
+            PropertyChanges { target: end_line; width: end_mark_width; }
+        },
+        State {
+            name: "expanded"
+            PropertyChanges { target: end_line; width: end_line.x }
+            when: mouse_area.pressed
+        }
+    ]
+    transitions: [
+        Transition {
+            from: "expanded"
+            to: ""
+            PropertyAnimation { target: end_line; property: "width"; duration: 400; easing.type: Easing.OutCubic }
+        },
+        Transition {
+            from: ""
+            to: "expanded"
+            PropertyAnimation { target: end_line; property: "width"; duration: 400; easing.type: Easing.OutCubic }
+        }
+    ]
+
 }

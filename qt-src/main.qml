@@ -1,4 +1,4 @@
-import QtQuick 2.4
+import QtQuick 2.5
 import QtQuick.Window 2.2
 import QtQuick.Controls 1.4
 import QtQuick.Layouts 1.1
@@ -47,7 +47,6 @@ ApplicationWindow {
                         calibration.close()
                         wall_detection.close()
                     }
-
                     payload: Component {
                         ColumnLayout {
                             Item {
@@ -75,23 +74,43 @@ ApplicationWindow {
                     onOpened: {
                         wall_detection.close()
                         import_video.close()
+                        scale.visible = true
+                    }
+                    onClosed: {
+                        scale.visible = false
+                        loader_item.focused = true
                     }
 
-                    payload: Component {
+                    payload: Item {
+                        width: childrenRect.width
+                        height: childrenRect.height
+                        property bool focused: false
+                        property string scale: scale_input.text
+                        property string units: scale_units.currentText
                         ColumnLayout {
                             Item {
                                 width: parent.width
                                 height: leftPanel.body_v_padding
                             }
-                            MButton {
-                                id: cal_crop
-                                text: "Show scale"
-                                Layout.alignment: Qt.AlignCenter
+                            MTextInput {
+                                id: scale_input
+                                text: "10"
+                                width: 20
+                                placeholderText: "Scale"
+                                validator: DoubleValidator{bottom: 0.01; top: 999.0; decimals: 4; notation: DoubleValidator.StandardNotation}
+                                horizontalAlignment: TextInput.AlignHCenter
+                                onAccepted: focus = false
+                                onEditingFinished: focus = false
                             }
-                            MButton {
-                                id: cal_select
-                                text: "Select Pixel Boundaries"
-                                Layout.alignment: Qt.AlignCenter
+                            MCombobox {
+                                id: scale_units
+                                width: 50
+                                model: ListModel {
+                                        id: cbItems
+                                        ListElement { text: "mm"; color: "Yellow" }
+                                        ListElement { text: "cm"; color: "Green" }
+                                        ListElement { text: "inches"; color: "Brown" }
+                                    }
                             }
                             Item {
                                 width: parent.width
@@ -164,6 +183,7 @@ ApplicationWindow {
                 }
                 MScaleAdjuster {
                     id: scale
+                    visible: false
                 }
             }
             RowLayout {

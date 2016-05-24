@@ -13,5 +13,7 @@
         <file>MScaleAdjuster.qml</file>
         <file>MScaleHandle.qml</file>
         <file>MTriangle.qml</file>
+        <file>MTextInput.qml</file>
+        <file>MCombobox.qml</file>
     </qresource>
 </RCC>

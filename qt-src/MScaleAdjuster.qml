@@ -13,8 +13,10 @@ Rectangle {
     property real alpha: 0.70
     property int end_mark_width: 5
     property int min_line_height: 20
+    property alias text: m_text.text
 
     MText {
+        id: m_text
         text: "10 cm"
         x: line.x + slider.width
         y: line.y + (line.height/2) - (width/2)

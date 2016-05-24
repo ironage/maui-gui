@@ -71,6 +71,8 @@ ApplicationWindow {
                     title: "Step 2: Calibration"
                     override_width: leftPanel.header_width
                     anchors.top: import_video.bottom
+                    property string scale: loader_item.scale
+                    property string units: loader_item.units
                     onOpened: {
                         wall_detection.close()
                         import_video.close()
@@ -80,13 +82,20 @@ ApplicationWindow {
                         scale.visible = false
                         loader_item.focused = true
                     }
+                    MouseArea { anchors.fill: parent; onClicked: { loader_item.focused = false } }
 
                     payload: Item {
                         width: childrenRect.width
                         height: childrenRect.height
                         property bool focused: false
-                        property string scale: scale_input.text
-                        property string units: scale_units.currentText
+                        property alias scale: scale_input.text
+                        property alias units: scale_units.currentText
+                        onFocusedChanged: {
+                            if (!focused) {
+                                scale_input.check()
+                            }
+                        }
+
                         ColumnLayout {
                             Item {
                                 width: parent.width
@@ -97,10 +106,17 @@ ApplicationWindow {
                                 text: "10"
                                 width: 20
                                 placeholderText: "Scale"
+                                borderColor: acceptableInput ? Style.ui_component_highlight : Style.ui_color_light_red
                                 validator: DoubleValidator{bottom: 0.01; top: 999.0; decimals: 4; notation: DoubleValidator.StandardNotation}
                                 horizontalAlignment: TextInput.AlignHCenter
-                                onAccepted: focus = false
-                                onEditingFinished: focus = false
+                                onAccepted: check()
+                                onEditingFinished: check()
+                                function check() {
+                                    focus = false
+                                    if (!acceptableInput) {
+                                        text = "10"
+                                    }
+                                }
                             }
                             MCombobox {
                                 id: scale_units
@@ -109,7 +125,7 @@ ApplicationWindow {
                                         id: cbItems
                                         ListElement { text: "mm"; color: "Yellow" }
                                         ListElement { text: "cm"; color: "Green" }
-                                        ListElement { text: "inches"; color: "Brown" }
+                                        ListElement { text: "in"; color: "Brown" }
                                     }
                             }
                             Item {
@@ -184,6 +200,8 @@ ApplicationWindow {
                 MScaleAdjuster {
                     id: scale
                     visible: false
+                    text: calibration.scale + " " + calibration.units
+
                 }
             }
             RowLayout {

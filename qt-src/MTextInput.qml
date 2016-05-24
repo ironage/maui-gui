@@ -6,7 +6,7 @@ import "."
 TextField {
     id: textField
     height: 40;
-    width: 175;
+    width: 75;
 
     property string borderColor: focus ? Style.ui_component_highlight : Style.ui_component_bg;
     property color backgroundColor: disabled ? "#f7f9f9" : "white";

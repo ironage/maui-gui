@@ -28,6 +28,17 @@ Item {
     signal opened()
     signal closed()
 
+    onOpened: {
+        if (loader_item != null) {
+            loader_item.enabled = true
+        }
+    }
+    onClosed: {
+        if (loader_item != null) {
+            loader_item.enabled = false
+        }
+    }
+
     ColumnLayout {
         MButton {
             id: m_header

@@ -80,21 +80,14 @@ ApplicationWindow {
                     }
                     onClosed: {
                         scale.visible = false
-                        loader_item.focused = true
                     }
                     MouseArea { anchors.fill: parent; onClicked: { loader_item.focused = false } }
 
                     payload: Item {
                         width: childrenRect.width
                         height: childrenRect.height
-                        property bool focused: false
-                        property alias scale: scale_input.text
+                        property string scale: scale_input.acceptableInput ? scale_input.text : 1
                         property alias units: scale_units.currentText
-                        onFocusedChanged: {
-                            if (!focused) {
-                                scale_input.check()
-                            }
-                        }
 
                         ColumnLayout {
                             Item {
@@ -109,14 +102,6 @@ ApplicationWindow {
                                 borderColor: acceptableInput ? Style.ui_component_highlight : Style.ui_color_light_red
                                 validator: DoubleValidator{bottom: 0.01; top: 999.0; decimals: 4; notation: DoubleValidator.StandardNotation}
                                 horizontalAlignment: TextInput.AlignHCenter
-                                onAccepted: check()
-                                onEditingFinished: check()
-                                function check() {
-                                    focus = false
-                                    if (!acceptableInput) {
-                                        text = "10"
-                                    }
-                                }
                             }
                             MCombobox {
                                 id: scale_units

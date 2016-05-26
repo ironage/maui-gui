@@ -25,7 +25,7 @@ Rectangle {
 
     Rectangle {
         id: end_line
-        x: grip.x + 1
+        x: grip.x - 1
         width: end_mark_width
         y: grip.y + (grip.height/2) + 1
         color: stroke_color

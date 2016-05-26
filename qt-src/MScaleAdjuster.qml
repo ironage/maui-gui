@@ -30,20 +30,32 @@ Rectangle {
         v_value: 0.25
         h_value: 0.80
         onH_valueChanged: if (slider2 !== null) slider2.h_value = slider.h_value
-        fill_color_highlight: Style.ui_color_light_dblue
-        stroke_color_highlight: Style.ui_color_light_dblue
+        fill_color_highlight: Style.ui_color_light_red
+        stroke_color_highlight: Style.ui_color_light_red
+        fill_color: Style.ui_color_dark_red
+        stroke_color: Style.ui_color_dark_red
         drag_specs.maximumY: (slider2.v_value * parent.height) - min_line_height - height
     }
     Rectangle {
         id: line
-        x: (parent.h_value * parent.width) + 1
+        x: (parent.h_value * parent.width) - 2
         y: parent.top_v_value * parent.height
         height: (parent.bottom_v_value - parent.top_v_value) * parent.height + 1
-        width: 4
-        border.width: 2
-        border.color: Style.ui_color_dark_dblue
-        color: Style.ui_color_light_dblue
+        width: 6
+        color: slider.fill_color
         opacity: alpha
+        MouseArea {
+            width: parent.width
+            height: parent.height
+            hoverEnabled: true
+            onHoveredChanged: {
+                if (containsMouse) {
+                    line.color = slider.fill_color_highlight
+                } else {
+                    line.color = slider.fill_color
+                }
+            }
+        }
     }
     MScaleHandle {
         id: slider2
@@ -53,8 +65,10 @@ Rectangle {
         v_value: 0.75
         h_value: slider.h_value
         onH_valueChanged: slider.h_value = slider2.h_value
-        fill_color_highlight: Style.ui_color_light_dblue
-        stroke_color_highlight: Style.ui_color_light_dblue
+        fill_color_highlight: slider.fill_color_highlight
+        stroke_color_highlight: slider.stroke_color_highlight
+        fill_color: slider.fill_color
+        stroke_color: slider.stroke_color
         drag_specs.minimumY: (slider.v_value * parent.height) + min_line_height
     }
 }

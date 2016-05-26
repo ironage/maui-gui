@@ -27,7 +27,7 @@ Item {
     Rectangle {
         width: m_root.width
         height: m_root.height
-        color: Style.ui_color_light_grey
+        color: Style.ui_color_light_green
         MouseArea {
             anchors.fill: parent
             onPositionChanged:  {
@@ -42,11 +42,6 @@ Item {
             }
         }
         Rectangle {
-            width: m_root.progress * m_root.width
-            height: m_root.height
-            color: Style.ui_color_light_green
-        }
-        Rectangle {
             color: Style.ui_color_dark_grey
             height: parent.height
             anchors.left: parent.left
@@ -57,6 +52,12 @@ Item {
             height: parent.height
             anchors.left: m_end_pin.horizontalCenter
             anchors.right: parent.right
+        }
+        Rectangle {
+            x: (m_root.progress * m_root.width) - 1
+            width: 3
+            height: m_root.height
+            color: Style.ui_color_light_red
         }
         MPin {
             id: m_start_pin

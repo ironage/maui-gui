@@ -7,13 +7,15 @@ Rectangle {
 
     property int width_bound: parent.width
     property bool enabled: true
+    property color selected_color: Style.ui_color_light_red
+    property color idle_color: Style.ui_color_dark_dblue
 
     x: (value * parent.width) - width/2
     anchors.bottom: parent.top
     width: 18
     height: width
     radius: width/2
-    color: Style.ui_color_dark_dblue
+    color: idle_color
 
     MouseArea {
         id: mouseArea
@@ -31,8 +33,13 @@ Rectangle {
                 updatePosition()
         }
         onReleased: {
+            grip.color = grip.idle_color
             updatePosition()
         }
+        onPressed: {
+            grip.color = grip.selected_color
+        }
+
         function updatePosition() {
             grip.value = (grip.x + grip.width/2) / width_bound
         }

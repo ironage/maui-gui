@@ -1,7 +1,4 @@
 -load video (+OpenCV)
--ruler, vertical lines + adjustable mm/cm scale
-	- adjust cm/mm
-	- adjust numerics
 -roi box
 -3 dot adjustable line
 -interface specs for matlab library
@@ -14,3 +11,21 @@
 
 -frameless window     flags: Qt.FramelessWindowHint
 -installer
+
+
+Feedback from meeting with Jason 26-05-2016
+-preview on first frame
+-red crop indication on cur frame
+-reset video con
+-green is valid middle of slider
+-red line indicates progress
+-frame number on drag of crop bars
+-start button goes to restart if at end of video
+-click to move ruler scale horizontally
+-Process button into fourth panel with check stats
+
+Future tasks:
+-reset button
+-open image for one frame processing
+-batch image processing
+-output csv data

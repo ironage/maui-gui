@@ -11,7 +11,7 @@ Rectangle {
     property color stroke_color: Style.ui_color_dark_dblue
     property color fill_color_highlight: Style.ui_color_light_dblue
     property color stroke_color_highlight: Style.ui_color_light_dblue
-    property real gripSize: 20
+    property real gripSize: 22
     property real increment: 0.1
     property bool enabled: true
     property real bound_width: parent.width

@@ -12,7 +12,7 @@ Rectangle {
     property alias gripSize: slider.gripSize
     property real alpha: 0.70
     property int end_mark_width: 5
-    property int min_line_height: 20
+    property int min_line_height: 1
     property alias text: m_text.text
 
     MText {
@@ -34,26 +34,46 @@ Rectangle {
         stroke_color_highlight: Style.ui_color_light_red
         fill_color: Style.ui_color_dark_red
         stroke_color: Style.ui_color_dark_red
-        drag_specs.maximumY: (slider2.v_value * parent.height) - min_line_height - height
+        drag_specs.maximumY: (slider2.v_value * parent.height) - min_line_height - (height / 2)
     }
     Rectangle {
         id: line
-        x: (parent.h_value * parent.width) - 2
+        x: (parent.h_value * parent.width) - 1
         y: parent.top_v_value * parent.height
-        height: (parent.bottom_v_value - parent.top_v_value) * parent.height + 1
-        width: 6
-        color: slider.fill_color
+        height: line_area.drag.active ? saved_height : (parent.bottom_v_value - parent.top_v_value) * parent.height + 1
+        property int saved_height: 10
+        width: 5
+        color: line_area.containsMouse || line_area.drag.active ? slider.fill_color_highlight : slider.fill_color
         opacity: alpha
         MouseArea {
-            width: parent.width
-            height: parent.height
+            id: line_area
+            enabled: m_root.enabled
+            anchors.fill:  parent
             hoverEnabled: true
-            onHoveredChanged: {
-                if (containsMouse) {
-                    line.color = slider.fill_color_highlight
-                } else {
-                    line.color = slider.fill_color
-                }
+            drag {
+                target: line
+                axis: Drag.XAndYAxis
+                minimumX: -1
+                maximumX: m_root.width - slider.width - 1
+                minimumY: 0
+                maximumY: m_root.height - line_area.height
+                threshold: Style.drag_threshold
+            }
+            onPositionChanged:  {
+                if (drag.active)
+                    updatePosition()
+            }
+            onPressed: {
+                line.saved_height = line.height
+            }
+
+            onReleased: {
+                updatePosition()
+            }
+            function updatePosition() {
+                h_value = (line.x + 1) / m_root.width
+                top_v_value = (line.y / m_root.height)
+                bottom_v_value = (line.saved_height - 1) / m_root.height + m_root.top_v_value
             }
         }
     }
@@ -69,6 +89,6 @@ Rectangle {
         stroke_color_highlight: slider.stroke_color_highlight
         fill_color: slider.fill_color
         stroke_color: slider.stroke_color
-        drag_specs.minimumY: (slider.v_value * parent.height) + min_line_height
+        drag_specs.minimumY: (slider.v_value * parent.height) + min_line_height - (height / 2)
     }
 }

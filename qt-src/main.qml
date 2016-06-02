@@ -195,7 +195,7 @@ ApplicationWindow {
                     text: "Start"
                     Layout.leftMargin: Style.h_padding
                     Layout.rightMargin: Style.h_padding
-                    Layout.bottomMargin: Style.v_padding
+                    Layout.bottomMargin: Style.v_padding * 2
                     state: "not_ready"
                     onClicked: {
                         if (state === "ready") {

@@ -1,9 +1,12 @@
 import QtQuick 2.0
 import QtMultimedia 5.5
+import QtGraphicalEffects 1.0
+
+import com.maui.custom 1.0  // MMediaPlayer.h
 
 Item {
     id: m_root
-    property alias source: m_player.source
+    property alias source: m_player.sourceFile
     property double progress: 0
     property alias duration: m_player.duration
     property double progress_min: 0.0
@@ -38,8 +41,11 @@ Item {
         anchors.fill: parent
         color: "black"
     }
+    MOCVSource {
+        id: m_ocv_source
+    }
 
-    MediaPlayer {
+    MMediaPlayer {
         id: m_player
         property bool show_first_frame: false
         onPositionChanged: {
@@ -58,23 +64,30 @@ Item {
                 m_root.progress = 0
             }
         }
-        onBufferProgressChanged: {
-            if (show_first_frame && bufferProgress >= 1.0) {
-                show_first_frame = false
-                play()
-                seek(1)
-                pause()
-            }
-        }
-
-        onDurationChanged: {
-            show_first_frame = true
-        }
+//        onBufferProgressChanged: {
+//            if (show_first_frame && bufferProgress >= 1.0) {
+//                show_first_frame = false
+//                play()
+//                seek(1)
+//                pause()
+//            }
+//        }
+//        onDurationChanged: {
+//            show_first_frame = true
+//        }
     }
 
     VideoOutput {
+        id: output
         anchors.fill: parent
         source: m_player
+        //visible: false
+    }
+    GaussianBlur {
+        anchors.fill: parent
+        source: output
+        radius: 8
+        samples: 16
     }
 
     focus: true

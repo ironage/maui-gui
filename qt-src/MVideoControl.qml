@@ -10,6 +10,7 @@ Item {
     property alias start_percent: m_start_pin.value
     property alias end_percent: m_end_pin.value
     property bool movable: true
+    property int totalFrames: 0
 
     signal setProgress(double percent)
 
@@ -62,10 +63,12 @@ Item {
         MPin {
             id: m_start_pin
             value: 0.0
+            description: totalFrames === 0 ? "" : value * totalFrames
         }
         MPin {
             id: m_end_pin
             value: 1.0
+            description: totalFrames === 0 ? "" : value * totalFrames
         }
     }
 }

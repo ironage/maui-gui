@@ -5,7 +5,8 @@ OPENCV_LIBS = $$(OPENCV_DIR)\build\x64\vc12\lib
 
 SOURCES += main.cpp \
     mmediaplayer.cpp \
-    mcvsource.cpp
+    mcvsource.cpp \
+    mcvplayer.cpp
 
 QT += qml quick multimedia
 CONFIG += c++11
@@ -24,6 +25,5 @@ LIBS += -lopencv_core2413 -lopencv_highgui2413 -lopencv_imgproc2413 -lopencv_vid
 
 HEADERS += \
     mmediaplayer.h \
-    mcvsource.h
-
-message("libs= $$LIBS")
+    mcvsource.h \
+    mcvplayer.h

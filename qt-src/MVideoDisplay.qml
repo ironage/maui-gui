@@ -92,6 +92,15 @@ Item {
         anchors.fill: parent
         source: cv_player
         //visible: false
+        onWidthChanged: {
+            setSize()
+        }
+        onHeightChanged: {
+            setSize()
+        }
+        function setSize() {
+            cv_player.size = Qt.size(output.width, output.height)
+        }
     }
 //    GaussianBlur {
 //        anchors.fill: parent

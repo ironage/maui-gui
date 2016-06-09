@@ -39,7 +39,6 @@ public slots:
 signals:
     void sizeChanged();
 private:
-    void process();
 
 #ifdef ANDROID
     const QVideoFrame::PixelFormat VIDEO_OUTPUT_FORMAT = QVideoFrame::PixelFormat::Format_YV12;
@@ -50,7 +49,6 @@ private:
     QAbstractVideoSurface *m_surface;
     QVideoSurfaceFormat m_format;
     QString sourceFile;
-    //cv::VideoCapture cvSource;
     QVideoFrame curFrame;
 
     QSize size;

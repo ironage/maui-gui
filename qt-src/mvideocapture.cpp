@@ -48,6 +48,11 @@ bool MVideoCapture::open(int device)
     return capture.open(device);
 }
 
+bool MVideoCapture::open(std::string filename)
+{
+    return capture.open(filename);
+}
+
 double MVideoCapture::getProperty(int propIdx)
 {
     return capture.get(propIdx);

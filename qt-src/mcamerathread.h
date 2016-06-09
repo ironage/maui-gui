@@ -148,12 +148,10 @@ public:
      * @brief Asks the camera loop to stop
      */
     void stop();
-
 private:
 
     QThread workerThread;               ///< The thread that the camera will work in
     CameraTask* task = NULL;            ///< The camera loop method and parameter container
-
 signals:
 
     /**

@@ -16,28 +16,43 @@
 #include "mvideocapture.h"
 #include "mcamerathread.h"
 
+#include <QMediaPlayer>
+
 class MCVPlayer : public QObject
 {
     Q_OBJECT
-    Q_PROPERTY(QString sourceFile READ getSourceFile WRITE setSourceFile )
+    Q_PROPERTY(QString sourceFile READ getSourceFile WRITE setSourceFile NOTIFY sourceChanged)
     Q_PROPERTY(QAbstractVideoSurface *videoSurface READ videoSurface WRITE setVideoSurface)
     Q_PROPERTY(QSize size READ getSize WRITE setSize NOTIFY sizeChanged)
-
+    Q_PROPERTY(int duration READ getNumFrames NOTIFY videoPropertiesChanged)
+    Q_PROPERTY(int position READ getCurFrame WRITE setCurFrame NOTIFY curFrameChanged)
+    Q_PROPERTY(int playbackState READ getPlaybackState NOTIFY playbackStateChanged)
 public:
     MCVPlayer();
     ~MCVPlayer();
     QAbstractVideoSurface* videoSurface() const { return m_surface; }
 
     void setVideoSurface(QAbstractVideoSurface *surface);
-    static void matDeleter(void* mat) { delete static_cast<cv::Mat*>(mat); }
 public slots:
     void onNewVideoContentReceived(const QVideoFrame &frame);
     QString getSourceFile() { return sourceFile; }
     void setSourceFile(QString file);
     QSize getSize() const;
     void setSize(QSize size);
+    int getNumFrames() { return numFrames; }
+    int getCurFrame() { return curFrame; }
+    void setCurFrame(int newFrame);
+    int getPlaybackState();
+    void play();
+    void stop();
+    void pause();
+    void seek(int frame);
 signals:
     void sizeChanged();
+    void videoPropertiesChanged();
+    void curFrameChanged();
+    void playbackStateChanged();
+    void sourceChanged();
 private:
 
 #ifdef ANDROID
@@ -49,15 +64,18 @@ private:
     QAbstractVideoSurface *m_surface;
     QVideoSurfaceFormat m_format;
     QString sourceFile;
-    QVideoFrame curFrame;
 
+    int numFrames;
+    int curFrame;
     QSize size;
     MVideoCapture* camera = NULL;
     MCameraThread* thread = NULL;
     QVideoFrame* videoFrame = NULL;
     cv::Mat cvImage;
     unsigned char* cvImageBuf = NULL;
+    bool stopped;
     void update();
+    void updateVideoSettings();
     void allocateCvImage();
     void allocateVideoFrame();
 private slots:

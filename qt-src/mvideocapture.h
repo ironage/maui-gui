@@ -45,6 +45,7 @@ public:
     virtual ~MVideoCapture();
 
     bool open(int device);
+    bool open(std::string filename);
     double getProperty(int propIdx);
     bool setProperty(int propIdx, double propVal);
     bool grabFrame();

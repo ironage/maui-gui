@@ -7,7 +7,8 @@
 
 MCVPlayer::MCVPlayer() : QObject(),
     m_format(QSize(500, 500), QVideoFrame::Format_ARGB32),
-    m_surface(NULL)
+    m_surface(NULL),
+    stopped(true)
 {
 }
 
@@ -69,6 +70,18 @@ void MCVPlayer::allocateVideoFrame()
 #endif
 }
 
+void MCVPlayer::updateVideoSettings() {
+    if (camera) {
+        int videoWidth = camera->getProperty(CV_CAP_PROP_FRAME_WIDTH);
+        int videoHeight = camera->getProperty(CV_CAP_PROP_FRAME_HEIGHT);
+        size = QSize(videoWidth, videoHeight);
+        emit sizeChanged();
+
+        camera->getProperty(CV_CAP_PROP_FRAME_COUNT); // returns zero for non-video files
+        emit videoPropertiesChanged();
+    }
+}
+
 void MCVPlayer::update()
 {
     DPRINT("Opening camera %d, width: %d, height: %d", 0, size.width(), size.height());
@@ -87,12 +100,10 @@ void MCVPlayer::update()
 
     //Open newly created device
     try{
-        if(camera->open(0)){
-            int videoWidth = camera->getProperty(CV_CAP_PROP_FRAME_WIDTH);
-            int videoHeight = camera->getProperty(CV_CAP_PROP_FRAME_HEIGHT);
-            size = QSize(videoWidth, videoHeight);
+        if(camera->open(sourceFile.toStdString())){
+            updateVideoSettings();
+            emit sourceChanged();
             qDebug() << "starting video at size: " << size;
-            emit sizeChanged();
             //Create new buffers, camera accessor and thread
             allocateCvImage();
             if(m_surface)
@@ -107,11 +118,11 @@ void MCVPlayer::update()
                 if(!m_surface->start(QVideoSurfaceFormat(size,VIDEO_OUTPUT_FORMAT)))
                     qDebug() << "Could not start QAbstractVideoSurface, error: %d" << m_surface->error();
             }
-            thread->start();
-            qDebug() << "Opened camera 0";
+//            thread->start();
+            qDebug() << "Opened file: " << sourceFile;
         }
         else
-            qDebug() << "Could not open camera";
+            qDebug() << "Could not open video file: " << sourceFile;
     }
     catch(int e){
         qDebug() << "Exception" << e;
@@ -121,9 +132,15 @@ void MCVPlayer::update()
 void MCVPlayer::imageReceived()
 {
     //Update VideoOutput
-    if(m_surface)
-        if(!m_surface->present(*videoFrame))
+    if(m_surface) {
+        if(!m_surface->present(*videoFrame)) {
             qDebug() << "Could not present QVideoFrame to QAbstractVideoSurface, error: " << m_surface->error();
+        }
+        if (camera) {
+            curFrame = camera->getProperty(CV_CAP_PROP_POS_FRAMES);
+            emit curFrameChanged();
+        }
+    }
 }
 
 void MCVPlayer::onNewVideoContentReceived(const QVideoFrame &frame)
@@ -141,9 +158,52 @@ void MCVPlayer::setSourceFile(QString file)
     QUrl fileUrl(file);
     qDebug() << "source file set: " << fileUrl.path();;
     sourceFile = fileUrl.path();
-//    bool success = cvSource.open("/C:/Users/James/Documents/Programming/maui/maui-gui/videos/sample02.AVI");
-//    bool success = cvSource.open(0);
-    //m_format.setFrameSize(cvSource.get(3), cvSource.get(4));
+    if (sourceFile.size() > 1 && sourceFile.at(0) == QChar('/')) {
+        sourceFile.remove(0, 1);
+        qDebug() << "prefix / removed.";
+    }
+    update();
+}
 
-    //qDebug() << "opened? " << success;
+void MCVPlayer::play()
+{
+    if (thread) {
+        stopped = false;
+        thread->start();
+    }
+}
+
+void MCVPlayer::pause()
+{
+    stop();
+}
+
+void MCVPlayer::stop()
+{
+    if (thread) {
+        stopped = true;
+        thread->stop();
+    }
+}
+
+void MCVPlayer::setCurFrame(int frame)
+{
+    seek(frame);
+}
+
+int MCVPlayer::getPlaybackState()
+{
+    if (camera && thread && !stopped && curFrame < numFrames) {
+        return QMediaPlayer::PlayingState;
+    }
+    return QMediaPlayer::PausedState;
+}
+
+void MCVPlayer::seek(int frame)
+{
+    if (camera && thread) {
+        pause();
+        camera->setProperty(CV_CAP_PROP_POS_FRAMES, frame);
+        thread->step();
+    }
 }

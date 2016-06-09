@@ -154,8 +154,8 @@ void MCameraThread::stop()
 {
     if(task != NULL)
         task->stop();
+    workerThread.wait(1000);
     workerThread.quit();
     workerThread.wait();
     qDebug() << "MCameraThread::stopped";
 }
-

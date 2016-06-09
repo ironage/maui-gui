@@ -9,7 +9,7 @@ SOURCES += main.cpp \
     mvideocapture.cpp
 
 QT += qml quick multimedia
-CONFIG += c++11
+CONFIG += c++11 console
 
 RESOURCES += qml.qrc
 

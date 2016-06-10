@@ -44,6 +44,10 @@ Item {
 
     MCVPlayer {
         id: cv_player
+        onDurationChanged: {
+            console.log("duration changed to " + duration)
+        }
+
         onPositionChanged: {
             if (duration > 0) {
                 m_root.progress = (position / duration)

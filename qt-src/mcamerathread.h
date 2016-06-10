@@ -78,7 +78,7 @@ private:
         Seeking
     };
 
-#if defined(QT_DEBUG) && !defined(ANDROID) //Android camera has its own FPS debug info
+#if defined(SHOW_FRAMERATE) && !defined(ANDROID) //Android camera has its own FPS debug info
     const float CAM_FPS_RATE = 0.9f;            ///< Rate of using the older FPS estimates
     const int CAM_FPS_PRINT_PERIOD = 500;       ///< Period of printing the FPS estimate, in milliseconds
 #endif
@@ -89,7 +89,8 @@ private:
     bool running = false;                       ///< Whether the worker thread is running
     QVideoFrame* videoFrame;                    ///< Place to draw camera image to
     unsigned char* cvImageBuf;                  ///< Place to export camera image to
-
+    int curFrame;
+    int frameToSeekTo;
     /**
      * @brief Converts the semi-planar UV plane to a planar UV plane
      *
@@ -126,9 +127,9 @@ public:
     virtual ~MCameraThread();
     void start();
     void stop();
-    void onPlay();
-    void onPause();
-    void onSeek(int frameNumber);
+    void doPlay();
+    void doPause();
+    void doSeek(int frameNumber);
 private:
     QThread workerThread;
     CameraTask* task = NULL;

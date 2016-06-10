@@ -22,6 +22,8 @@
  * @version 1.0
  * @date 2014-09-23
  */
+#define SHOW_FRAMERATE 1
+
 
 #include <QCoreApplication>
 
@@ -30,7 +32,7 @@
 CameraTask::CameraTask(MVideoCapture* camera, QVideoFrame* videoFrame,
                        unsigned char* cvImageBuf, int width, int height)
     : running(true), camera(camera), videoFrame(videoFrame),cvImageBuf(cvImageBuf),
-    width(width), height(height), curPlayState(Paused)
+    width(width), height(height), curPlayState(Paused), curFrame(-1), frameToSeekTo(-1)
 {
 }
 
@@ -56,7 +58,7 @@ void CameraTask::convertUVsp2UVp(unsigned char* __restrict srcptr, unsigned char
 void CameraTask::doWork()
 {
 
-#if defined(QT_DEBUG) && !defined(ANDROID)
+#if defined(SHOW_FRAMERATE) && !defined(ANDROID)
     QElapsedTimer timer;
     float fps = 0.0f;
     int millisElapsed = 0;
@@ -75,20 +77,22 @@ void CameraTask::doWork()
 
     while(running && videoFrame != NULL && camera != NULL) {
          QCoreApplication::processEvents();
-//        QThread::currentThread()->
-//        QEventLoop::processEvents();
 
         switch (curPlayState) {
         case PlayState::Paused:
-            QThread::msleep(50);
+            QThread::msleep(10);
             continue; // loop
         case PlayState::Seeking:
+            camera->setProperty(CV_CAP_PROP_POS_FRAMES, frameToSeekTo);
+            //frameToSeekTo = -1;
             curPlayState = PlayState::Paused;
             // fallthrough
         case PlayState::Playing:
         default:
             break; // switch
         }
+
+        curFrame = camera->getProperty(CV_CAP_PROP_POS_FRAMES);
 
         if(!camera->grabFrame())
             continue;
@@ -121,11 +125,10 @@ void CameraTask::doWork()
             memcpy(cvImageBuf,cameraFrame,height*width*3);
 #endif
         }
-        int curFrame = camera->getProperty(CV_CAP_PROP_POS_FRAMES);
 
         emit imageReady(curFrame);
 
-#if defined(QT_DEBUG) && !defined(ANDROID)
+#if defined(SHOW_FRAMERATE) && !defined(ANDROID)
         millis = (int)timer.restart();
         millisElapsed += millis;
         fps = CAM_FPS_RATE*fps + (1.0f - CAM_FPS_RATE)*(1000.0f/millis);
@@ -134,7 +137,6 @@ void CameraTask::doWork()
             millisElapsed = 0;
         }
 #endif
-
     }
 }
 
@@ -150,13 +152,20 @@ void CameraTask::pause()
 
 void CameraTask::seek(int frameNumber)
 {
-    camera->setProperty(CV_CAP_PROP_POS_FRAMES, frameNumber);
-    curPlayState = PlayState::Seeking;
+    if (frameToSeekTo != frameNumber) {
+        qDebug() << "seek: " << frameNumber;
+        frameToSeekTo = frameNumber;
+        curPlayState = PlayState::Seeking;
+    } else {
+        qDebug() << "seek skipped";
+        //curPlayState = PlayState::Paused;
+    }
 }
 
-//*****************************************************************************
-// CameraThread implementation
-//*****************************************************************************
+
+
+
+
 
 MCameraThread::MCameraThread(MVideoCapture* camera, QVideoFrame* videoFrame, unsigned char* cvImageBuf, int width, int height)
 {
@@ -187,21 +196,18 @@ void MCameraThread::stop()
     workerThread.wait(1000);
     workerThread.quit();
     workerThread.wait();
-    qDebug() << "MCameraThread::stopped";
 }
 
-void MCameraThread::onPlay()
+void MCameraThread::doPlay()
 {
-    qDebug() << "emitted play";
     emit play();
 }
-void MCameraThread::onPause()
+void MCameraThread::doPause()
 {
-    qDebug() << "emitted pause";
     emit pause();
 }
 
-void MCameraThread::onSeek(int frameNumber)
+void MCameraThread::doSeek(int frameNumber)
 {
     emit seek(frameNumber);
 }

@@ -77,7 +77,7 @@ void MCVPlayer::updateVideoSettings() {
         size = QSize(videoWidth, videoHeight);
         emit sizeChanged();
 
-        camera->getProperty(CV_CAP_PROP_FRAME_COUNT); // returns zero for non-video files
+        numFrames = camera->getProperty(CV_CAP_PROP_FRAME_COUNT); // returns zero for non-video files
         emit videoPropertiesChanged();
     }
 }
@@ -166,16 +166,14 @@ void MCVPlayer::play()
 {
     if (thread) {
         stopped = false;
-        qDebug() << "player play";
-        thread->play();
+        thread->doPlay();
     }
 }
 
 void MCVPlayer::pause()
 {
     if (thread) {
-        qDebug() << "player pause";
-        thread->pause();
+        thread->doPause();
     }
 }
 
@@ -203,6 +201,6 @@ int MCVPlayer::getPlaybackState()
 void MCVPlayer::seek(int frame)
 {
     if (thread) {
-        thread->seek(frame);
+        thread->doSeek(frame);
     }
 }

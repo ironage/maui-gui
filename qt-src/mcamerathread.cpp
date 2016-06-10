@@ -23,20 +23,15 @@
  * @date 2014-09-23
  */
 
+#include <QCoreApplication>
+
 #include"mcamerathread.h"
 
-//*****************************************************************************
-// CameraTask implementation
-//*****************************************************************************
-
-CameraTask::CameraTask(MVideoCapture* camera, QVideoFrame* videoFrame, unsigned char* cvImageBuf, int width, int height)
+CameraTask::CameraTask(MVideoCapture* camera, QVideoFrame* videoFrame,
+                       unsigned char* cvImageBuf, int width, int height)
+    : running(true), camera(camera), videoFrame(videoFrame),cvImageBuf(cvImageBuf),
+    width(width), height(height), curPlayState(Paused)
 {
-    this->running = true;
-    this->camera = camera;
-    this->videoFrame = videoFrame;
-    this->cvImageBuf = cvImageBuf;
-    this->width = width;
-    this->height = height;
 }
 
 CameraTask::~CameraTask()
@@ -78,7 +73,23 @@ void CameraTask::doWork()
         screenImage = cv::Mat(height,width,CV_8UC4,videoFrame->bits());
 #endif
 
-    while(running && videoFrame != NULL && camera != NULL){
+    while(running && videoFrame != NULL && camera != NULL) {
+         QCoreApplication::processEvents();
+//        QThread::currentThread()->
+//        QEventLoop::processEvents();
+
+        switch (curPlayState) {
+        case PlayState::Paused:
+            QThread::msleep(50);
+            continue; // loop
+        case PlayState::Seeking:
+            curPlayState = PlayState::Paused;
+            // fallthrough
+        case PlayState::Playing:
+        default:
+            break; // switch
+        }
+
         if(!camera->grabFrame())
             continue;
         unsigned char* cameraFrame = camera->retrieveFrame();
@@ -109,10 +120,10 @@ void CameraTask::doWork()
 #else //Assuming desktop, RGB camera image
             memcpy(cvImageBuf,cameraFrame,height*width*3);
 #endif
-
         }
+        int curFrame = camera->getProperty(CV_CAP_PROP_POS_FRAMES);
 
-        emit imageReady();
+        emit imageReady(curFrame);
 
 #if defined(QT_DEBUG) && !defined(ANDROID)
         millis = (int)timer.restart();
@@ -127,6 +138,22 @@ void CameraTask::doWork()
     }
 }
 
+void CameraTask::play()
+{
+    curPlayState = PlayState::Playing;
+}
+
+void CameraTask::pause()
+{
+    curPlayState = PlayState::Paused;
+}
+
+void CameraTask::seek(int frameNumber)
+{
+    camera->setProperty(CV_CAP_PROP_POS_FRAMES, frameNumber);
+    curPlayState = PlayState::Seeking;
+}
+
 //*****************************************************************************
 // CameraThread implementation
 //*****************************************************************************
@@ -136,7 +163,10 @@ MCameraThread::MCameraThread(MVideoCapture* camera, QVideoFrame* videoFrame, uns
     task = new CameraTask(camera,videoFrame,cvImageBuf,width,height);
     task->moveToThread(&workerThread);
     connect(&workerThread, SIGNAL(started()), task, SLOT(doWork()));
-    connect(task, SIGNAL(imageReady()), this, SIGNAL(imageReady()));
+    connect(task, SIGNAL(imageReady(int)), this, SIGNAL(imageReady(int)));
+    connect(this, SIGNAL(play()), task, SLOT(play()), Qt::QueuedConnection);
+    connect(this, SIGNAL(pause()), task, SLOT(pause()), Qt::QueuedConnection);
+    connect(this, SIGNAL(seek(int)), task, SLOT(seek(int)), Qt::QueuedConnection);
 }
 
 MCameraThread::~MCameraThread()
@@ -158,4 +188,20 @@ void MCameraThread::stop()
     workerThread.quit();
     workerThread.wait();
     qDebug() << "MCameraThread::stopped";
+}
+
+void MCameraThread::onPlay()
+{
+    qDebug() << "emitted play";
+    emit play();
+}
+void MCameraThread::onPause()
+{
+    qDebug() << "emitted pause";
+    emit pause();
+}
+
+void MCameraThread::onSeek(int frameNumber)
+{
+    emit seek(frameNumber);
 }

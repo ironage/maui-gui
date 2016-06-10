@@ -79,7 +79,7 @@ private:
     void allocateCvImage();
     void allocateVideoFrame();
 private slots:
-    void imageReceived();
+    void imageReceived(int frameNumber);
 };
 
 #endif // MCVPLAYER_H

@@ -42,12 +42,6 @@
 
 #include"mvideocapture.h"
 
-#ifdef QT_DEBUG
-#define DPRINT(...) qDebug(__VA_ARGS__)
-#else
-#define DPRINT(...) while(0);
-#endif
-
 /**
  * @brief Object that contains the camera loop and its parameters
  */
@@ -78,12 +72,17 @@ public:
     void stop();
 
 private:
+    enum PlayState {
+        Playing,
+        Paused,
+        Seeking
+    };
 
 #if defined(QT_DEBUG) && !defined(ANDROID) //Android camera has its own FPS debug info
     const float CAM_FPS_RATE = 0.9f;            ///< Rate of using the older FPS estimates
     const int CAM_FPS_PRINT_PERIOD = 500;       ///< Period of printing the FPS estimate, in milliseconds
 #endif
-
+    PlayState curPlayState;
     int width;                                  ///< Width of the camera image
     int height;                                 ///< Height of the camera image
     MVideoCapture* camera;                 ///< The camera to get data from
@@ -101,23 +100,14 @@ private:
     void convertUVsp2UVp(unsigned char* __restrict srcptr, unsigned char* __restrict dstptr, int stride);
 
 public slots:
-
-    /**
-     * @brief Continuously gets data from the camera
-     */
     void doWork();
-
+    void play();
+    void pause();
+    void seek(int frameNumber);
 signals:
-
-    /**
-     * @brief Emitted when image from a new frame is ready
-     */
-void imageReady();
+    void imageReady(int);
 };
 
-/**
- * @brief Object that starts and stops the camera loop
- */
 class MCameraThread : public QObject{
 Q_OBJECT
 
@@ -133,31 +123,20 @@ public:
      * @param height Height of the camera image
      */
     MCameraThread(MVideoCapture* camera, QVideoFrame* videoFrame, unsigned char* cvImageBuf, int width, int height);
-
-    /**
-     * @brief Destroys this camera controller
-     */
     virtual ~MCameraThread();
-
-    /**
-     * @brief Starts the camera loop
-     */
     void start();
-
-    /**
-     * @brief Asks the camera loop to stop
-     */
     void stop();
+    void onPlay();
+    void onPause();
+    void onSeek(int frameNumber);
 private:
-
-    QThread workerThread;               ///< The thread that the camera will work in
-    CameraTask* task = NULL;            ///< The camera loop method and parameter container
+    QThread workerThread;
+    CameraTask* task = NULL;
 signals:
-
-    /**
-     * @brief Emitted when image from a new frame is ready
-     */
-    void imageReady();
+    void imageReady(int frameNumber);
+    void play();
+    void pause();
+    void seek(int frameNumber);
 };
 
 #endif /* CAMERATHREAD_H */

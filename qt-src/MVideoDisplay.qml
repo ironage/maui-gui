@@ -25,16 +25,16 @@ Item {
     }
 
     onProgress_minChanged: {
-        if (m_player.playbackState === MediaPlayer.PlayingState) {
-            m_player.pause()
+        if (cv_player.playbackState === MediaPlayer.PlayingState) {
+            cv_player.pause()
         }
-        m_player.seek(progress_min * m_player.duration)
+        cv_player.seek(progress_min * cv_player.duration)
     }
     onProgress_maxChanged: {
-        if (m_player.playbackState === MediaPlayer.PlayingState) {
-            m_player.pause()
+        if (cv_player.playbackState === MediaPlayer.PlayingState) {
+            cv_player.pause()
         }
-        m_player.seek(progress_max * m_player.duration)
+        cv_player.seek(progress_max * cv_player.duration)
     }
 
     Rectangle {
@@ -112,7 +112,7 @@ Item {
 
     focus: true
     Keys.onSpacePressed: cv_player.playbackState === MediaPlayer.PlayingState ? cv_player.pause() : cv_player.play()
-//    Keys.onLeftPressed: m_player.seek(m_player.position - 5000)
-//    Keys.onRightPressed: m_player.seek(m_player.position + 5000)
+    Keys.onLeftPressed: cv_player.seek(cv_player.position - 5000)
+    Keys.onRightPressed: cv_player.seek(cv_player.position + 5000)
 
 }

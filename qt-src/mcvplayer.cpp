@@ -84,7 +84,7 @@ void MCVPlayer::updateVideoSettings() {
 
 void MCVPlayer::update()
 {
-    DPRINT("Opening camera %d, width: %d, height: %d", 0, size.width(), size.height());
+    qDebug() << "Starting video width: " << size.width() << " height: " << size.height();
 
     //Destroy old thread, camera accessor and buffers
     delete thread;
@@ -110,15 +110,14 @@ void MCVPlayer::update()
                 allocateVideoFrame();
 
             thread = new MCameraThread(camera,videoFrame,cvImageBuf,size.width(),size.height());
-            connect(thread,SIGNAL(imageReady()), this, SLOT(imageReceived()));
-
+            connect(thread,SIGNAL(imageReady(int)), this, SLOT(imageReceived(int)));
             if(m_surface){
                 if(m_surface->isActive())
                     m_surface->stop();
                 if(!m_surface->start(QVideoSurfaceFormat(size,VIDEO_OUTPUT_FORMAT)))
                     qDebug() << "Could not start QAbstractVideoSurface, error: %d" << m_surface->error();
             }
-//            thread->start();
+            thread->start();
             qDebug() << "Opened file: " << sourceFile;
         }
         else
@@ -129,20 +128,18 @@ void MCVPlayer::update()
     }
 }
 
-void MCVPlayer::imageReceived()
+void MCVPlayer::imageReceived(int frameNumber)
 {
-    //Update VideoOutput
     if(m_surface) {
         if(!m_surface->present(*videoFrame)) {
             qDebug() << "Could not present QVideoFrame to QAbstractVideoSurface, error: " << m_surface->error();
         }
-        if (camera) {
-            curFrame = camera->getProperty(CV_CAP_PROP_POS_FRAMES);
-            emit curFrameChanged();
-        }
+        curFrame = frameNumber;
+        emit curFrameChanged();
     }
 }
 
+/// remove
 void MCVPlayer::onNewVideoContentReceived(const QVideoFrame &frame)
 {
     qDebug() << "Presenting: " << frame << " to " << m_surface;
@@ -169,13 +166,17 @@ void MCVPlayer::play()
 {
     if (thread) {
         stopped = false;
-        thread->start();
+        qDebug() << "player play";
+        thread->play();
     }
 }
 
 void MCVPlayer::pause()
 {
-    stop();
+    if (thread) {
+        qDebug() << "player pause";
+        thread->pause();
+    }
 }
 
 void MCVPlayer::stop()
@@ -201,9 +202,7 @@ int MCVPlayer::getPlaybackState()
 
 void MCVPlayer::seek(int frame)
 {
-    if (camera && thread) {
-        pause();
-        camera->setProperty(CV_CAP_PROP_POS_FRAMES, frame);
-        thread->step();
+    if (thread) {
+        thread->seek(frame);
     }
 }

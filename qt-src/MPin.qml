@@ -9,7 +9,7 @@ Rectangle {
     property bool enabled: true
     property color selected_color: Style.ui_color_light_red
     property color idle_color: Style.ui_color_dark_dblue
-    property string description: "STEPT"
+    property string description: ""
 
     x: (value * parent.width) - width/2
     anchors.bottom: parent.top
@@ -54,7 +54,7 @@ Rectangle {
         anchors.horizontalCenter: parent.horizontalCenter
     }
     MText {
-        text:"HELLO WORLD"
+        text: grip.description
         anchors.horizontalCenter: m_vbar.horizontalCenter
         y: m_vbar.y + m_vbar.height + 5
         font.pixelSize: 12

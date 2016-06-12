@@ -25,16 +25,10 @@ Item {
     }
 
     onProgress_minChanged: {
-        if (cv_player.playbackState === MediaPlayer.PlayingState) {
-            cv_player.pause()
-        }
-        cv_player.seek(progress_min * cv_player.duration)
+        cv_player.setStartFrame(progress_min * cv_player.duration);
     }
     onProgress_maxChanged: {
-        if (cv_player.playbackState === MediaPlayer.PlayingState) {
-            cv_player.pause()
-        }
-        cv_player.seek(progress_max * cv_player.duration)
+        cv_player.setEndFrame(progress_max * cv_player.duration);
     }
 
     Rectangle {
@@ -51,52 +45,11 @@ Item {
         onPositionChanged: {
             if (duration > 0) {
                 m_root.progress = (position / duration)
-                if (position < duration * progress_min) {
-                    seek(duration * progress_min)
-                }
-                if (position > duration * progress_max) {
-                    seek(duration * progress_max)
-                    if (playbackState === MediaPlayer.PlayingState) {
-                        pause()
-                    }
-                }
             } else {
                 m_root.progress = 0
             }
         }
     }
-
-//    MMediaPlayer {
-//        id: m_player
-//        property bool show_first_frame: false
-//        onPositionChanged: {
-//            if (duration > 0) {
-//                m_root.progress = (position / duration)
-//                if (position < duration * progress_min) {
-//                    seek(duration * progress_min)
-//                }
-//                if (position > duration * progress_max) {
-//                    seek(duration * progress_max)
-//                    if (playbackState === MediaPlayer.PlayingState) {
-//                        pause()
-//                    }
-//                }
-//            } else {
-//                m_root.progress = 0
-//            }
-//        }
-////        onBufferProgressChanged: {
-////            if (show_first_frame && bufferProgress >= 1.0) {
-////                show_first_frame = false
-////                play()
-////                seek(1)
-////                pause()
-////            }
-////        }
-////        onDurationChanged: {
-////            show_first_frame = true
-////        }
-//    }
 
     VideoOutput {
         id: output

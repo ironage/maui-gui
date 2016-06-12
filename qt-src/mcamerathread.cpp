@@ -32,7 +32,8 @@
 CameraTask::CameraTask(MVideoCapture* camera, QVideoFrame* videoFrame,
                        unsigned char* cvImageBuf, int width, int height)
     : running(true), camera(camera), videoFrame(videoFrame),cvImageBuf(cvImageBuf),
-    width(width), height(height), curPlayState(Paused), curFrame(-1), frameToSeekTo(-1)
+    width(width), height(height), curPlayState(Paused), curFrame(-1), frameToSeekTo(-1),
+    startFrame(0), endFrame(0)
 {
 }
 
@@ -84,15 +85,18 @@ void CameraTask::doWork()
             continue; // loop
         case PlayState::Seeking:
             camera->setProperty(CV_CAP_PROP_POS_FRAMES, frameToSeekTo);
-            //frameToSeekTo = -1;
             curPlayState = PlayState::Paused;
-            // fallthrough
+            // fall through
         case PlayState::Playing:
         default:
             break; // switch
         }
 
         curFrame = camera->getProperty(CV_CAP_PROP_POS_FRAMES);
+        if (curPlayState == PlayState::Playing && curFrame > endFrame) {
+            curPlayState = PlayState::Paused;
+            continue;
+        }
 
         if(!camera->grabFrame())
             continue;
@@ -153,13 +157,23 @@ void CameraTask::pause()
 void CameraTask::seek(int frameNumber)
 {
     if (frameToSeekTo != frameNumber) {
-        qDebug() << "seek: " << frameNumber;
         frameToSeekTo = frameNumber;
         curPlayState = PlayState::Seeking;
     } else {
-        qDebug() << "seek skipped";
         //curPlayState = PlayState::Paused;
     }
+}
+
+void CameraTask::setStartFrame(int frameNumber)
+{
+    startFrame = frameNumber;
+    seek(frameNumber);
+}
+
+void CameraTask::setEndFrame(int frameNumber)
+{
+    endFrame = frameNumber;
+    seek(frameNumber);
 }
 
 
@@ -176,6 +190,8 @@ MCameraThread::MCameraThread(MVideoCapture* camera, QVideoFrame* videoFrame, uns
     connect(this, SIGNAL(play()), task, SLOT(play()), Qt::QueuedConnection);
     connect(this, SIGNAL(pause()), task, SLOT(pause()), Qt::QueuedConnection);
     connect(this, SIGNAL(seek(int)), task, SLOT(seek(int)), Qt::QueuedConnection);
+    connect(this, SIGNAL(setStartFrame(int)), task, SLOT(setStartFrame(int)), Qt::QueuedConnection);
+    connect(this, SIGNAL(setEndFrame(int)), task, SLOT(setEndFrame(int)), Qt::QueuedConnection);
 }
 
 MCameraThread::~MCameraThread()
@@ -210,4 +226,14 @@ void MCameraThread::doPause()
 void MCameraThread::doSeek(int frameNumber)
 {
     emit seek(frameNumber);
+}
+
+void MCameraThread::doSetStartFrame(int frameNumber)
+{
+    emit setStartFrame(frameNumber);
+}
+
+void MCameraThread::doSetEndFrame(int frameNumber)
+{
+    emit setEndFrame(frameNumber);
 }

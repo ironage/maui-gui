@@ -46,6 +46,7 @@ ApplicationWindow {
                     onOpened: {
                         calibration.close()
                         wall_detection.close()
+                        process.close()
                     }
                     payload: Component {
                         ColumnLayout {
@@ -76,6 +77,7 @@ ApplicationWindow {
                     onOpened: {
                         wall_detection.close()
                         import_video.close()
+                        process.close()
                         scale.visible = true
                     }
                     onClosed: {
@@ -128,8 +130,8 @@ ApplicationWindow {
                     onOpened: {
                         calibration.close()
                         import_video.close()
+                        process.close()
                     }
-
                     payload: Component {
                         ColumnLayout {
                             Item {
@@ -158,10 +160,86 @@ ApplicationWindow {
                         }
                     }
                 }
-//                MText {
-//                    text: "height: " + wall_detection.height
-//                    color: "#ff0000"
-//                }
+                MExpander {
+                    id: process
+                    title: "Step 4: Process"
+                    override_width: leftPanel.header_width
+                    anchors.top: wall_detection.bottom
+                    property string start_state: ""
+                    onStart_stateChanged: {
+                        loader_item.start_state = start_state
+                    }
+
+                    onOpened: {
+                        calibration.close()
+                        import_video.close()
+                        wall_detection.close()
+                    }
+                    payload: Item {
+                        width: childrenRect.width
+                        height: childrenRect.height
+                        property alias start_state: start.state
+
+                        ColumnLayout {
+                            Item {
+                                width: parent.width
+                                height: leftPanel.body_v_padding
+                            }
+                            MButton {
+                                id: start
+                                text: "Start"
+                                Layout.leftMargin: Style.h_padding
+                                Layout.rightMargin: Style.h_padding
+                                //Layout.bottomMargin: Style.v_padding
+                                state: "not_ready"
+                                onClicked: {
+                                    if (state === "ready") {
+                                        m_video.play()
+                                        state = "playing"
+                                    } else if (state === "playing") {
+                                        m_video.pause()
+                                        state = "ready"
+                                    }
+                                }
+
+                                states: [
+                                    State {
+                                        name: "not_ready"
+                                        PropertyChanges { target: start; color: Style.ui_color_dark_red }
+                                        PropertyChanges { target: start; highlight_color: Style.ui_color_light_red }
+                                        PropertyChanges { target: start; selected_color: Style.ui_color_dark_red }
+                                        PropertyChanges { target: start; text: "Start" }
+                                    },
+                                    State {
+                                        name: "ready"
+                                        PropertyChanges { target: start; color: Style.ui_color_dark_green }
+                                        PropertyChanges { target: start; highlight_color: Style.ui_color_light_green }
+                                        PropertyChanges { target: start; selected_color: Style.ui_color_dark_green }
+                                        PropertyChanges { target: start; text: "Play" }
+                                    },
+                                    State {
+                                        name: "playing"
+                                        PropertyChanges { target: start; color: Style.ui_color_dark_grey }
+                                        PropertyChanges { target: start; highlight_color: Style.ui_color_light_grey }
+                                        PropertyChanges { target: start; selected_color: Style.ui_color_dark_grey }
+                                        PropertyChanges { target: start; text: "Pause" }
+                                    }
+
+                                ]
+                                transitions: [
+                                    Transition {
+                                        from: "*"; to: "*"
+                                        ColorAnimation { target: start; properties: "color"; duration: 100 }
+                                    }
+                                ]
+                            }
+                            Item {
+                                width: parent.width
+                                height: leftPanel.body_v_padding
+                            }
+                        }
+                    }
+                }
             }
         }
         ColumnLayout {
@@ -174,12 +252,12 @@ ApplicationWindow {
                 progress_min: m_video_control.start_percent
                 progress_max: m_video_control.end_percent
                 onSourceChanged: {
-                    start.state = "ready"
+                    process.start_state = "ready"
                 }
                 onPlayback_stateChanged: {
                     if (playback_state === MediaPlayer.PausedState
                             || playback_state === MediaPlayer.StoppedState) {
-                        start.state = "ready"
+                        process.start_state = "ready"
                     }
                 }
                 MScaleAdjuster {
@@ -190,64 +268,16 @@ ApplicationWindow {
                 }
             }
             RowLayout {
-                MButton {
-                    id: start
-                    text: "Start"
-                    Layout.leftMargin: Style.h_padding
-                    Layout.rightMargin: Style.h_padding
-                    Layout.bottomMargin: Style.v_padding * 2
-                    state: "not_ready"
-                    onClicked: {
-                        if (state === "ready") {
-                            m_video.play()
-                            state = "playing"
-                        } else if (state === "playing") {
-                            m_video.pause()
-                            state = "ready"
-                        }
-                    }
-
-                    states: [
-                        State {
-                            name: "not_ready"
-                            PropertyChanges { target: start; color: Style.ui_color_dark_red }
-                            PropertyChanges { target: start; highlight_color: Style.ui_color_light_red }
-                            PropertyChanges { target: start; selected_color: Style.ui_color_dark_red }
-                            PropertyChanges { target: start; text: "Start" }
-                        },
-                        State {
-                            name: "ready"
-                            PropertyChanges { target: start; color: Style.ui_color_dark_green }
-                            PropertyChanges { target: start; highlight_color: Style.ui_color_light_green }
-                            PropertyChanges { target: start; selected_color: Style.ui_color_dark_green }
-                            PropertyChanges { target: start; text: "Play" }
-                        },
-                        State {
-                            name: "playing"
-                            PropertyChanges { target: start; color: Style.ui_color_dark_grey }
-                            PropertyChanges { target: start; highlight_color: Style.ui_color_light_grey }
-                            PropertyChanges { target: start; selected_color: Style.ui_color_dark_grey }
-                            PropertyChanges { target: start; text: "Pause" }
-                        }
-
-                    ]
-                    transitions: [
-                        Transition {
-                            from: "*"; to: "*"
-                            ColorAnimation { target: start; properties: "color"; duration: 100 }
-                        }
-                    ]
-                }
                 MVideoControl {
                     id: m_video_control
                     progress: m_video.progress
-                    movable: m_video.playback_state !== MediaPlayer.PlayingState
+                    totalFrames: m_video.duration
                     onSetProgress: m_video.seek(percent * m_video.duration)
                     Layout.fillWidth: true
-                    Layout.bottomMargin: Style.v_padding
+                    Layout.bottomMargin: Style.v_padding * 2
                     Layout.rightMargin: (2 * Style.h_padding)
-                    Layout.leftMargin: Style.h_padding
-                    Layout.topMargin: 0
+                    Layout.leftMargin: (2 * Style.h_padding)
+                    Layout.topMargin: Style.v_padding * 2
                 }
             }
         }

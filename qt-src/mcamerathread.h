@@ -91,6 +91,8 @@ private:
     unsigned char* cvImageBuf;                  ///< Place to export camera image to
     int curFrame;
     int frameToSeekTo;
+    int startFrame;
+    int endFrame;
     /**
      * @brief Converts the semi-planar UV plane to a planar UV plane
      *
@@ -105,6 +107,8 @@ public slots:
     void play();
     void pause();
     void seek(int frameNumber);
+    void setStartFrame(int frameNumber);
+    void setEndFrame(int frameNumber);
 signals:
     void imageReady(int);
 };
@@ -130,6 +134,8 @@ public:
     void doPlay();
     void doPause();
     void doSeek(int frameNumber);
+    void doSetStartFrame(int frameNumber);
+    void doSetEndFrame(int frameNumber);
 private:
     QThread workerThread;
     CameraTask* task = NULL;
@@ -138,6 +144,8 @@ signals:
     void play();
     void pause();
     void seek(int frameNumber);
+    void setStartFrame(int frameNumber);
+    void setEndFrame(int frameNumber);
 };
 
 #endif /* CAMERATHREAD_H */

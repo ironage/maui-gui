@@ -111,6 +111,8 @@ void MCVPlayer::update()
 
             thread = new MCameraThread(camera,videoFrame,cvImageBuf,size.width(),size.height());
             connect(thread,SIGNAL(imageReady(int)), this, SLOT(imageReceived(int)));
+            thread->doSetEndFrame(numFrames);
+            thread->doSetStartFrame(0);
             if(m_surface){
                 if(m_surface->isActive())
                     m_surface->stop();
@@ -118,6 +120,7 @@ void MCVPlayer::update()
                     qDebug() << "Could not start QAbstractVideoSurface, error: %d" << m_surface->error();
             }
             thread->start();
+            seek(0);
             qDebug() << "Opened file: " << sourceFile;
         }
         else
@@ -202,5 +205,19 @@ void MCVPlayer::seek(int frame)
 {
     if (thread) {
         thread->doSeek(frame);
+    }
+}
+
+void MCVPlayer::setEndFrame(int frame)
+{
+    if (thread) {
+        thread->doSetEndFrame(frame);
+    }
+}
+
+void MCVPlayer::setStartFrame(int frame)
+{
+    if (thread) {
+        thread->doSetStartFrame(frame);
     }
 }

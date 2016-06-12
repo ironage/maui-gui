@@ -47,6 +47,8 @@ public slots:
     void stop();
     void pause();
     void seek(int frame);
+    void setEndFrame(int frame);
+    void setStartFrame(int frame);
 signals:
     void sizeChanged();
     void videoPropertiesChanged();

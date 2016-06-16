@@ -52,7 +52,7 @@ Rectangle {
             hoverEnabled: true
             drag {
                 target: line
-                axis: Drag.XAndYAxis
+                axis: Drag.XAxis
                 minimumX: -1
                 maximumX: m_root.width - slider.width - 1
                 minimumY: 0

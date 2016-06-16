@@ -274,7 +274,7 @@ ApplicationWindow {
                     totalFrames: m_video.duration
                     onSetProgress: m_video.seek(percent * m_video.duration)
                     Layout.fillWidth: true
-                    Layout.bottomMargin: Style.v_padding * 2
+                    Layout.bottomMargin: Style.v_padding * 3
                     Layout.rightMargin: (2 * Style.h_padding)
                     Layout.leftMargin: (2 * Style.h_padding)
                     Layout.topMargin: Style.v_padding * 2

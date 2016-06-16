@@ -57,6 +57,8 @@ Rectangle {
         text: grip.description
         anchors.horizontalCenter: m_vbar.horizontalCenter
         y: m_vbar.y + m_vbar.height + 5
-        font.pixelSize: 12
+        font.pixelSize: 13
+        color: grip.color
+        styleColor: "white"
     }
 }

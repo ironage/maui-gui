@@ -26,3 +26,7 @@ Future tasks:
 -open image for one frame processing
 -batch image processing
 -output csv data
+
+
+-static info top left, file name, staryt frames, scale pixels +10mm +ratio. 
+-light grey cur frame + triangle top for drag

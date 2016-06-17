@@ -62,7 +62,7 @@ Item {
             x: (m_root.progress * m_root.width) - 1
             width: 3
             height: m_root.height
-            color: Style.ui_color_light_red
+            color: Style.ui_color_dark_grey
         }
         MPin {
             id: m_start_pin

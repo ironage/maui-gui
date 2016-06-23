@@ -211,6 +211,10 @@ ApplicationWindow {
                         summaryPane.setStartState("ready")
                     }
                 }
+                MROI {
+                    id: roi
+                }
+
                 MScaleAdjuster {
                     id: scale
                     visible: false

@@ -15,5 +15,6 @@
         <file>MTextInput.qml</file>
         <file>MCombobox.qml</file>
         <file>MSummaryPane.qml</file>
+        <file>MROI.qml</file>
     </qresource>
 </RCC>

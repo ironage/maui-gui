@@ -29,9 +29,9 @@ QSize MCVPlayer::getSize() const
 void MCVPlayer::setSize(QSize size)
 {
     if(this->size.width() != size.width() || this->size.height() != size.height()){
-        this->size = size;
+       // this->size = size;
         //update();
-        emit sizeChanged();
+      //  emit sizeChanged();
     }
 }
 
@@ -84,8 +84,8 @@ void MCVPlayer::updateVideoSettings() {
 
 void MCVPlayer::update()
 {
+    if (sourceFile.isEmpty()) return;
     qDebug() << "Starting video width: " << size.width() << " height: " << size.height();
-
     //Destroy old thread, camera accessor and buffers
     delete thread;
     delete camera;

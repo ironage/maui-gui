@@ -1,7 +1,6 @@
 <RCC>
     <qresource prefix="/">
         <file>main.qml</file>
-        <file>MainForm.ui.qml</file>
         <file>MButton.qml</file>
         <file>Style.qml</file>
         <file>qmldir</file>
@@ -15,5 +14,6 @@
         <file>MTriangle.qml</file>
         <file>MTextInput.qml</file>
         <file>MCombobox.qml</file>
+        <file>MSummaryPane.qml</file>
     </qresource>
 </RCC>

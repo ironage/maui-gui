@@ -42,7 +42,7 @@ Item {
     ColumnLayout {
         MButton {
             id: m_header
-            border.width: 2
+            border.width: Style.border_width
             border.color: Style.ui_border_color
             Layout.minimumHeight: 20
             Layout.minimumWidth: 30

@@ -11,9 +11,9 @@ ApplicationWindow {
     visible: true
     //visibility: "FullScreen"
     color: Style.ui_form_bg
-
     width: 900
     height: 600
+    visibility: ApplicationWindow.Maximized
     minimumWidth: 400
     minimumHeight: 300
 
@@ -21,221 +21,172 @@ ApplicationWindow {
         id: videoSelectDialog
         onAccepted: {
             m_video.source = fileUrl
+
+            var simpleName = fileUrl.toString();
+            // unescape html codes like '%23' for '#'
+            simpleName = decodeURIComponent(simpleName);
+            var searchExpression = new RegExp("^((file:\\/{3})|(qrc:\\/{2})|(http:\\/{2}))(.*)((\\\\)|(\\/))(.*)(\\..+)", "g")
+            var match = searchExpression.exec(simpleName)
+            var simpleFileName = match[9]
+            var fileExtension = match[10]
+            summaryPane.fileName = simpleFileName + fileExtension
         }
     }
 
     RowLayout {
         anchors.fill: parent
         spacing: 1
-        Rectangle {
-            id: leftPanel
-            property int body_v_padding: Style.v_padding
-            property int header_width: 200
-
-            height: childrenRect.height
-            color: Style.ui_form_bg
-            Layout.minimumWidth: header_width
+        Column {
+            Layout.alignment: Qt.AlignTop
+            Layout.topMargin: Style.h_padding
             Layout.leftMargin: Style.h_padding
-            //anchors.verticalCenter: parent.verticalCenter
-            ColumnLayout {
+            spacing: Style.v_padding * 4
+            MSummaryPane {
+                id: summaryPane
+                Layout.leftMargin: Style.h_padding
+                Layout.bottomMargin: Style.v_padding * 2
 
-                MExpander {
-                    id: import_video
-                    title: "Step 1: Select Input"
-                    override_width: leftPanel.header_width
-                    onOpened: {
-                        calibration.close()
-                        wall_detection.close()
-                        process.close()
-                    }
-                    payload: Component {
-                        ColumnLayout {
-                            Item {
-                                width: parent.width
-                                height: leftPanel.body_v_padding
-                            }
-                            MButton {
-                                id: open_video
-                                text: "Open Video"
-                                Layout.alignment: Qt.AlignCenter
-                                onClicked: videoSelectDialog.open()
-                            }
-                            Item {
-                                width: parent.width
-                                height: leftPanel.body_v_padding
+                width: leftPanel.header_width
+                startFrame: m_video_control.totalFrames === 0 ? "" : "" + ~~(m_video_control.start_percent * m_video_control.totalFrames)
+                endFrame: m_video_control.totalFrames === 0 ? "" : "" + ~~(m_video_control.end_percent * m_video_control.totalFrames)
+                scalePixelValue: m_video.video_height <= 0 ? "" : (scale.bottom_v_value - scale.top_v_value) * m_video.video_height
+                scaleDistanceValue: calibration.scale
+                scaleUnitString: calibration.units
+
+                onPlayClicked: {
+                    m_video.play()
+                }
+                onPauseClicked: {
+                    m_video.pause()
+                }
+            }
+            Rectangle {
+                id: leftPanel
+                property int body_v_padding: Style.v_padding
+                property int header_width: 220
+
+                height: childrenRect.height
+                width: header_width
+                color: Style.ui_form_bg
+                Layout.minimumWidth: header_width
+                Layout.leftMargin: Style.h_padding
+                //anchors.verticalCenter: parent.verticalCenter
+                ColumnLayout {
+                    MExpander {
+                        id: import_video
+                        title: "Step 1: Select Input"
+                        override_width: leftPanel.header_width
+                        onOpened: {
+                            calibration.close()
+                            wall_detection.close()
+                        }
+                        payload: Component {
+                            ColumnLayout {
+                                Item {
+                                    width: parent.width
+                                    height: leftPanel.body_v_padding
+                                }
+                                MButton {
+                                    id: open_video
+                                    text: "Open Video"
+                                    Layout.alignment: Qt.AlignCenter
+                                    onClicked: videoSelectDialog.open()
+                                }
+                                Item {
+                                    width: parent.width
+                                    height: leftPanel.body_v_padding
+                                }
                             }
                         }
                     }
-                }
-                MExpander {
-                    id: calibration
-                    title: "Step 2: Calibration"
-                    override_width: leftPanel.header_width
-                    anchors.top: import_video.bottom
-                    property string scale: loader_item.scale
-                    property string units: loader_item.units
-                    onOpened: {
-                        wall_detection.close()
-                        import_video.close()
-                        process.close()
-                        scale.visible = true
-                    }
-                    onClosed: {
-                        scale.visible = false
-                    }
-                    MouseArea { anchors.fill: parent; onClicked: { loader_item.focused = false } }
+                    MExpander {
+                        id: calibration
+                        title: "Step 2: Calibration"
+                        override_width: leftPanel.header_width
+                        anchors.top: import_video.bottom
+                        property string scale: loader_item.scale
+                        property string units: loader_item.units
+                        onOpened: {
+                            wall_detection.close()
+                            import_video.close()
+                            scale.visible = true
+                        }
+                        onClosed: {
+                            scale.visible = false
+                        }
+                        MouseArea { anchors.fill: parent; onClicked: { loader_item.focused = false } }
 
-                    payload: Item {
-                        width: childrenRect.width
-                        height: childrenRect.height
-                        property string scale: scale_input.acceptableInput ? scale_input.text : 1
-                        property alias units: scale_units.currentText
+                        payload: Item {
+                            width: childrenRect.width
+                            height: childrenRect.height
+                            property string scale: scale_input.acceptableInput ? scale_input.text : 1
+                            property alias units: scale_units.currentText
 
-                        ColumnLayout {
-                            Item {
-                                width: parent.width
-                                height: leftPanel.body_v_padding
-                            }
-                            MTextInput {
-                                id: scale_input
-                                text: "10"
-                                width: 20
-                                placeholderText: "Scale"
-                                borderColor: acceptableInput ? Style.ui_component_highlight : Style.ui_color_light_red
-                                validator: DoubleValidator{bottom: 0.01; top: 999.0; decimals: 4; notation: DoubleValidator.StandardNotation}
-                                horizontalAlignment: TextInput.AlignHCenter
-                            }
-                            MCombobox {
-                                id: scale_units
-                                width: 50
-                                model: ListModel {
+                            ColumnLayout {
+                                Item {
+                                    width: parent.width
+                                    height: leftPanel.body_v_padding
+                                }
+                                MTextInput {
+                                    id: scale_input
+                                    text: "10"
+                                    width: 20
+                                    placeholderText: "Scale"
+                                    borderColor: acceptableInput ? Style.ui_component_highlight : Style.ui_color_light_red
+                                    validator: DoubleValidator{bottom: 0.01; top: 999.0; decimals: 4; notation: DoubleValidator.StandardNotation}
+                                    horizontalAlignment: TextInput.AlignHCenter
+                                }
+                                MCombobox {
+                                    id: scale_units
+                                    width: 50
+                                    model: ListModel {
                                         id: cbItems
                                         ListElement { text: "mm"; color: "Yellow" }
                                         ListElement { text: "cm"; color: "Green" }
                                         ListElement { text: "in"; color: "Brown" }
                                     }
-                            }
-                            Item {
-                                width: parent.width
-                                height: leftPanel.body_v_padding
-                            }
-                        }
-                    }
-                }
-                MExpander {
-                    id: wall_detection
-                    title: "Step 3: Wall Detection"
-                    override_width: leftPanel.header_width
-                    anchors.top: calibration.bottom
-                    onOpened: {
-                        calibration.close()
-                        import_video.close()
-                        process.close()
-                    }
-                    payload: Component {
-                        ColumnLayout {
-                            Item {
-                                width: parent.width
-                                height: leftPanel.body_v_padding
-                            }
-                            MButton {
-                                id: wall_crop
-                                text: "Crop ROI"
-                                Layout.alignment: Qt.AlignCenter
-                            }
-                            MButton {
-                                id: wall_select_top
-                                text: "Select Wall Top"
-                                Layout.alignment: Qt.AlignCenter
-                            }
-                            MButton {
-                                id: wall_select_bottom
-                                text: "Select Wall Bottom"
-                                Layout.alignment: Qt.AlignCenter
-                            }
-                            Item {
-                                width: parent.width
-                                height: leftPanel.body_v_padding
-                            }
-                        }
-                    }
-                }
-                MExpander {
-                    id: process
-                    title: "Step 4: Process"
-                    override_width: leftPanel.header_width
-                    anchors.top: wall_detection.bottom
-                    property string start_state: ""
-                    onStart_stateChanged: {
-                        loader_item.start_state = start_state
-                    }
-
-                    onOpened: {
-                        calibration.close()
-                        import_video.close()
-                        wall_detection.close()
-                    }
-                    payload: Item {
-                        width: childrenRect.width
-                        height: childrenRect.height
-                        property alias start_state: start.state
-
-                        ColumnLayout {
-                            Item {
-                                width: parent.width
-                                height: leftPanel.body_v_padding
-                            }
-                            MButton {
-                                id: start
-                                text: "Start"
-                                Layout.leftMargin: Style.h_padding
-                                Layout.rightMargin: Style.h_padding
-                                //Layout.bottomMargin: Style.v_padding
-                                state: "not_ready"
-                                onClicked: {
-                                    if (state === "ready") {
-                                        m_video.play()
-                                        state = "playing"
-                                    } else if (state === "playing") {
-                                        m_video.pause()
-                                        state = "ready"
-                                    }
                                 }
-
-                                states: [
-                                    State {
-                                        name: "not_ready"
-                                        PropertyChanges { target: start; color: Style.ui_color_dark_red }
-                                        PropertyChanges { target: start; highlight_color: Style.ui_color_light_red }
-                                        PropertyChanges { target: start; selected_color: Style.ui_color_dark_red }
-                                        PropertyChanges { target: start; text: "Start" }
-                                    },
-                                    State {
-                                        name: "ready"
-                                        PropertyChanges { target: start; color: Style.ui_color_dark_green }
-                                        PropertyChanges { target: start; highlight_color: Style.ui_color_light_green }
-                                        PropertyChanges { target: start; selected_color: Style.ui_color_dark_green }
-                                        PropertyChanges { target: start; text: "Play" }
-                                    },
-                                    State {
-                                        name: "playing"
-                                        PropertyChanges { target: start; color: Style.ui_color_dark_grey }
-                                        PropertyChanges { target: start; highlight_color: Style.ui_color_light_grey }
-                                        PropertyChanges { target: start; selected_color: Style.ui_color_dark_grey }
-                                        PropertyChanges { target: start; text: "Pause" }
-                                    }
-
-                                ]
-                                transitions: [
-                                    Transition {
-                                        from: "*"; to: "*"
-                                        ColorAnimation { target: start; properties: "color"; duration: 100 }
-                                    }
-                                ]
+                                Item {
+                                    width: parent.width
+                                    height: leftPanel.body_v_padding
+                                }
                             }
-                            Item {
-                                width: parent.width
-                                height: leftPanel.body_v_padding
+                        }
+                    }
+                    MExpander {
+                        id: wall_detection
+                        title: "Step 3: Wall Detection"
+                        override_width: leftPanel.header_width
+                        anchors.top: calibration.bottom
+                        onOpened: {
+                            calibration.close()
+                            import_video.close()
+                        }
+                        payload: Component {
+                            ColumnLayout {
+                                Item {
+                                    width: parent.width
+                                    height: leftPanel.body_v_padding
+                                }
+                                MButton {
+                                    id: wall_crop
+                                    text: "Crop ROI"
+                                    Layout.alignment: Qt.AlignCenter
+                                }
+                                MButton {
+                                    id: wall_select_top
+                                    text: "Select Wall Top"
+                                    Layout.alignment: Qt.AlignCenter
+                                }
+                                MButton {
+                                    id: wall_select_bottom
+                                    text: "Select Wall Bottom"
+                                    Layout.alignment: Qt.AlignCenter
+                                }
+                                Item {
+                                    width: parent.width
+                                    height: leftPanel.body_v_padding
+                                }
                             }
                         }
                     }
@@ -252,19 +203,18 @@ ApplicationWindow {
                 progress_min: m_video_control.start_percent
                 progress_max: m_video_control.end_percent
                 onSourceChanged: {
-                    process.start_state = "ready"
+                    summaryPane.setStartState("ready")
                 }
                 onPlayback_stateChanged: {
                     if (playback_state === MediaPlayer.PausedState
                             || playback_state === MediaPlayer.StoppedState) {
-                        process.start_state = "ready"
+                        summaryPane.setStartState("ready")
                     }
                 }
                 MScaleAdjuster {
                     id: scale
                     visible: false
                     text: calibration.scale + " " + calibration.units
-
                 }
             }
             RowLayout {

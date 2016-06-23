@@ -12,7 +12,8 @@ Item {
     property double progress_min: 0.0
     property double progress_max: 1.0
     property alias playback_state: cv_player.playbackState
-
+    property alias video_width: cv_player.size.width
+    property alias video_height: cv_player.size.height
 
     function seek(offset) {
         cv_player.seek(offset)

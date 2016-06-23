@@ -10,4 +10,6 @@ mon, 23 may 2016 - 6 hours: scale adjustment ruler
 tues, 24 may 2016 - 4 hours: input validation, text input, dropdown
 thurs, 26 may 2016 - 3 hours: skype meeting, adjustments
 sat, 28 may 2016 - 1 hour: scale adjustments, layout
-sun, 29 may 2016 - 1 hour: scale adjustments, move on bar drag 
+sun, 29 may 2016 - 1 hour: scale adjustments, move on bar drag
+
+thurs, 23 june 2016 - 5 hours: summary pane, start roi

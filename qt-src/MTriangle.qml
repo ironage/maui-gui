@@ -1,4 +1,4 @@
-import QtQuick 2.4
+import QtQuick 2.5
 // Modified from http://clogwog.net/wp/2015/02/a-simple-qml-triangle/ with full permission
 
 Canvas {

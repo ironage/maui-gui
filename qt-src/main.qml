@@ -221,11 +221,40 @@ ApplicationWindow {
                     visible: false
                     // Note: ROI will be reinitialzed to center when parent
                     // changes size, not sure if this is desirable or not
-                    property int initialSize: 100
+                    property int initialSize: 200
                     roiX: (parent.width/2) - (initialSize/2)
                     roiY: (parent.height/2) - (initialSize/2)
                     roiWidth: initialSize
                     roiHeight: initialSize
+
+                    onRoiXChanged: updateLines()
+                    onRoiYChanged: updateLines()
+                    onRoiWidthChanged: updateLines()
+                    onRoiHeightChanged: updateLines()
+
+                    function updateLines() {
+                        line1.p1X = roiX + (roiWidth / 3)
+                        line1.p1Y = roiY + (roiHeight / 3)
+                        line1.p2X = roiX + (roiWidth / 2)
+                        line1.p2Y = roiY + (roiHeight / 3)
+                        line1.p3X = roiX + (2 * roiWidth / 3)
+                        line1.p3Y = roiY + (roiHeight / 3)
+
+                        line2.p1X = roiX + (roiWidth / 3)
+                        line2.p1Y = roiY + (roiHeight * 2 / 3)
+                        line2.p2X = roiX + (roiWidth / 2)
+                        line2.p2Y = roiY + (roiHeight * 2 / 3)
+                        line2.p3X = roiX + (2 * roiWidth / 3)
+                        line2.p3Y = roiY + (roiHeight * 2 / 3)
+                    }
+                }
+                MPointLine {
+                    id: line1
+                    visible: roi.visible
+                }
+                MPointLine {
+                    id: line2
+                    visible: roi.visible
                 }
 
                 MScaleAdjuster {

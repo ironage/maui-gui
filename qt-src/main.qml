@@ -161,7 +161,12 @@ ApplicationWindow {
                         onOpened: {
                             calibration.close()
                             import_video.close()
+                            roi.visible = true
                         }
+                        onClosed: {
+                            roi.visible = false
+                        }
+
                         payload: Component {
                             ColumnLayout {
                                 Item {
@@ -213,6 +218,14 @@ ApplicationWindow {
                 }
                 MROI {
                     id: roi
+                    visible: false
+                    // Note: ROI will be reinitialzed to center when parent
+                    // changes size, not sure if this is desirable or not
+                    property int initialSize: 100
+                    roiX: (parent.width/2) - (initialSize/2)
+                    roiY: (parent.height/2) - (initialSize/2)
+                    roiWidth: initialSize
+                    roiHeight: initialSize
                 }
 
                 MScaleAdjuster {

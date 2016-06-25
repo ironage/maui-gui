@@ -2,7 +2,8 @@
 
 #include <QCoreApplication>
 
-#include"mcamerathread.h"
+#include "mcamerathread.h"
+//#include "autoInit.h"
 
 CameraTask::CameraTask(MVideoCapture* camera, QVideoFrame* videoFrame,
                        unsigned char* cvImageBuf, int width, int height)
@@ -10,6 +11,14 @@ CameraTask::CameraTask(MVideoCapture* camera, QVideoFrame* videoFrame,
     width(width), height(height), curPlayState(Paused), curFrame(-1), frameToSeekTo(-1),
     startFrame(0), endFrame(0)
 {
+//    // Initialize the MATLAB Compiler Runtime global state
+//    if (!mclInitializeApplication(NULL,0))
+//    {
+//        qDebug() << "Could not initialize the application properly.";
+//    }
+//    if (!autoInitInitialize()) {
+//        qDebug() << "Could not initialize the autoInit library.";
+//    }
 }
 
 CameraTask::~CameraTask()
@@ -58,6 +67,9 @@ void CameraTask::doWork()
         case PlayState::Paused:
             QThread::msleep(10);
             continue; // loop
+        case PlayState::AutoInitCurFrame:
+            camera->setProperty(CV_CAP_PROP_POS_FRAMES, curFrame);
+            break;
         case PlayState::Seeking:
             camera->setProperty(CV_CAP_PROP_POS_FRAMES, frameToSeekTo);
             curPlayState = PlayState::Paused;
@@ -90,6 +102,15 @@ void CameraTask::doWork()
 
 #else //Assuming desktop, RGB camera image and RGBA QVideoFrame
             cv::Mat tempMat(height,width,CV_8UC3,cameraFrame);
+            if (curPlayState == PlayState::AutoInitCurFrame) {
+                curPlayState = PlayState::Paused;
+//                cv::Rect roiRect(roi.x(), roi.y(), roi.width(), roi.height());
+//                cv::Mat roiSection = tempMat(roiRect).clone();  // TODO: check if leaked
+
+//                autoInitializer(2, mwArray& miniTopWall, mwArray& miniBotWall, const mwArray& ROI, const mwArray& numPoints);
+
+//                imwrite( "cropped.jpg", roiSection);
+            }
             cv::cvtColor(tempMat,screenImage,cv::COLOR_RGB2RGBA);
 #endif
 
@@ -153,8 +174,10 @@ void CameraTask::setEndFrame(int frameNumber)
 
 void CameraTask::setROI(QRect newROI)
 {
-    roi = newROI;
-    qDebug() << "camera has new roi: " << roi;
+    if (roi != newROI) {
+        roi = newROI;
+        curPlayState = PlayState::AutoInitCurFrame;
+    }
 }
 
 

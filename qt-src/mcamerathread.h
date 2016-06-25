@@ -28,7 +28,8 @@ private:
     enum PlayState {
         Playing,
         Paused,
-        Seeking
+        Seeking,
+        AutoInitCurFrame
     };
 
 #if defined(SHOW_FRAMERATE) && !defined(ANDROID) //Android camera has its own FPS debug info

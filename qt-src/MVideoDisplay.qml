@@ -15,6 +15,10 @@ Item {
     property alias video_width: cv_player.size.width
     property alias video_height: cv_player.size.height
 
+    function viewPointToVideoPoint(viewPoint) {
+        return output.mapPointToSource(viewPoint)
+    }
+
     function seek(offset) {
         cv_player.seek(offset)
     }
@@ -39,9 +43,6 @@ Item {
 
     MCVPlayer {
         id: cv_player
-        onDurationChanged: {
-            console.log("duration changed to " + duration)
-        }
 
         onPositionChanged: {
             if (duration > 0) {

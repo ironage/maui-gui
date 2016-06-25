@@ -6,7 +6,7 @@ Rectangle {
     anchors.fill: parent
     color: "transparent"
     property real alpha: 1
-    property int cornerWidth: 13
+    property int cornerWidth: 14
     property color pointColor: "white"
 
     property int p1X: 0

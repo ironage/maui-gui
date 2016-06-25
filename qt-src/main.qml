@@ -141,9 +141,9 @@ ApplicationWindow {
                                     width: 50
                                     model: ListModel {
                                         id: cbItems
-                                        ListElement { text: "mm"; color: "Yellow" }
-                                        ListElement { text: "cm"; color: "Green" }
-                                        ListElement { text: "in"; color: "Brown" }
+                                        ListElement { text: "mm"; }
+                                        ListElement { text: "cm"; }
+                                        ListElement { text: "in"; }
                                     }
                                 }
                                 Item {
@@ -167,26 +167,33 @@ ApplicationWindow {
                             roi.visible = false
                         }
 
-                        payload: Component {
+                        payload: Item {
+                            width: childrenRect.width
+                            height: childrenRect.height
                             ColumnLayout {
                                 Item {
                                     width: parent.width
                                     height: leftPanel.body_v_padding
                                 }
-                                MButton {
-                                    id: wall_crop
-                                    text: "Crop ROI"
-                                    Layout.alignment: Qt.AlignCenter
+                                MText {
+                                    text: "ROI x: " + Math.round(roi.mappedXY.x)
+                                    style: Text.Normal
+                                    color: Style.ui_color_dark_dblue
                                 }
-                                MButton {
-                                    id: wall_select_top
-                                    text: "Select Wall Top"
-                                    Layout.alignment: Qt.AlignCenter
+                                MText {
+                                    text: "ROI y: " + Math.round(roi.mappedXY.y)
+                                    style: Text.Normal
+                                    color: Style.ui_color_dark_dblue
                                 }
-                                MButton {
-                                    id: wall_select_bottom
-                                    text: "Select Wall Bottom"
-                                    Layout.alignment: Qt.AlignCenter
+                                MText {
+                                    text: "ROI width: " + Math.round(roi.mappedWH.x)
+                                    style: Text.Normal
+                                    color: Style.ui_color_dark_dblue
+                                }
+                                MText {
+                                    text: "ROI height: " + Math.round(roi.mappedWH.y)
+                                    style: Text.Normal
+                                    color: Style.ui_color_dark_dblue
                                 }
                                 Item {
                                     width: parent.width
@@ -222,10 +229,12 @@ ApplicationWindow {
                     // Note: ROI will be reinitialzed to center when parent
                     // changes size, not sure if this is desirable or not
                     property int initialSize: 200
-                    roiX: (parent.width/2) - (initialSize/2)
-                    roiY: (parent.height/2) - (initialSize/2)
+                    roiX: ~~(parent.width/2) - (initialSize/2)
+                    roiY: ~~(parent.height/2) - (initialSize/2)
                     roiWidth: initialSize
                     roiHeight: initialSize
+                    property point mappedXY: m_video.viewPointToVideoPoint(Qt.point(roi.roiX,roi.roiY))
+                    property point mappedWH: m_video.viewPointToVideoPoint(Qt.point(roi.roiX + roi.roiWidth,roi.roiY + roi.roiHeight))
 
                     onRoiXChanged: updateLines()
                     onRoiYChanged: updateLines()

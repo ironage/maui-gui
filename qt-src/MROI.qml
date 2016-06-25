@@ -12,7 +12,7 @@ Rectangle {
     property alias roiWidth: roi.width
     property alias roiHeight: roi.height
 
-    property int cornerWidth: 15
+    property int cornerWidth: 16
     property int rectMin: 20
     property bool backgroundActive: true
     property color backgroundColor: Style.ui_color_dark_grey
@@ -193,7 +193,8 @@ Rectangle {
             function updatePosition() {
                 roi.width = cornerTR.x - roi.x - cornerTR.xOffset
                 roi.height = roi.y - cornerTR.y + roi.height + cornerTR.yOffset
-                roi.y = cornerTR.y - cornerTR.yOffset            }
+                roi.y = cornerTR.y - cornerTR.yOffset
+            }
         }
     }
 

@@ -27,6 +27,7 @@ class MCVPlayer : public QObject
     Q_PROPERTY(int duration READ getNumFrames NOTIFY videoPropertiesChanged)
     Q_PROPERTY(int position READ getCurFrame WRITE setCurFrame NOTIFY curFrameChanged)
     Q_PROPERTY(int playbackState READ getPlaybackState NOTIFY playbackStateChanged)
+    Q_PROPERTY(QRect roi READ getROI WRITE setROI NOTIFY roiChanged)
 public:
     MCVPlayer();
     ~MCVPlayer();
@@ -41,6 +42,8 @@ public slots:
     void setSize(QSize size);
     int getNumFrames() { return numFrames; }
     int getCurFrame() { return curFrame; }
+    QRect getROI() { return roi; }
+    void setROI(const QRect& newROI);
     void setCurFrame(int newFrame);
     int getPlaybackState();
     void play();
@@ -55,6 +58,7 @@ signals:
     void curFrameChanged();
     void playbackStateChanged();
     void sourceChanged();
+    void roiChanged();
 private:
 
 #ifdef ANDROID
@@ -70,6 +74,7 @@ private:
     int numFrames;
     int curFrame;
     QSize size;
+    QRect roi;
     MVideoCapture* camera = NULL;
     MCameraThread* thread = NULL;
     QVideoFrame* videoFrame = NULL;

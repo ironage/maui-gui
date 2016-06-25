@@ -161,6 +161,7 @@ ApplicationWindow {
                         onOpened: {
                             calibration.close()
                             import_video.close()
+                            roi.recomputeMappedPoints()
                             roi.visible = true
                         }
                         onClosed: {
@@ -214,9 +215,12 @@ ApplicationWindow {
                 Layout.margins: Style.h_padding
                 progress_min: m_video_control.start_percent
                 progress_max: m_video_control.end_percent
+                roi: Qt.rect(roi.mappedXY.x, roi.mappedXY.y, roi.mappedWH.x, roi.mappedWH.y)
+
                 onSourceChanged: {
                     summaryPane.setStartState("ready")
                 }
+                //onVideoRectChanged: roi.recomputeMappedPoints()
                 onPlayback_stateChanged: {
                     if (playback_state === MediaPlayer.PausedState
                             || playback_state === MediaPlayer.StoppedState) {
@@ -233,15 +237,25 @@ ApplicationWindow {
                     roiY: ~~(parent.height/2) - (initialSize/2)
                     roiWidth: initialSize
                     roiHeight: initialSize
-                    property point mappedXY: m_video.viewPointToVideoPoint(Qt.point(roi.roiX,roi.roiY))
-                    property point mappedWH: m_video.viewPointToVideoPoint(Qt.point(roi.roiX + roi.roiWidth,roi.roiY + roi.roiHeight))
+                    property point mappedXY: Qt.point(1,1)
+                    property point mappedBL: Qt.point(1,1)
+                    property point mappedWH: Qt.point(1,1)
 
                     onRoiXChanged: updateLines()
                     onRoiYChanged: updateLines()
                     onRoiWidthChanged: updateLines()
                     onRoiHeightChanged: updateLines()
 
+                    function recomputeMappedPoints() {
+                        mappedXY = m_video.viewPointToVideoPoint(Qt.point(roi.roiX,roi.roiY))
+                        mappedBL = m_video.viewPointToVideoPoint(Qt.point(roi.roiX + roi.roiWidth,roi.roiY + roi.roiHeight))
+                        mappedWH = Qt.point(mappedBL.x - mappedXY.x, mappedBL.y - mappedXY.y)
+                    }
+
                     function updateLines() {
+
+                        recomputeMappedPoints()
+
                         line1.p1X = roiX + (roiWidth / 3)
                         line1.p1Y = roiY + (roiHeight / 3)
                         line1.p2X = roiX + (roiWidth / 2)

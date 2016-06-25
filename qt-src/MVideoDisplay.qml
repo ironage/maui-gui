@@ -14,6 +14,8 @@ Item {
     property alias playback_state: cv_player.playbackState
     property alias video_width: cv_player.size.width
     property alias video_height: cv_player.size.height
+    property alias roi: cv_player.roi
+    signal videoRectChanged()
 
     function viewPointToVideoPoint(viewPoint) {
         return output.mapPointToSource(viewPoint)
@@ -57,7 +59,7 @@ Item {
         id: output
         anchors.fill: parent
         source: cv_player
-        //visible: false
+        onSourceRectChanged: m_root.videoRectChanged()
         onWidthChanged: {
             setSize()
         }
@@ -70,8 +72,4 @@ Item {
     }
 
     focus: true
-    Keys.onSpacePressed: cv_player.playbackState === MediaPlayer.PlayingState ? cv_player.pause() : cv_player.play()
-    Keys.onLeftPressed: cv_player.seek(cv_player.position - 5000)
-    Keys.onRightPressed: cv_player.seek(cv_player.position + 5000)
-
 }

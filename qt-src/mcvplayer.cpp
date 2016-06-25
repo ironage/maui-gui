@@ -35,6 +35,17 @@ void MCVPlayer::setSize(QSize size)
     }
 }
 
+void MCVPlayer::setROI(const QRect &newROI)
+{
+    if (roi != newROI) {
+        roi = newROI;
+        if (thread) {
+            thread->doSetROI(roi);
+        }
+        emit roiChanged();
+    }
+}
+
 void MCVPlayer::setVideoSurface(QAbstractVideoSurface *surface)
 {
     qDebug() << "setVideoSurface called";

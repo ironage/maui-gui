@@ -26,4 +26,5 @@ LIBS += -lopencv_core2413 -lopencv_highgui2413 -lopencv_imgproc2413 -lopencv_vid
 HEADERS += \
     mcvplayer.h \
     mcamerathread.h \
-    mvideocapture.h
+    mvideocapture.h \
+    autoInit.h

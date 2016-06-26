@@ -11,5 +11,12 @@ tues, 24 may 2016 - 4 hours: input validation, text input, dropdown
 thurs, 26 may 2016 - 3 hours: skype meeting, adjustments
 sat, 28 may 2016 - 1 hour: scale adjustments, layout
 sun, 29 may 2016 - 1 hour: scale adjustments, move on bar drag
-
+thurs, 2 june 2016 - 3 hours: skype meeting, start opencv compiles
+wed, 8 june 2016 - 2 hours: start change to opencv
+thurs, 9 june 2016 - 4 hours: opencv with background thread and reading video to qml
+fri, 10 june 2016 - 3 hours: communicate to background thread via signals, seek function
+sun, 12 june 2016 - 2 hours: frame numbers on pins, move start button to expander
+thurs, 16 june 2016 - 2 hours: skype meeting, simple feedback changes
+friday, 17 june 2016 - 1 hour: video control position color change
 thurs, 23 june 2016 - 5 hours: summary pane, start roi
+sat, 25 june 2016 - 10 hours: completed roi, adjustable 3-point lines, video mapped points

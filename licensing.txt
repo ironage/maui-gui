@@ -1,2 +1,5 @@
 Qt using LGPL
 https://www.qt.io/faq/
+
+credit https://github.com/kyamagu/mexopencv
+credit opencv

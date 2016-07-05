@@ -3,7 +3,12 @@
 #include <QCoreApplication>
 
 #include "mcamerathread.h"
-//#include "autoInit.h"
+#include <locale>
+
+#include "libAutoInit.h"   // custom generated header (with lib) from matlab code
+//#include <opencvmex.hpp>
+
+//#include "util/MxArray.hpp"
 
 CameraTask::CameraTask(MVideoCapture* camera, QVideoFrame* videoFrame,
                        unsigned char* cvImageBuf, int width, int height)
@@ -11,25 +16,58 @@ CameraTask::CameraTask(MVideoCapture* camera, QVideoFrame* videoFrame,
     width(width), height(height), curPlayState(Paused), curFrame(-1), frameToSeekTo(-1),
     startFrame(0), endFrame(0)
 {
-//    // Initialize the MATLAB Compiler Runtime global state
-//    if (!mclInitializeApplication(NULL,0))
-//    {
-//        qDebug() << "Could not initialize the application properly.";
-//    }
-//    if (!autoInitInitialize()) {
-//        qDebug() << "Could not initialize the autoInit library.";
-//    }
+    qDebug() << "Starting initialization of matlab.";
+
+//    qDebug() << "User-preferred locale setting is " << std::locale("").name().c_str() << '\n';
+//    // on startup, the global locale is the "C" locale
+//    // replace the C++ global locale as well as the C locale with the user-preferred locale
+//    std::locale::global(std::locale("English_United States.1252"));
+//    qDebug() << "New locale setting is " << std::locale("English_United States.1252").name().c_str() << '\n';
+    const char *pStrings[]={"-nojvm","-nojit"};
+    // Initialize the MATLAB Compiler Runtime global state
+    if (!mclInitializeApplication(NULL,0))
+    {
+        qDebug() << "Could not initialize the application properly.";
+    }
+
+    qDebug() << "Initializing custom matlab library";
+    if (!libAutoInitInitialize()) {
+        qDebug() << "Could not initialize the autoInit library.";
+    }
+    qDebug() << "Done initialization stage.";
 }
 
 CameraTask::~CameraTask()
 {
     qDebug() << "CameraTask destructed";
+    libAutoInitTerminate();
+    mclTerminateApplication();  // can only be called once per application
     //Leave camera and videoFrame alone, they will be destroyed elsewhere
 }
 
 void CameraTask::stop()
 {
     running = false;
+}
+
+mwArray opencvConvertToMX(cv::Mat& m) {
+    int rows=m.rows;
+    int cols=m.cols;
+    //Mat data is float, and mxArray uses double, so we need to convert.
+    //mxArray *mxT=mxCreateDoubleMatrix(rows, cols, mxREAL);
+    mwArray T(rows, cols, mxDOUBLE_CLASS);
+    mxDouble *dataBuffer = new mxDouble[cols*rows]; // TODO: LEAK
+    qDebug() << "rows: " << rows << " cols: " << cols << "(" << rows*cols << ")";
+    //double *buffer=(double*)mxGetPr(T);
+    for(int i=0; i<rows; i++){
+        for(int j=0; j<cols; j++){
+            dataBuffer[j*(cols)+i] = m.at<uchar>(i,j);
+        }
+    }
+    qDebug() << "SetData...";
+    T.SetData(dataBuffer, cols*rows);
+    qDebug() << "Done.";
+    return T;
 }
 
 void CameraTask::convertUVsp2UVp(unsigned char* __restrict srcptr, unsigned char* __restrict dstptr, int stride)
@@ -54,11 +92,10 @@ void CameraTask::doWork()
     if(videoFrame)
         videoFrame->map(QAbstractVideoBuffer::ReadOnly);
 
-#ifndef ANDROID //Assuming desktop, RGB camera image and RGBA QVideoFrame
+    //Assuming desktop, RGB camera image and RGBA QVideoFrame
     cv::Mat screenImage;
     if(videoFrame)
         screenImage = cv::Mat(height,width,CV_8UC4,videoFrame->bits());
-#endif
 
     while(running && videoFrame != NULL && camera != NULL) {
          QCoreApplication::processEvents();
@@ -90,40 +127,47 @@ void CameraTask::doWork()
         unsigned char* cameraFrame = camera->retrieveFrame();
 
         //Get camera image into screen frame buffer
-        if(videoFrame){
+        //Assuming desktop, RGB camera image and RGBA QVideoFrame
+        if(videoFrame) {
 
-#ifdef ANDROID //Assume YUV420sp camera image and YUV420p QVideoFrame
-
-            //Copy over Y channel
-            memcpy(videoFrame->bits(),cameraFrame,height*width);
-
-            //Convert semiplanar UV to planar UV
-            convertUVsp2UVp(cameraFrame + height*width, videoFrame->bits() + height*width, height/2*width/2);
-
-#else //Assuming desktop, RGB camera image and RGBA QVideoFrame
-            cv::Mat tempMat(height,width,CV_8UC3,cameraFrame);
+            cv::Mat tempMat(height, width, CV_8UC3, cameraFrame);
             if (curPlayState == PlayState::AutoInitCurFrame) {
                 curPlayState = PlayState::Paused;
-//                cv::Rect roiRect(roi.x(), roi.y(), roi.width(), roi.height());
-//                cv::Mat roiSection = tempMat(roiRect).clone();  // TODO: check if leaked
+                cv::Rect roiRect(roi.x(), roi.y(), roi.width(), roi.height());
+                cv::Mat roiSection = tempMat(roiRect).clone();  // TODO: check if leaked
+                cv::cvtColor(roiSection, roiSection, CV_BGR2GRAY);
+                imwrite( "cropped.jpg", roiSection);
+                try {
+                    //MxArray converter(roiSection);
+                    qDebug() << "using libs from matlab";
+                    mwArray topWall;
+                    mwArray botWall;
+                    mwArray mwROI = opencvConvertToMX(roiSection);
+                    double bdata [] = { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 };
+                    //mwArray mwROI(2,5, mxDOUBLE_CLASS);
+                    //mwROI.SetData(bdata, 10);
 
-//                autoInitializer(2, mwArray& miniTopWall, mwArray& miniBotWall, const mwArray& ROI, const mwArray& numPoints);
+                    mwArray numPoints(1, 1, mxINT32_CLASS);
+                    int numPointsData [] = { 3 };
+                    numPoints.SetData(numPointsData, 1);
 
-//                imwrite( "cropped.jpg", roiSection);
+                    qDebug() << "numPoints: " << numPoints.ToString();
+                    autoInitializer(1, topWall, botWall, mwROI, numPoints);
+
+                    qDebug() << "top wall: " << topWall.ToString();
+                    qDebug() << "bottom wall: " << botWall.ToString();
+                    //delete mwROI;
+
+                } catch (const mwException& e) {
+                    std::cerr << e.what() << std::endl;
+                }
             }
             cv::cvtColor(tempMat,screenImage,cv::COLOR_RGB2RGBA);
-#endif
-
         }
 
         //Export camera image
         if(cvImageBuf){
-
-#ifdef ANDROID //Assume YUV420sp camera image
-            memcpy(cvImageBuf,cameraFrame,height*width*3/2);
-#else //Assuming desktop, RGB camera image
             memcpy(cvImageBuf,cameraFrame,height*width*3);
-#endif
         }
 
         emit imageReady(curFrame);

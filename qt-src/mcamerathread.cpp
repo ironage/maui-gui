@@ -3,12 +3,11 @@
 #include <QCoreApplication>
 
 #include "mcamerathread.h"
-#include <locale>
+#include <algorithm>
+// Windows includes defines for min,max which collide with std:: versions
+#define NOMINMAX
 
 #include "libAutoInit.h"   // custom generated header (with lib) from matlab code
-//#include <opencvmex.hpp>
-
-//#include "util/MxArray.hpp"
 
 CameraTask::CameraTask(MVideoCapture* camera, QVideoFrame* videoFrame,
                        unsigned char* cvImageBuf, int width, int height)
@@ -18,11 +17,6 @@ CameraTask::CameraTask(MVideoCapture* camera, QVideoFrame* videoFrame,
 {
     qDebug() << "Starting initialization of matlab.";
 
-//    qDebug() << "User-preferred locale setting is " << std::locale("").name().c_str() << '\n';
-//    // on startup, the global locale is the "C" locale
-//    // replace the C++ global locale as well as the C locale with the user-preferred locale
-//    std::locale::global(std::locale("English_United States.1252"));
-//    qDebug() << "New locale setting is " << std::locale("English_United States.1252").name().c_str() << '\n';
     const char *pStrings[]={"-nojvm","-nojit"};
     // Initialize the MATLAB Compiler Runtime global state
     if (!mclInitializeApplication(NULL,0))
@@ -50,22 +44,21 @@ void CameraTask::stop()
     running = false;
 }
 
-mwArray opencvConvertToMX(cv::Mat& m) {
+mwArray* opencvConvertToMX(cv::Mat& m) {
     int rows=m.rows;
     int cols=m.cols;
-    //Mat data is float, and mxArray uses double, so we need to convert.
-    //mxArray *mxT=mxCreateDoubleMatrix(rows, cols, mxREAL);
-    mwArray T(rows, cols, mxDOUBLE_CLASS);
-    mxDouble *dataBuffer = new mxDouble[cols*rows]; // TODO: LEAK
+    mwArray *T = new mwArray(rows, cols, mxDOUBLE_CLASS);
+    mxDouble *dataBuffer = new mxDouble[cols*rows]; // TODO: allocation on size change only
     qDebug() << "rows: " << rows << " cols: " << cols << "(" << rows*cols << ")";
-    //double *buffer=(double*)mxGetPr(T);
     for(int i=0; i<rows; i++){
         for(int j=0; j<cols; j++){
-            dataBuffer[j*(cols)+i] = m.at<uchar>(i,j);
+            //        [i*cols+j]  row vs col order is reversed from cv::Mat to mwArray
+            dataBuffer[j*rows+i] = m.at<uchar>(i,j);
         }
     }
     qDebug() << "SetData...";
-    T.SetData(dataBuffer, cols*rows);
+    T->SetData(dataBuffer, cols*rows);
+    delete [] dataBuffer;
     qDebug() << "Done.";
     return T;
 }
@@ -133,30 +126,35 @@ void CameraTask::doWork()
             cv::Mat tempMat(height, width, CV_8UC3, cameraFrame);
             if (curPlayState == PlayState::AutoInitCurFrame) {
                 curPlayState = PlayState::Paused;
-                cv::Rect roiRect(roi.x(), roi.y(), roi.width(), roi.height());
-                cv::Mat roiSection = tempMat(roiRect).clone();  // TODO: check if leaked
+                // Trying to crop an image outside of bounds will crash, bound check here
+                int roiX = std::max(0, roi.x());
+                int roiY = std::max(0, roi.y());
+                int roiW = std::min(width - roiX - 1, roi.width());
+                int roiH = std::min(height - roiY - 1, roi.height());
+                cv::Rect roiRect(roiX, roiY, roiW, roiH);
+                qDebug() << "width: " << width << " height: " << height << " roi: " << roi << " crop: "
+                         << roiRect.x << ", " << roiRect.y << ", " << roiRect.width << ", " << roiRect.height;
+                cv::Mat roiSection = tempMat(roiRect);  // TODO: check if leaked
                 cv::cvtColor(roiSection, roiSection, CV_BGR2GRAY);
-                imwrite( "cropped.jpg", roiSection);
+                //imwrite( "cropped.jpg", roiSection);
                 try {
                     //MxArray converter(roiSection);
                     qDebug() << "using libs from matlab";
                     mwArray topWall;
                     mwArray botWall;
-                    mwArray mwROI = opencvConvertToMX(roiSection);
-                    double bdata [] = { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 };
-                    //mwArray mwROI(2,5, mxDOUBLE_CLASS);
-                    //mwROI.SetData(bdata, 10);
-
+                    mwArray* mwROI = opencvConvertToMX(roiSection);
                     mwArray numPoints(1, 1, mxINT32_CLASS);
                     int numPointsData [] = { 3 };
                     numPoints.SetData(numPointsData, 1);
 
                     qDebug() << "numPoints: " << numPoints.ToString();
-                    autoInitializer(1, topWall, botWall, mwROI, numPoints);
+                    constexpr numReturnValues = 2;
+                    autoInitializer(numReturnValues, topWall, botWall, *mwROI, numPoints);
 
                     qDebug() << "top wall: " << topWall.ToString();
                     qDebug() << "bottom wall: " << botWall.ToString();
-                    //delete mwROI;
+
+                    delete mwROI;
 
                 } catch (const mwException& e) {
                     std::cerr << e.what() << std::endl;

@@ -256,28 +256,28 @@ ApplicationWindow {
 
                         recomputeMappedPoints()
 
-                        line1.p1X = roiX + (roiWidth / 3)
-                        line1.p1Y = roiY + (roiHeight / 3)
-                        line1.p2X = roiX + (roiWidth / 2)
-                        line1.p2Y = roiY + (roiHeight / 3)
-                        line1.p3X = roiX + (2 * roiWidth / 3)
-                        line1.p3Y = roiY + (roiHeight / 3)
+//                        line1.pointList = [
+//                                Qt.point(roiX + (roiWidth / 3), roiY + (roiHeight / 3)),
+//                                Qt.point(roiX + (roiWidth / 2), roiY + (roiHeight / 3)),
+//                                Qt.point(roiX + (2 * roiWidth / 3), roiY + (roiHeight / 3))]
 
-                        line2.p1X = roiX + (roiWidth / 3)
-                        line2.p1Y = roiY + (roiHeight * 2 / 3)
-                        line2.p2X = roiX + (roiWidth / 2)
-                        line2.p2Y = roiY + (roiHeight * 2 / 3)
-                        line2.p3X = roiX + (2 * roiWidth / 3)
-                        line2.p3Y = roiY + (roiHeight * 2 / 3)
+//                        line2.pointList = [
+//                                Qt.point(roiX + (roiWidth / 3), roiY + (roiHeight * 2 / 3)),
+//                                Qt.point(roiX + (roiWidth / 2), roiY + (roiHeight * 2 / 3)),
+//                                Qt.point(roiX + (2 * roiWidth / 3), roiY + (roiHeight * 2 / 3))]
+
                     }
                 }
                 MPointLine {
                     id: line1
                     visible: roi.visible
+                    pointList: m_video.topPoints
+                    onPointListChanged: console.log("line 1 point list changed" + pointList)
                 }
                 MPointLine {
                     id: line2
                     visible: roi.visible
+                    pointList: m_video.bottomPoints
                 }
 
                 MScaleAdjuster {

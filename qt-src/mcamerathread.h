@@ -14,7 +14,10 @@
 
 #include<vector>
 
-#include"mvideocapture.h"
+#include "mpoint.h"
+#include "mvideocapture.h"
+
+class mwArray;
 
 class CameraTask : public QObject{
 Q_OBJECT
@@ -58,9 +61,12 @@ public slots:
     void seek(int frameNumber);
     void setStartFrame(int frameNumber);
     void setEndFrame(int frameNumber);
-    void setROI(QRect newROI);
+    void setROI(QRect newROI);    
 signals:
     void imageReady(int);
+    void initPointsDetected(QList<MPoint>, QList<MPoint>);
+protected:
+    void notifyInitPoints(mwArray topWall, mwArray bottomWall);
 };
 
 class MCameraThread : public QObject{
@@ -88,6 +94,7 @@ signals:
     void setStartFrame(int frameNumber);
     void setEndFrame(int frameNumber);
     void setROI(QRect roi);
+    void initPointsDetected(QList<MPoint>, QList<MPoint>);
 };
 
 #endif /* CAMERATHREAD_H */

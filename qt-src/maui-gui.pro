@@ -13,7 +13,8 @@ MATLAB_LIBS = "$$PWD/libs/"
 SOURCES += main.cpp \
     mcvplayer.cpp \
     mcamerathread.cpp \
-    mvideocapture.cpp
+    mvideocapture.cpp \
+    mpoint.cpp
 #    util/MxArray.cpp
 
 QT += qml quick multimedia
@@ -48,5 +49,6 @@ HEADERS += \
     mcvplayer.h \
     mcamerathread.h \
     mvideocapture.h \
-    libAutoInit.h
+    libAutoInit.h \
+    mpoint.h
 #    util/MxArray.hpp

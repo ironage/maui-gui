@@ -10,6 +10,9 @@ MCVPlayer::MCVPlayer() : QObject(),
     m_surface(NULL),
     stopped(true)
 {
+    qRegisterMetaType<QQmlListProperty<MPoint>>();
+    qRegisterMetaType<QList<MPoint*>>();
+    qRegisterMetaType<QList<MPoint>>();
 }
 
 MCVPlayer::~MCVPlayer()
@@ -18,6 +21,14 @@ MCVPlayer::~MCVPlayer()
         thread->stop();
     delete thread;
     delete camera;
+
+    while (topPoints.size() > 0) {
+        delete topPoints.takeAt(0);
+    }
+    while (bottomPoints.size() > 0) {
+        delete bottomPoints.takeAt(0);
+    }
+
     //Camera release is automatic when cv::VideoCapture is destroyed
 }
 
@@ -122,6 +133,7 @@ void MCVPlayer::update()
 
             thread = new MCameraThread(camera,videoFrame,cvImageBuf,size.width(),size.height());
             connect(thread,SIGNAL(imageReady(int)), this, SLOT(imageReceived(int)));
+            connect(thread, SIGNAL(initPointsDetected(QList<MPoint>,QList<MPoint>)), this, SLOT(initPointsReceived(QList<MPoint>,QList<MPoint>)));
             thread->doSetEndFrame(numFrames);
             thread->doSetStartFrame(0);
             if(m_surface){
@@ -150,6 +162,56 @@ void MCVPlayer::imageReceived(int frameNumber)
         }
         curFrame = frameNumber;
         emit curFrameChanged();
+    }
+}
+
+void MCVPlayer::initPointsReceived(QList<MPoint> top, QList<MPoint> bottom)
+{
+    bool modified = false;
+    if (top.size() < topPoints.size()) {
+        for (int i = top.size(); i < topPoints.size();) {
+            delete topPoints.takeAt(i);
+        }
+        modified = true;
+    } else if (top.size() > topPoints.size()) {
+        for (int i = topPoints.size(); i < top.size(); ++i) {
+            topPoints.push_back(new MPoint(top.at(i).x(), top.at(i).y()));
+        }
+        modified = true;
+    }
+    for (int i = 0; i < top.size(); ++i) {
+        if (top.at(i) != *topPoints.at(i)) {
+            topPoints.at(i)->setX(top.at(i).x());
+            topPoints.at(i)->setY(top.at(i).y());
+            modified = true;
+        }
+    }
+
+    if (bottom.size() < bottomPoints.size()) {
+        for (int i = bottom.size(); i < bottomPoints.size();) {
+            delete bottomPoints.takeAt(i);
+        }
+        modified = true;
+    } else if (bottom.size() > bottomPoints.size()) {
+        for (int i = bottomPoints.size(); i < bottom.size(); ++i) {
+            bottomPoints.push_back(new MPoint(bottom.at(i).x(), bottom.at(i).y()));
+        }
+        modified = true;
+    }
+    for (int i = 0; i < bottom.size(); ++i) {
+        if (bottom.at(i) != *bottomPoints.at(i)) {
+            bottomPoints.at(i)->setX(bottom.at(i).x());
+            bottomPoints.at(i)->setY(bottom.at(i).y());
+            modified = true;
+        }
+    }
+
+    if (modified) {
+        qDebug() << "lists modified: " << topPoints << " bottom: " << bottomPoints;
+        for (int i = 0; i < topPoints.size(); ++i) {
+            qDebug() << "top " << i << " is " << *topPoints.at(i);
+        }
+        emit initPointsChanged();
     }
 }
 
@@ -232,3 +294,21 @@ void MCVPlayer::setStartFrame(int frame)
         thread->doSetStartFrame(frame);
     }
 }
+
+//void MCVPlayer::setTopPoints(QList<MPoint> points)
+//{
+//    if (points != topPoints) {
+//        topPoints = points;
+//        // TODO: set in thread
+//        emit initPointsChanged();
+//    }
+//}
+
+//void MCVPlayer::setBottomPoints(QList<MPoint> points)
+//{
+//    if (points != bottomPoints) {
+//        bottomPoints = points;
+//        // TODO: set in thread
+//        emit initPointsChanged();
+//    }
+//}

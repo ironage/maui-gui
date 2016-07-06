@@ -9,19 +9,27 @@ Rectangle {
     property int cornerWidth: 14
     property color pointColor: "white"
 
-    property int p1X: 0
-    property int p1Y: 0
-    property int p2X: 0
-    property int p2Y: 0
-    property int p3X: 0
-    property int p3Y: 0
+    property var pointList // [Qt.point(0,0), Qt.point(0,0),Qt.point(0,0)]
+//    property int p1X: 0
+//    property int p1Y: 0
+//    property int p2X: 0
+//    property int p2Y: 0
+//    property int p3X: 0
+//    property int p3Y: 0
+    onPointListChanged: {
+        console.log("pointList changed length: " + pointList.length + " " + pointList[0])// + " x:" + pointList[0].x)
+    }
 
     Rectangle {
         id: point1
+        //visible: true //pointList.length >= 1
         property int xOffset: -width/2
         property int yOffset: -height/2
-        x: p1X + xOffset
-        y: p1Y + yOffset
+        x: (pointList.length >= 1) ? pointList[0].x + xOffset : 0
+        y: (pointList.length >= 1) ? pointList[0].y + yOffset : 0
+
+        onXChanged: console.log("point 1 x changed: " + x)
+        onYChanged: console.log("point 1 y changed: " + y)
         width: cornerWidth
         height: width
         opacity: alpha
@@ -48,17 +56,20 @@ Rectangle {
                 updatePosition()
             }
             function updatePosition() {
-                p1X = (point1.x - point1.xOffset)
-                p1Y = (point1.y - point1.yOffset)
+                if (pointList.length >= 1) {
+                    pointList[0].x = (point1.x - point1.xOffset)
+                    pointList[0].y = (point1.y - point1.yOffset)
+                }
             }
         }
     }
     Rectangle {
         id: point2
+        visible: (pointList.length >= 2)
         property int xOffset: -width/2
         property int yOffset: -height/2
-        x: p2X + xOffset
-        y: p2Y + yOffset
+        x: (pointList.length >= 2) ? pointList[1].x + xOffset : 0
+        y: (pointList.length >= 2) ? pointList[1].y + yOffset : 0
         width: cornerWidth
         height: width
         opacity: alpha
@@ -85,8 +96,10 @@ Rectangle {
                 updatePosition()
             }
             function updatePosition() {
-                p2X = (point2.x - point2.xOffset)
-                p2Y = (point2.y - point2.yOffset)
+                if (pointList.length >= 2) {
+                    pointList[1].x = (point2.x - point2.xOffset)
+                    pointList[1].y = (point2.y - point2.yOffset)
+                }
             }
         }
     }
@@ -94,8 +107,9 @@ Rectangle {
         id: point3
         property int xOffset: -width/2
         property int yOffset: -height/2
-        x: p3X + xOffset
-        y: p3Y + yOffset
+        visible: (pointList.length >= 3)
+        x: (pointList.length >= 3) ? pointList[2].x + xOffset : 0
+        y: (pointList.length >= 3) ? pointList[2].y + yOffset : 0
         width: cornerWidth
         height: width
         opacity: alpha
@@ -122,18 +136,22 @@ Rectangle {
                 updatePosition()
             }
             function updatePosition() {
-                p3X = (point3.x - point3.xOffset)
-                p3Y = (point3.y - point3.yOffset)
+                if (pointList.length >= 3) {
+                    pointList[2].x = (point3.x - point3.xOffset)
+                    pointList[2].y = (point3.y - point3.yOffset)
+                }
             }
         }
     }
     MLine {
+        visible: (pointList.length >= 2)
         x1: point1.x - point1.xOffset
         x2: point2.x - point2.xOffset
         y1: point1.y - point1.yOffset
         y2: point2.y - point2.yOffset
     }
     MLine {
+        visible: (pointList.length >= 3)
         x1: point2.x - point2.xOffset
         x2: point3.x - point3.xOffset
         y1: point2.y - point2.yOffset

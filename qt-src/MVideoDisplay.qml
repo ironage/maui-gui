@@ -15,6 +15,9 @@ Item {
     property alias video_width: cv_player.size.width
     property alias video_height: cv_player.size.height
     property alias roi: cv_player.roi
+    property alias topPoints: cv_player.initTopPoints
+    property alias bottomPoints: cv_player.initBottomPoints
+
     signal videoRectChanged()
 
     function viewPointToVideoPoint(viewPoint) {
@@ -45,6 +48,9 @@ Item {
 
     MCVPlayer {
         id: cv_player
+        onInitTopPointsChanged: {
+            console.log("cv_player top points changed" + initTopPoints)
+        }
 
         onPositionChanged: {
             if (duration > 0) {

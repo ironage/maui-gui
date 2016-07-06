@@ -15,8 +15,10 @@
 
 #include "mvideocapture.h"
 #include "mcamerathread.h"
+#include "mpoint.h"
 
 #include <QMediaPlayer>
+#include <QQmlListProperty>
 
 class MCVPlayer : public QObject
 {
@@ -28,6 +30,8 @@ class MCVPlayer : public QObject
     Q_PROPERTY(int position READ getCurFrame WRITE setCurFrame NOTIFY curFrameChanged)
     Q_PROPERTY(int playbackState READ getPlaybackState NOTIFY playbackStateChanged)
     Q_PROPERTY(QRect roi READ getROI WRITE setROI NOTIFY roiChanged)
+    Q_PROPERTY(QQmlListProperty<MPoint> initTopPoints READ getTopPoints NOTIFY initPointsChanged)
+    Q_PROPERTY(QQmlListProperty<MPoint> initBottomPoints READ getBottomPoints NOTIFY initPointsChanged)
 public:
     MCVPlayer();
     ~MCVPlayer();
@@ -52,6 +56,10 @@ public slots:
     void seek(int frame);
     void setEndFrame(int frame);
     void setStartFrame(int frame);
+    //FIXME: proper list access
+    //QQmlListProperty::QQmlListProperty(QObject *object, void *data, AppendFunction append, CountFunction count, AtFunction at, ClearFunction clear)
+    QQmlListProperty<MPoint> getTopPoints() { return QQmlListProperty<MPoint>(this, topPoints); }
+    QQmlListProperty<MPoint> getBottomPoints() { return QQmlListProperty<MPoint>(this, bottomPoints); }
 signals:
     void sizeChanged();
     void videoPropertiesChanged();
@@ -59,6 +67,7 @@ signals:
     void playbackStateChanged();
     void sourceChanged();
     void roiChanged();
+    void initPointsChanged();
 private:
 
 #ifdef ANDROID
@@ -75,6 +84,8 @@ private:
     int curFrame;
     QSize size;
     QRect roi;
+    QList<MPoint*> topPoints;
+    QList<MPoint*> bottomPoints;
     MVideoCapture* camera = NULL;
     MCameraThread* thread = NULL;
     QVideoFrame* videoFrame = NULL;
@@ -87,7 +98,12 @@ private:
     void allocateVideoFrame();
 private slots:
     void imageReceived(int frameNumber);
+    void initPointsReceived(QList<MPoint> top, QList<MPoint> bottom);
 };
+
+Q_DECLARE_METATYPE(QQmlListProperty<MPoint>)
+Q_DECLARE_METATYPE(QList<MPoint>)
+Q_DECLARE_METATYPE(QList<MPoint*>)
 
 #endif // MCVPLAYER_H
 

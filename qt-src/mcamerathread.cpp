@@ -49,17 +49,14 @@ mwArray* opencvConvertToMX(cv::Mat& m) {
     int cols=m.cols;
     mwArray *T = new mwArray(rows, cols, mxDOUBLE_CLASS);
     mxDouble *dataBuffer = new mxDouble[cols*rows]; // TODO: allocation on size change only
-    qDebug() << "rows: " << rows << " cols: " << cols << "(" << rows*cols << ")";
     for(int i=0; i<rows; i++){
         for(int j=0; j<cols; j++){
             //        [i*cols+j]  row vs col order is reversed from cv::Mat to mwArray
             dataBuffer[j*rows+i] = m.at<uchar>(i,j);
         }
     }
-    qDebug() << "SetData...";
     T->SetData(dataBuffer, cols*rows);
     delete [] dataBuffer;
-    qDebug() << "Done.";
     return T;
 }
 
@@ -132,30 +129,22 @@ void CameraTask::doWork()
                 int roiW = std::min(width - roiX - 1, roi.width());
                 int roiH = std::min(height - roiY - 1, roi.height());
                 cv::Rect roiRect(roiX, roiY, roiW, roiH);
-                qDebug() << "width: " << width << " height: " << height << " roi: " << roi << " crop: "
-                         << roiRect.x << ", " << roiRect.y << ", " << roiRect.width << ", " << roiRect.height;
                 cv::Mat roiSection = tempMat(roiRect);  // TODO: check if leaked
                 cv::cvtColor(roiSection, roiSection, CV_BGR2GRAY);
                 //imwrite( "cropped.jpg", roiSection);
                 try {
-                    //MxArray converter(roiSection);
-                    qDebug() << "using libs from matlab";
                     mwArray topWall;
-                    mwArray botWall;
+                    mwArray bottomWall;
                     mwArray* mwROI = opencvConvertToMX(roiSection);
                     mwArray numPoints(1, 1, mxINT32_CLASS);
                     int numPointsData [] = { 3 };
                     numPoints.SetData(numPointsData, 1);
 
-                    qDebug() << "numPoints: " << numPoints.ToString();
-                    constexpr numReturnValues = 2;
-                    autoInitializer(numReturnValues, topWall, botWall, *mwROI, numPoints);
+                    const int numReturnValues = 2;
+                    autoInitializer(numReturnValues, topWall, bottomWall, *mwROI, numPoints);
 
-                    qDebug() << "top wall: " << topWall.ToString();
-                    qDebug() << "bottom wall: " << botWall.ToString();
-
+                    notifyInitPoints(topWall, bottomWall);
                     delete mwROI;
-
                 } catch (const mwException& e) {
                     std::cerr << e.what() << std::endl;
                 }
@@ -222,6 +211,37 @@ void CameraTask::setROI(QRect newROI)
     }
 }
 
+void CameraTask::notifyInitPoints(mwArray topWall, mwArray bottomWall)
+{
+    QList<MPoint> topPoints, bottomPoints;
+    size_t topSize = topWall.NumberOfElements();
+    if (topSize % 2 == 0) {  // Assuming two dimensions
+        mxInt32 *topData = new mxInt32[topSize];
+        topWall.GetData(topData, topSize);
+        for (int i = 0; i < topSize / 2; ++i) {
+            MPoint p(topData[i], topData[(topSize/2) + i]);
+            topPoints.push_back(p);
+        }
+        delete [] topData;
+    }
+    size_t bottomSize = bottomWall.NumberOfElements();
+    if (bottomSize % 2 == 0) {  // Assuming two dimensions
+        mxInt32 *bottomData = new mxInt32[bottomSize];
+        bottomWall.GetData(bottomData, bottomSize);
+        for (int i = 0; i < bottomSize / 2; ++i) {
+            MPoint p(bottomData[i], bottomData[(bottomSize/2) + i]);
+            bottomPoints.push_back(p);
+        }
+        delete [] bottomData;
+    }
+
+//    qDebug() << "top wall: " << topWall.ToString();
+//    qDebug() << "bottom wall: " << bottomWall.ToString();
+//    qDebug() << "converted top: " << topPoints;
+//    qDebug() << "converted bottom: " << bottomPoints;
+    emit initPointsDetected(topPoints, bottomPoints);
+}
+
 
 
 
@@ -233,6 +253,7 @@ MCameraThread::MCameraThread(MVideoCapture* camera, QVideoFrame* videoFrame, uns
     task->moveToThread(&workerThread);
     connect(&workerThread, SIGNAL(started()), task, SLOT(doWork()));
     connect(task, SIGNAL(imageReady(int)), this, SIGNAL(imageReady(int)));
+    connect(task, SIGNAL(initPointsDetected(QList<MPoint>,QList<MPoint>)), this, SIGNAL(initPointsDetected(QList<MPoint>,QList<MPoint>)));
     connect(this, SIGNAL(play()), task, SLOT(play()), Qt::QueuedConnection);
     connect(this, SIGNAL(pause()), task, SLOT(pause()), Qt::QueuedConnection);
     connect(this, SIGNAL(seek(int)), task, SLOT(seek(int)), Qt::QueuedConnection);

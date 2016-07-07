@@ -1,5 +1,6 @@
 import QtQuick 2.5
 import "."
+import com.maui.custom 1.0 // MPoint
 
 Rectangle {
     id: m_root
@@ -9,27 +10,16 @@ Rectangle {
     property int cornerWidth: 14
     property color pointColor: "white"
 
-    property var pointList // [Qt.point(0,0), Qt.point(0,0),Qt.point(0,0)]
-//    property int p1X: 0
-//    property int p1Y: 0
-//    property int p2X: 0
-//    property int p2Y: 0
-//    property int p3X: 0
-//    property int p3Y: 0
-    onPointListChanged: {
-        console.log("pointList changed length: " + pointList.length + " " + pointList[0])// + " x:" + pointList[0].x)
-    }
+    property list<MPoint> pointList
 
     Rectangle {
         id: point1
-        //visible: true //pointList.length >= 1
+        visible: pointList.length >= 1
         property int xOffset: -width/2
         property int yOffset: -height/2
-        x: (pointList.length >= 1) ? pointList[0].x + xOffset : 0
-        y: (pointList.length >= 1) ? pointList[0].y + yOffset : 0
+        x: (pointList !== null && pointList.length >= 1) ? pointList[0].x + xOffset : 0
+        y: (pointList !== null && pointList.length >= 1) ? pointList[0].y + yOffset : 0
 
-        onXChanged: console.log("point 1 x changed: " + x)
-        onYChanged: console.log("point 1 y changed: " + y)
         width: cornerWidth
         height: width
         opacity: alpha

@@ -23,6 +23,9 @@ Item {
     function viewPointToVideoPoint(viewPoint) {
         return output.mapPointToSource(viewPoint)
     }
+    function videoPointToViewPoint(videoPoint) {
+        return output.mapPointToItem(videoPoint)
+    }
 
     function seek(offset) {
         cv_player.seek(offset)

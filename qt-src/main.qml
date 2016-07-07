@@ -6,6 +6,7 @@ import QtQuick.Controls.Styles 1.4
 import QtQuick.Dialogs 1.2
 import QtMultimedia 5.5
 import "."
+import com.maui.custom 1.0  // MPoint
 
 ApplicationWindow {
     visible: true
@@ -256,6 +257,17 @@ ApplicationWindow {
 
                         recomputeMappedPoints()
 
+                        //line1.pointList = m_video.topPoints
+                        line1.pointList = []
+                        for (var li = 0; li < m_video.topPoints.length; ++li) {
+                            var adjustedPoint = Qt.point(m_video.topPoints[li].x, m_video.topPoints[li].y)
+                            adjustedPoint.x += mappedXY.x
+                            adjustedPoint.y += mappedXY.y // is point arithmetic supported?
+                            adjustedPoint = m_video.viewPointToVideoPoint(adjustedPoint)
+                            console.log("Point at index: " + li + " is: " + adjustedPoint)
+                            line1.pointList.insert({"x":adjustedPoint.x, "y":adjustedPoint.y});
+                        }
+
 //                        line1.pointList = [
 //                                Qt.point(roiX + (roiWidth / 3), roiY + (roiHeight / 3)),
 //                                Qt.point(roiX + (roiWidth / 2), roiY + (roiHeight / 3)),
@@ -271,7 +283,7 @@ ApplicationWindow {
                 MPointLine {
                     id: line1
                     visible: roi.visible
-                    pointList: m_video.topPoints
+                    //pointList: m_video.topPoints
                     onPointListChanged: console.log("line 1 point list changed" + pointList)
                 }
                 MPointLine {

@@ -51,9 +51,6 @@ Item {
 
     MCVPlayer {
         id: cv_player
-        onInitTopPointsChanged: {
-            console.log("cv_player top points changed" + initTopPoints)
-        }
 
         onPositionChanged: {
             if (duration > 0) {

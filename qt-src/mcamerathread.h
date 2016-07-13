@@ -66,7 +66,7 @@ signals:
     void imageReady(int);
     void initPointsDetected(QList<MPoint>, QList<MPoint>);
 protected:
-    void notifyInitPoints(mwArray topWall, mwArray bottomWall);
+    void notifyInitPoints(mwArray topWall, mwArray bottomWall, QPoint offset);
 };
 
 class MCameraThread : public QObject{

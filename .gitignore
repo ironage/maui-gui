@@ -1,3 +1,5 @@
 build-maui-gui*
 releases
 matlab
+qt-src/libs
+test

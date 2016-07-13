@@ -9,6 +9,11 @@
 -help / about
 ...
 
+questions:
+- autoInit lines are one frame behind?
+- ding sound on exception, what is error code?
+- odd number of pixels is returning two points?
+
 -frameless window     flags: Qt.FramelessWindowHint
 -installer
 

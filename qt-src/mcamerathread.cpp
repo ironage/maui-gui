@@ -19,7 +19,7 @@ CameraTask::CameraTask(MVideoCapture* camera, QVideoFrame* videoFrame,
 
     const char *pStrings[]={"-nojvm","-nojit"};
     // Initialize the MATLAB Compiler Runtime global state
-    if (!mclInitializeApplication(NULL,0))
+    if (!mclInitializeApplication(pStrings,2))
     {
         qDebug() << "Could not initialize the application properly.";
     }
@@ -95,7 +95,7 @@ void CameraTask::doWork()
             QThread::msleep(10);
             continue; // loop
         case PlayState::AutoInitCurFrame:
-            camera->setProperty(CV_CAP_PROP_POS_FRAMES, curFrame);
+            camera->setProperty(CV_CAP_PROP_POS_FRAMES, curFrame); // FIXME: cache current frame
             break;
         case PlayState::Seeking:
             camera->setProperty(CV_CAP_PROP_POS_FRAMES, frameToSeekTo);
@@ -143,10 +143,10 @@ void CameraTask::doWork()
                     const int numReturnValues = 2;
                     autoInitializer(numReturnValues, topWall, bottomWall, *mwROI, numPoints);
 
-                    notifyInitPoints(topWall, bottomWall);
+                    notifyInitPoints(topWall, bottomWall, QPoint(roiX, roiY));
                     delete mwROI;
                 } catch (const mwException& e) {
-                    std::cerr << e.what() << std::endl;
+                    std::cerr << "exception caught: " << e.what() << std::endl;
                 }
             }
             cv::cvtColor(tempMat,screenImage,cv::COLOR_RGB2RGBA);
@@ -211,7 +211,7 @@ void CameraTask::setROI(QRect newROI)
     }
 }
 
-void CameraTask::notifyInitPoints(mwArray topWall, mwArray bottomWall)
+void CameraTask::notifyInitPoints(mwArray topWall, mwArray bottomWall, QPoint offset)
 {
     QList<MPoint> topPoints, bottomPoints;
     size_t topSize = topWall.NumberOfElements();
@@ -219,7 +219,7 @@ void CameraTask::notifyInitPoints(mwArray topWall, mwArray bottomWall)
         mxInt32 *topData = new mxInt32[topSize];
         topWall.GetData(topData, topSize);
         for (int i = 0; i < topSize / 2; ++i) {
-            MPoint p(topData[i], topData[(topSize/2) + i]);
+            MPoint p(topData[i] + offset.x(), topData[(topSize/2) + i] + offset.y());
             topPoints.push_back(p);
         }
         delete [] topData;
@@ -229,7 +229,7 @@ void CameraTask::notifyInitPoints(mwArray topWall, mwArray bottomWall)
         mxInt32 *bottomData = new mxInt32[bottomSize];
         bottomWall.GetData(bottomData, bottomSize);
         for (int i = 0; i < bottomSize / 2; ++i) {
-            MPoint p(bottomData[i], bottomData[(bottomSize/2) + i]);
+            MPoint p(bottomData[i] + offset.x(), bottomData[(bottomSize/2) + i] + offset.y());
             bottomPoints.push_back(p);
         }
         delete [] bottomData;

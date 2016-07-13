@@ -207,10 +207,6 @@ void MCVPlayer::initPointsReceived(QList<MPoint> top, QList<MPoint> bottom)
     }
 
     if (modified) {
-        qDebug() << "lists modified: " << topPoints << " bottom: " << bottomPoints;
-        for (int i = 0; i < topPoints.size(); ++i) {
-            qDebug() << "top " << i << " is " << *topPoints.at(i);
-        }
         emit initPointsChanged();
     }
 }

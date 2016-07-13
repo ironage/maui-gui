@@ -162,7 +162,7 @@ ApplicationWindow {
                         onOpened: {
                             calibration.close()
                             import_video.close()
-                            roi.recomputeMappedPoints()
+                            roi.updateLines()
                             roi.visible = true
                         }
                         onClosed: {
@@ -257,39 +257,30 @@ ApplicationWindow {
 
                         recomputeMappedPoints()
 
-                        //line1.pointList = m_video.topPoints
-                        line1.pointList = []
-                        for (var li = 0; li < m_video.topPoints.length; ++li) {
-                            var adjustedPoint = Qt.point(m_video.topPoints[li].x, m_video.topPoints[li].y)
-                            adjustedPoint.x += mappedXY.x
-                            adjustedPoint.y += mappedXY.y // is point arithmetic supported?
-                            adjustedPoint = m_video.viewPointToVideoPoint(adjustedPoint)
-                            console.log("Point at index: " + li + " is: " + adjustedPoint)
-                            line1.pointList.insert({"x":adjustedPoint.x, "y":adjustedPoint.y});
+                        var newTopList = []
+                        for (var topNdx = 0; topNdx < m_video.topPoints.length; ++topNdx) {
+                            var topPoint = Qt.point(m_video.topPoints[topNdx].x, m_video.topPoints[topNdx].y)
+                            topPoint = m_video.videoPointToViewPoint(topPoint)
+                            newTopList.push(topPoint);
                         }
+                        line1.pointList = newTopList
 
-//                        line1.pointList = [
-//                                Qt.point(roiX + (roiWidth / 3), roiY + (roiHeight / 3)),
-//                                Qt.point(roiX + (roiWidth / 2), roiY + (roiHeight / 3)),
-//                                Qt.point(roiX + (2 * roiWidth / 3), roiY + (roiHeight / 3))]
-
-//                        line2.pointList = [
-//                                Qt.point(roiX + (roiWidth / 3), roiY + (roiHeight * 2 / 3)),
-//                                Qt.point(roiX + (roiWidth / 2), roiY + (roiHeight * 2 / 3)),
-//                                Qt.point(roiX + (2 * roiWidth / 3), roiY + (roiHeight * 2 / 3))]
-
+                        var newBottomList = []
+                        for (var bottomNdx = 0; bottomNdx < m_video.bottomPoints.length; ++bottomNdx) {
+                            var bottomPoint = Qt.point(m_video.bottomPoints[bottomNdx].x, m_video.bottomPoints[bottomNdx].y)
+                            bottomPoint = m_video.videoPointToViewPoint(bottomPoint)
+                            newBottomList.push(bottomPoint);
+                        }
+                        line2.pointList = newBottomList
                     }
                 }
                 MPointLine {
                     id: line1
                     visible: roi.visible
-                    //pointList: m_video.topPoints
-                    onPointListChanged: console.log("line 1 point list changed" + pointList)
                 }
                 MPointLine {
                     id: line2
                     visible: roi.visible
-                    pointList: m_video.bottomPoints
                 }
 
                 MScaleAdjuster {

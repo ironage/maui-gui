@@ -10,7 +10,7 @@ Rectangle {
     property int cornerWidth: 14
     property color pointColor: "white"
 
-    property list<MPoint> pointList
+    property var pointList
 
     Rectangle {
         id: point1

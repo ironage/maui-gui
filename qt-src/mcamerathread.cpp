@@ -4,16 +4,24 @@
 
 #include "mcamerathread.h"
 #include <algorithm>
+
 // Windows includes defines for min,max which collide with std:: versions
 #define NOMINMAX
 
+// Disable warnings for unreferenced formal parameter with visual
+// studio on the matlab generated header files.
+#pragma warning(push)
+#pragma warning( disable : 4100 )
 #include "libAutoInit.h"   // custom generated header (with lib) from matlab code
+#include "libMAUI.h"       // matlab generated header
+#pragma warning(pop)
+
 
 CameraTask::CameraTask(MVideoCapture* camera, QVideoFrame* videoFrame,
                        unsigned char* cvImageBuf, int width, int height)
     : running(true), camera(camera), videoFrame(videoFrame),cvImageBuf(cvImageBuf),
     width(width), height(height), curPlayState(Paused), curFrame(-1), frameToSeekTo(-1),
-    startFrame(0), endFrame(0)
+    startFrame(0), endFrame(0), doneInit(false)
 {
     qDebug() << "Starting initialization of matlab.";
 
@@ -24,18 +32,25 @@ CameraTask::CameraTask(MVideoCapture* camera, QVideoFrame* videoFrame,
         qDebug() << "Could not initialize the application properly.";
     }
 
-    qDebug() << "Initializing custom matlab library";
+    qDebug() << "Initializing autoInit matlab library";
     if (!libAutoInitInitialize()) {
         qDebug() << "Could not initialize the autoInit library.";
     }
+    qDebug() << "Initializing MAUI matlab library";
+    if (!libMAUIInitialize()) {
+        qDebug() << "Could not initialize the maui library";
+    }
+    matlabArrays = new mwArray[ARRAY_COUNT];
     qDebug() << "Done initialization stage.";
 }
 
 CameraTask::~CameraTask()
 {
     qDebug() << "CameraTask destructed";
+    libMAUITerminate();
     libAutoInitTerminate();
     mclTerminateApplication();  // can only be called once per application
+    delete [] matlabArrays;
     //Leave camera and videoFrame alone, they will be destroyed elsewhere
 }
 
@@ -133,20 +148,35 @@ void CameraTask::doWork()
                 cv::cvtColor(roiSection, roiSection, CV_BGR2GRAY);
                 //imwrite( "cropped.jpg", roiSection);
                 try {
-                    mwArray topWall;
-                    mwArray bottomWall;
                     mwArray* mwROI = opencvConvertToMX(roiSection);
                     mwArray numPoints(1, 1, mxINT32_CLASS);
                     int numPointsData [] = { 3 };
                     numPoints.SetData(numPointsData, 1);
 
                     const int numReturnValues = 2;
-                    autoInitializer(numReturnValues, topWall, bottomWall, *mwROI, numPoints);
+                    autoInitializer(numReturnValues, matlabArrays[TOP_STRONG_POINTS],
+                                    matlabArrays[BOTTOM_STRONG_POINTS], *mwROI, numPoints);
 
-                    notifyInitPoints(topWall, bottomWall, QPoint(roiX, roiY));
+                    notifyInitPoints(matlabArrays[TOP_STRONG_POINTS], matlabArrays[BOTTOM_STRONG_POINTS],
+                                     QPoint(roiX, roiY));
                     delete mwROI;
                 } catch (const mwException& e) {
                     std::cerr << "exception caught: " << e.what() << std::endl;
+                }
+            } else if (curPlayState == PlayState::Playing) {
+                if (!doneInit) {
+                    const int numReturnValues = 6;
+                    setup(numReturnValues, matlabArrays[SMOOTH_KERNEL], matlabArrays[DERIVATE_KERNEL],
+                          matlabArrays[TOP_STRONG_LINE], matlabArrays[BOTTOM_STRONG_LINE],
+                          matlabArrays[TOP_REF_WALL], matlabArrays[BOTTOM_REF_WALL],
+                          matlabArrays[TOP_STRONG_POINTS], matlabArrays[BOTTOM_STRONG_POINTS]);
+                    doneInit = true;
+                    qDebug() << "smooth: " << matlabArrays[SMOOTH_KERNEL].ToString()
+                             << "\nderivate: " << matlabArrays[DERIVATE_KERNEL].ToString()
+                             << "\ntopStrongLine: " << matlabArrays[TOP_STRONG_POINTS].ToString()
+                             << "\nbottomStrongLine: " << matlabArrays[BOTTOM_STRONG_LINE].ToString()
+                             << "\ntopRefWall: " << matlabArrays[TOP_REF_WALL].ToString()
+                             << "\nbottomRefWall: " << matlabArrays[BOTTOM_REF_WALL].ToString();
                 }
             }
             cv::cvtColor(tempMat,screenImage,cv::COLOR_RGB2RGBA);
@@ -213,7 +243,8 @@ void CameraTask::setROI(QRect newROI)
 
 void CameraTask::notifyInitPoints(mwArray topWall, mwArray bottomWall, QPoint offset)
 {
-    QList<MPoint> topPoints, bottomPoints;
+    topPoints.clear();
+    bottomPoints.clear();
     size_t topSize = topWall.NumberOfElements();
     if (topSize % 2 == 0) {  // Assuming two dimensions
         mxInt32 *topData = new mxInt32[topSize];

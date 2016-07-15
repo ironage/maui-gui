@@ -51,8 +51,25 @@ private:
     int startFrame;
     int endFrame;
     QRect roi;
-
+    bool doneInit;
+    QList<MPoint> topPoints, bottomPoints;
+    mwArray* matlabArrays;
     void convertUVsp2UVp(unsigned char* __restrict srcptr, unsigned char* __restrict dstptr, int stride);
+
+    enum MatlabArrays {
+        TOP_POINTS,
+        BOTTOM_POINTS,
+        TOP_STRONG_POINTS,
+        BOTTOM_STRONG_POINTS,
+        TOP_STRONG_LINE,
+        BOTTOM_STRONG_LINE,
+        TOP_REF_WALL,
+        BOTTOM_REF_WALL,
+        SMOOTH_KERNEL,
+        DERIVATE_KERNEL,
+
+        ARRAY_COUNT
+    };
 
 public slots:
     void doWork();

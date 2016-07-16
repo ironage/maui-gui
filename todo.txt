@@ -18,6 +18,59 @@ questions:
 -frameless window     flags: Qt.FramelessWindowHint
 -installer
 
+notes 16/07/2016:
+Error using -
+Matrix dimensions must agree.
+Error in makeParallel2Init (line 3)
+Error in update (line 16)
+exception caught: Matrix dimensions must agree.
+
+by setting topStrongLine = topStrongPoints and bottomStrongLine = bottomStrongPoints:
+  
+  Warning: Polynomial is not unique; degree >= number of data points.
+[> In polyfit (line 70)
+  In interpolateMetoSpecificWidth (line 3)
+  In classifyWallNoise (line 26)
+  In update (line 14)] 
+Warning: Polynomial is not unique; degree >= number of data points.
+[> In polyfit (line 70)
+  In interpolateMetoSpecificWidth (line 3)
+  In classifyWallNoise (line 26)
+  In update (line 19)] 
+Warning: Polynomial is not unique; degree >= number of data points.
+[> In polyfit (line 70)
+  In interpolateMetoSpecificWidth (line 3)
+  In classifyWallNoise (line 26)
+  In update (line 19)] 
+Warning: Polynomial is not unique; degree >= number of data points.
+[> In polyfit (line 70)
+  In interpolateMetoSpecificWidth (line 3)
+  In classifyWallNoise (line 26)
+  In update (line 29)] 
+Warning: Polynomial is not unique; degree >= number of data points.
+[> In polyfit (line 70)
+  In interpolateMetoSpecificWidth (line 3)
+  In classifyWallNoise (line 26)
+  In update (line 35)] 
+Warning: Polynomial is not unique; degree >= number of data points.
+[> In polyfit (line 70)
+  In interpolateMetoSpecificWidth (line 3)
+  In classifyWallNoise (line 26)
+  In update (line 35)] 
+OLD:  33.2291 
+tomIMT:  0 
+bottomIMT:  0 
+topStrongLine:     12.0000   30.7683
+  124.0000   43.0002
+  236.0000   55.2321 
+bottomStrongLine:     12.0000  207.7213
+  124.0000  215.3257
+  236.0000  222.9302
+Camera is running at 3.242445 FPS
+
+-log last frame
+-test what kind of video files are supported (changed output file type?)
+  
 
 Feedback from meeting with Jason 26-05-2016
 -preview on first frame

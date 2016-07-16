@@ -10,6 +10,7 @@ int main(int argc, char *argv[])
 
     qmlRegisterType<MCVPlayer>("com.maui.custom", 1, 0, "MCVPlayer");
     qmlRegisterType<MPoint>("com.maui.custom", 1, 0, "MPoint");
+    qmlRegisterType<MLogMetaData>("com.maui.custom", 1, 0, "MLogMetaData");
     QQmlApplicationEngine engine;
 
     engine.load(QUrl(QStringLiteral("qrc:/main.qml")));

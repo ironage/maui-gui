@@ -99,6 +99,11 @@ void CameraTask::doWork()
     if(videoFrame)
         videoFrame->map(QAbstractVideoBuffer::ReadOnly);
 
+    double frameRate = 1;
+    if (camera) {
+        frameRate = camera->getProperty(CV_CAP_PROP_FPS);
+        if (frameRate == 0) frameRate = 1;
+    }
     //Assuming desktop, RGB camera image and RGBA QVideoFrame
     cv::Mat screenImage;
     if(videoFrame)
@@ -124,12 +129,15 @@ void CameraTask::doWork()
         }
 
         curFrame = camera->getProperty(CV_CAP_PROP_POS_FRAMES);
-        if (curPlayState == PlayState::Playing && curFrame > endFrame) {
+        if (curPlayState == PlayState::Playing && curFrame >= endFrame) {
             curPlayState = PlayState::Paused;
 
             if (outputVideo.isOpened()) {
                 outputVideo.release(); // flush file and reset
             }
+
+            log.write(outputFileName + ".csv");
+            log.clear();
 
             continue;
         }
@@ -201,8 +209,8 @@ void CameraTask::doWork()
                             outTopRefWall, outBottomRefWall;
 
                     // FIXME: remove this
-                    matlabArrays[BOTTOM_STRONG_LINE] = matlabArrays[BOTTOM_STRONG_POINTS];
-                    matlabArrays[TOP_STRONG_LINE] = matlabArrays[TOP_STRONG_POINTS];
+//                    matlabArrays[BOTTOM_STRONG_LINE] = matlabArrays[BOTTOM_STRONG_POINTS];
+//                    matlabArrays[TOP_STRONG_LINE] = matlabArrays[TOP_STRONG_POINTS];
 
                     update(numReturnValues,
                            outTopStrongLine, outBottomStrongLine,
@@ -221,10 +229,15 @@ void CameraTask::doWork()
                     matlabArrays[TOP_REF_WALL] = outTopRefWall;
                     matlabArrays[BOTTOM_REF_WALL] = outBottomRefWall;
 
-
+                    MDataEntry data(curFrame,
+                                    getFirst(outerLumenDiameter, 0),
+                                    getFirst(topIMT, 0),
+                                    getFirst(bottomIMT, 0),
+                                    (1/frameRate) * curFrame);
+                    log.add(data);
 
                     qDebug() << "OLD: " << outerLumenDiameter.ToString()
-                             << "\ntomIMT: " << topIMT.ToString()
+                             << "\ntopIMT: " << topIMT.ToString()
                              << "\nbottomIMT: " << bottomIMT.ToString()
                              << "\ntopStrongLine: " << matlabArrays[TOP_STRONG_LINE].ToString()
                              << "\nbottomStrongLine: " << matlabArrays[BOTTOM_STRONG_LINE].ToString()
@@ -310,6 +323,11 @@ void CameraTask::setROI(QRect newROI)
     }
 }
 
+void CameraTask::setLogMetaData(MLogMetaData data)
+{
+    log.initialize(data);
+}
+
 void CameraTask::notifyInitPoints(mwArray topWall, mwArray bottomWall, QPoint offset)
 {
     topPoints.clear();
@@ -377,9 +395,19 @@ void CameraTask::initializeOutputVideo()
     }
     int ex = static_cast<int>(camera->getProperty(CV_CAP_PROP_FOURCC));     // Get Codec Type- Int form
     int fps = camera->getProperty(CV_CAP_PROP_FPS);
-    std::string outputName = outputDirName + "/" + QDateTime::currentDateTime().toString("yyyy-MM-dd_hh-mm-ss").toStdString() + ".avi";
+    outputFileName = QString::fromStdString(outputDirName) + "/" + QDateTime::currentDateTime().toString("yyyy-MM-dd_hh-mm-ss");
+    std::string outputName = outputFileName.toStdString() + ".avi";
     bool success = outputVideo.open(outputName, ex, fps, videoSize, true);
     qDebug() << "opening output video: " << QString::fromStdString(outputName) << " success ? " << success;
+}
+
+double CameraTask::getFirst(mwArray &data, double defaultValue)
+{
+    size_t numElements = data.NumberOfElements();
+    if (numElements >= 1) {
+        data.GetData(&defaultValue, 1);
+    }
+    return defaultValue;
 }
 
 
@@ -402,6 +430,7 @@ MCameraThread::MCameraThread(MVideoCapture* camera, QVideoFrame* videoFrame, uns
     connect(this, SIGNAL(setStartFrame(int)), task, SLOT(setStartFrame(int)), Qt::QueuedConnection);
     connect(this, SIGNAL(setEndFrame(int)), task, SLOT(setEndFrame(int)), Qt::QueuedConnection);
     connect(this, SIGNAL(setROI(QRect)), task, SLOT(setROI(QRect)), Qt::QueuedConnection);
+    connect(this, SIGNAL(setLogMetaData(MLogMetaData)), task, SLOT(setLogMetaData(MLogMetaData)), Qt::QueuedConnection);
 }
 
 MCameraThread::~MCameraThread()
@@ -451,4 +480,9 @@ void MCameraThread::doSetEndFrame(int frameNumber)
 void MCameraThread::doSetROI(QRect roi)
 {
     emit setROI(roi);
+}
+
+void MCameraThread::doSetLogMetaData(MLogMetaData m)
+{
+    emit setLogMetaData(m);
 }

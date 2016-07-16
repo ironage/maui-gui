@@ -14,6 +14,7 @@
 
 #include<vector>
 
+#include "mdatalog.h"
 #include "mpoint.h"
 #include "mvideocapture.h"
 
@@ -55,6 +56,8 @@ private:
     QList<MPoint> topPoints, bottomPoints;
     mwArray* matlabArrays;
     cv::VideoWriter outputVideo;
+    MDataLog log;
+    QString outputFileName;
     void convertUVsp2UVp(unsigned char* __restrict srcptr, unsigned char* __restrict dstptr, int stride);
 
     enum MatlabArrays {
@@ -82,6 +85,7 @@ public slots:
     void setStartFrame(int frameNumber);
     void setEndFrame(int frameNumber);
     void setROI(QRect newROI);    
+    void setLogMetaData(MLogMetaData data);
 signals:
     void imageReady(int);
     void initPointsDetected(QList<MPoint>, QList<MPoint>);
@@ -90,6 +94,7 @@ protected:
     cv::Rect getCVROI();
     void drawLine(cv::Mat& dest, mwArray& points, cv::Scalar color, QPoint offset);
     void initializeOutputVideo();
+    double getFirst(mwArray& data, double defaultValue);
 };
 
 class MCameraThread : public QObject{
@@ -106,6 +111,7 @@ public:
     void doSetStartFrame(int frameNumber);
     void doSetEndFrame(int frameNumber);
     void doSetROI(QRect roi);
+    void doSetLogMetaData(MLogMetaData m);
 private:
     QThread workerThread;
     CameraTask* task = NULL;
@@ -117,6 +123,7 @@ signals:
     void setStartFrame(int frameNumber);
     void setEndFrame(int frameNumber);
     void setROI(QRect roi);
+    void setLogMetaData(MLogMetaData d);
     void initPointsDetected(QList<MPoint>, QList<MPoint>);
 };
 

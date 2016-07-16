@@ -14,6 +14,7 @@ MCVPlayer::MCVPlayer() : QObject(),
     qRegisterMetaType<QQmlListProperty<MPoint>>();
     qRegisterMetaType<QList<MPoint*>>();
     qRegisterMetaType<QList<MPoint>>();
+    qRegisterMetaType<MLogMetaData>();
 }
 
 MCVPlayer::~MCVPlayer()
@@ -239,6 +240,7 @@ void MCVPlayer::play()
 {
     if (thread) {
         stopped = false;
+        thread->doSetLogMetaData(logMetaData);
         thread->doPlay();
     }
 }

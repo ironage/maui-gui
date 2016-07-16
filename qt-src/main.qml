@@ -28,9 +28,12 @@ ApplicationWindow {
             simpleName = decodeURIComponent(simpleName);
             var searchExpression = new RegExp("^((file:\\/{3})|(qrc:\\/{2})|(http:\\/{2}))(.*)((\\\\)|(\\/))(.*)(\\..+)", "g")
             var match = searchExpression.exec(simpleName)
+            var directoryPath = match[5]
             var simpleFileName = match[9]
             var fileExtension = match[10]
             summaryPane.fileName = simpleFileName + fileExtension
+            m_video.logFileName = simpleFileName + fileExtension
+            m_video.logFilePath = directoryPath
         }
     }
 
@@ -221,10 +224,18 @@ ApplicationWindow {
                 progress_min: m_video_control.start_percent
                 progress_max: m_video_control.end_percent
                 roi: Qt.rect(roi.mappedXY.x, roi.mappedXY.y, roi.mappedWH.x, roi.mappedWH.y)
-
+                logUnits: calibration.units
+                logPixels: video_height <= 0 ? 1 : ((scale.bottom_v_value - scale.top_v_value) * video_height) / calibration.scale
                 onSourceChanged: {
                     summaryPane.setStartState("ready")
                 }
+                onTopPointsChanged: {
+                    roi.updateLines()
+                }
+                onBottomPointsChanged: {
+                    roi.updateLines()   //FIXME: split to not recompute both each time
+                }
+
                 //onVideoRectChanged: roi.recomputeMappedPoints()
                 onPlayback_stateChanged: {
                     if (playback_state === MediaPlayer.PausedState

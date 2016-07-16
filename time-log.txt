@@ -27,3 +27,6 @@ sat, 1 july 2016 - 1 hour: attempt to link to matlab
 mon, 4 july 2016 - 2 hours: attempt to link to matlab
 tues, 5 july 2016 - 3 hours: linked to matlab, fixed bugs in image array initialization
 wed, 6 july 2016 - 5 hours: matlab autoInit work: cleanup/fix/check bounds on inputs, start passing results to gui
+...
+fri, 15 july 2016 - 3 hours: matlab interface to setup function, setup for update function
+sat, 16 july 2016 - 12 hours: matlab interface to update function, write avi output, write csv output, fixed lag issue.

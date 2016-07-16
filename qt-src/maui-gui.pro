@@ -14,8 +14,9 @@ SOURCES += main.cpp \
     mcvplayer.cpp \
     mcamerathread.cpp \
     mvideocapture.cpp \
-    mpoint.cpp
-#    util/MxArray.cpp
+    mpoint.cpp \
+    mdatalog.cpp \
+    mlogmetadata.cpp
 
 QT += qml quick multimedia
 CONFIG += c++11 console
@@ -51,4 +52,6 @@ HEADERS += \
     mvideocapture.h \
     libAutoInit.h \
     mpoint.h \
-    libMAUI.h
+    libMAUI.h \
+    mdatalog.h \
+    mlogmetadata.h

@@ -8,7 +8,8 @@
 MCVPlayer::MCVPlayer() : QObject(),
     m_format(QSize(500, 500), QVideoFrame::Format_ARGB32),
     m_surface(NULL),
-    stopped(true)
+    stopped(true),
+    numFrames(0)
 {
     qRegisterMetaType<QQmlListProperty<MPoint>>();
     qRegisterMetaType<QList<MPoint*>>();

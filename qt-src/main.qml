@@ -55,6 +55,10 @@ ApplicationWindow {
                 scaleUnitString: calibration.units
 
                 onPlayClicked: {
+                    calibration.close()
+                    import_video.close()
+                    wall_detection.close()
+
                     m_video.play()
                 }
                 onPauseClicked: {

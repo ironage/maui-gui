@@ -18,7 +18,7 @@ SOURCES += main.cpp \
 #    util/MxArray.cpp
 
 QT += qml quick multimedia
-CONFIG += c++11
+CONFIG += c++11 console
 
 RESOURCES += qml.qrc
 

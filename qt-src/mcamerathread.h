@@ -54,6 +54,7 @@ private:
     bool doneInit;
     QList<MPoint> topPoints, bottomPoints;
     mwArray* matlabArrays;
+    cv::VideoWriter outputVideo;
     void convertUVsp2UVp(unsigned char* __restrict srcptr, unsigned char* __restrict dstptr, int stride);
 
     enum MatlabArrays {
@@ -67,6 +68,8 @@ private:
         BOTTOM_REF_WALL,
         SMOOTH_KERNEL,
         DERIVATE_KERNEL,
+        TOP_WEAK_LINE,
+        BOTTOM_WEAK_LINE,
 
         ARRAY_COUNT
     };
@@ -84,6 +87,9 @@ signals:
     void initPointsDetected(QList<MPoint>, QList<MPoint>);
 protected:
     void notifyInitPoints(mwArray topWall, mwArray bottomWall, QPoint offset);
+    cv::Rect getCVROI();
+    void drawLine(cv::Mat& dest, mwArray& points, cv::Scalar color, QPoint offset);
+    void initializeOutputVideo();
 };
 
 class MCameraThread : public QObject{

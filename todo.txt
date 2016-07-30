@@ -1,7 +1,3 @@
--load video (+OpenCV)
--roi box
--3 dot adjustable line
--interface specs for matlab library
 -zoom
 -zoom on mouse scroll? or advance video progress?
 -checkmark icons for settings progress
@@ -9,67 +5,29 @@
 -help / about
 ...
 
-questions:
-- autoInit lines are one frame behind?
-- ding sound on exception, what is error code?
-- odd number of pixels is returning two points?
--video scribe
-
 -frameless window     flags: Qt.FramelessWindowHint
 -installer
 
-notes 16/07/2016:
-Error using -
-Matrix dimensions must agree.
-Error in makeParallel2Init (line 3)
-Error in update (line 16)
-exception caught: Matrix dimensions must agree.
-
-by setting topStrongLine = topStrongPoints and bottomStrongLine = bottomStrongPoints:
-  
-  Warning: Polynomial is not unique; degree >= number of data points.
-[> In polyfit (line 70)
-  In interpolateMetoSpecificWidth (line 3)
-  In classifyWallNoise (line 26)
-  In update (line 14)] 
-Warning: Polynomial is not unique; degree >= number of data points.
-[> In polyfit (line 70)
-  In interpolateMetoSpecificWidth (line 3)
-  In classifyWallNoise (line 26)
-  In update (line 19)] 
-Warning: Polynomial is not unique; degree >= number of data points.
-[> In polyfit (line 70)
-  In interpolateMetoSpecificWidth (line 3)
-  In classifyWallNoise (line 26)
-  In update (line 19)] 
-Warning: Polynomial is not unique; degree >= number of data points.
-[> In polyfit (line 70)
-  In interpolateMetoSpecificWidth (line 3)
-  In classifyWallNoise (line 26)
-  In update (line 29)] 
-Warning: Polynomial is not unique; degree >= number of data points.
-[> In polyfit (line 70)
-  In interpolateMetoSpecificWidth (line 3)
-  In classifyWallNoise (line 26)
-  In update (line 35)] 
-Warning: Polynomial is not unique; degree >= number of data points.
-[> In polyfit (line 70)
-  In interpolateMetoSpecificWidth (line 3)
-  In classifyWallNoise (line 26)
-  In update (line 35)] 
-OLD:  33.2291 
-tomIMT:  0 
-bottomIMT:  0 
-topStrongLine:     12.0000   30.7683
-  124.0000   43.0002
-  236.0000   55.2321 
-bottomStrongLine:     12.0000  207.7213
-  124.0000  215.3257
-  236.0000  222.9302
-Camera is running at 3.242445 FPS
-
+Priority Bugs for 30 July 2016
 -log last frame
+-Also, in the summary panel (top left), your frame indexing is off by one.  The first frame number should be 1, not zero, since it is the "first" frame.
+- if the ROI expander isn't opened before pressing play the program crashes. It is because I pass an empty array to matlab setup function
 -test what kind of video files are supported (changed output file type?)
+- When I hit the pause button and move the ROI AND change the size of the ROI, and then hit play again, it doesn't adjust properly.
+- When I am in ROI mode, and I resize the window of the program, it goes all wacky.  The ROI window doesn't seem to call the autoInitialize function at all.
+- The default measurement should be 1 cm for "Step 2: Calibration"
+- We need to have a save button so the user can select where to save the output.
+- The default location of the output AVI and CSV should be in the same folder as the original video.
+- The output file names should be:
+    originalName_tracking.AVI
+    originalName_data.CSV
+- Please continue to show the ROI box during processing.
+- When I run "maui-gui.exe" I get many videos, all with size 0 KB, in the output folder.
+Inline image 1  (see: google drive/Hedgehog Medical/GUI library files/Jason/video010.AVI)
+- The OLD, top IMT and bottom IMT (cm/mm) all show up as zero in the CSV.
+- If there is no measurement returned, then we need to write "NaN" to the CSV file.
+
+
   
 
 Feedback from meeting with Jason 26-05-2016
@@ -85,7 +43,3 @@ Future tasks:
 -open image for one frame processing
 -batch image processing
 -output csv data
-
-
--static info top left, file name, staryt frames, scale pixels +10mm +ratio. 
--light grey cur frame + triangle top for drag

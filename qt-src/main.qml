@@ -140,7 +140,7 @@ ApplicationWindow {
                                 }
                                 MTextInput {
                                     id: scale_input
-                                    text: "10"
+                                    text: "1"
                                     width: 20
                                     placeholderText: "Scale"
                                     borderColor: acceptableInput ? Style.ui_component_highlight : Style.ui_color_light_red
@@ -152,8 +152,8 @@ ApplicationWindow {
                                     width: 50
                                     model: ListModel {
                                         id: cbItems
-                                        ListElement { text: "mm"; }
                                         ListElement { text: "cm"; }
+                                        ListElement { text: "mm"; }
                                         ListElement { text: "in"; }
                                     }
                                 }

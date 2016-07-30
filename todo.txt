@@ -13,7 +13,7 @@ Priority Bugs for 30 July 2016
 -test what kind of video files are supported (changed output file type?)
 - When I hit the pause button and move the ROI AND change the size of the ROI, and then hit play again, it doesn't adjust properly.
 - When I am in ROI mode, and I resize the window of the program, it goes all wacky.  The ROI window doesn't seem to call the autoInitialize function at all.
-- The default measurement should be 1 cm for "Step 2: Calibration"
+- call autoinitialize when frame changes in ROI mode.
 - We need to have a save button so the user can select where to save the output.
 - The default location of the output AVI and CSV should be in the same folder as the original video.
 - The output file names should be:
@@ -30,7 +30,8 @@ Changes in next release:
 - video finish signal passed to UI, start button resets
 - pause works correctly (continue/pause)
 - fixed rounding error in pixel conversions in results csv file
-  
+- scale defaults to 1 cm
+
 
 Feedback from meeting with Jason 26-05-2016
 -preview on first frame

@@ -22,7 +22,6 @@ Priority Bugs for 30 July 2016
 - Please continue to show the ROI box during processing.
 - When I run "maui-gui.exe" I get many videos, all with size 0 KB, in the output folder.
 Inline image 1  (see: google drive/Hedgehog Medical/GUI library files/Jason/video010.AVI)
-- If there is no measurement returned, then we need to write "NaN" to the CSV file.
 
 Changes in next release: 
 - logging for last frame
@@ -31,15 +30,8 @@ Changes in next release:
 - pause works correctly (continue/pause)
 - fixed rounding error in pixel conversions in results csv file
 - scale defaults to 1 cm
+- write "NaN" to the logs if no measurement is found
 
-
-Feedback from meeting with Jason 26-05-2016
--preview on first frame
--reset video con
--frame number on drag of crop bars
--start button goes to restart if at end of video
--click to move ruler scale horizontally
--Process button into fourth panel with check stats
 
 Future tasks:
 -reset button

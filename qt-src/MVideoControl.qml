@@ -62,10 +62,6 @@ Item {
             property int localOffset: totalFrames > 0 ? (m_root.width / totalFrames) : 0
             property int localDirection: m_root.progress === 0 ? 0 : 1
             x: (m_root.progress * m_root.width) + (localOffset * localDirection)
-            onXChanged: {
-                console.log("totalFrames:" + totalFrames + " progress: " + m_root.progress + "localOffset:" + localOffset + " localDirection: " + localDirection)
-
-            }
 
             width: 3
             height: m_root.height

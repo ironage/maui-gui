@@ -14,14 +14,14 @@ MDataEntry::MDataEntry(int frame, double old, double topIMT, double bottomIMT, d
 
 QString MDataEntry::getCSV(double conversion)
 {
-    return QString() + QString::number(frameNumber) + ","
-                     + QString::number(OLDPixels) + ","
-                     + QString::number(topIMTPixels) + ","
-                     + QString::number(bottomIMTPixels) + ","
-                     + QString::number(timeSeconds) + ","
-                     + QString::number(OLDPixels * conversion) + ","
-                     + QString::number(topIMTPixels * conversion) + ","
-                     + QString::number(bottomIMTPixels * conversion);
+    return QString() + MDataEntry::getString(frameNumber) + ","
+                     + MDataEntry::getString(OLDPixels) + ","
+                     + MDataEntry::getString(topIMTPixels) + ","
+                     + MDataEntry::getString(bottomIMTPixels) + ","
+                     + MDataEntry::getString(timeSeconds) + ","
+                     + MDataEntry::getString(OLDPixels * conversion) + ","
+                     + MDataEntry::getString(topIMTPixels * conversion) + ","
+                     + MDataEntry::getString(bottomIMTPixels * conversion);
 }
 
 QString MDataEntry::getHeader(QString units)
@@ -35,6 +35,15 @@ QString MDataEntry::getHeader(QString units)
 QString MDataEntry::getEmptyEntry()
 {
     return QString(",,,,,,,");
+}
+
+template<typename T>
+QString MDataEntry::getString(T value)
+{
+    if (value == 0) {
+        return QString("NaN");
+    }
+    return QString::number(value);
 }
 
 void MDataLog::add(MDataEntry entry)

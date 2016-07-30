@@ -15,6 +15,7 @@ public:
     QString getCSV(double conversion);
     static QString getHeader(QString units);
     static QString getEmptyEntry();
+    template<typename T> static QString getString(T value);
 private:
     int frameNumber;
     double OLDPixels;

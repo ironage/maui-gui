@@ -117,10 +117,11 @@ void CameraTask::doWork()
             QThread::msleep(10);
             continue; // loop
         case PlayState::AutoInitCurFrame:
-            camera->setProperty(CV_CAP_PROP_POS_FRAMES, curFrame); // FIXME: cache current frame
+            //camera->setProperty(CV_CAP_PROP_POS_FRAMES, curFrame); // FIXME: cache current frame
             break;
         case PlayState::Seeking:
             camera->setProperty(CV_CAP_PROP_POS_FRAMES, frameToSeekTo);
+            qDebug() << "seeking to frame index: " << frameToSeekTo;
             curPlayState = PlayState::Paused;
             // fall through
         case PlayState::Playing:
@@ -128,22 +129,18 @@ void CameraTask::doWork()
             break; // switch
         }
 
-        curFrame = camera->getProperty(CV_CAP_PROP_POS_FRAMES);
-        if (curPlayState == PlayState::Playing && curFrame >= endFrame) {
-            curPlayState = PlayState::Paused;
+        curFrame = camera->getProperty(CV_CAP_PROP_POS_FRAMES); // opencv frame is 0 indexed
 
-            if (outputVideo.isOpened()) {
-                outputVideo.release(); // flush file and reset
+        if (curPlayState != PlayState::AutoInitCurFrame) {
+            if(!camera->grabFrame()) {
+                if (curPlayState == PlayState::Playing) {
+                    curPlayState = PlayState::Paused;
+                    writeResults();
+                    qDebug() << "Could not grab next video frame";
+                }
+                continue;
             }
-
-            log.write(outputFileName + ".csv");
-            log.clear();
-
-            continue;
         }
-
-        if(!camera->grabFrame())
-            continue;
         unsigned char* cameraFrame = camera->retrieveFrame();
 
         //Get camera image into screen frame buffer
@@ -155,7 +152,6 @@ void CameraTask::doWork()
                 curPlayState = PlayState::Paused;
                 cv::Mat roiSection = tempMat(getCVROI());  // TODO: check if leaked
                 cv::cvtColor(roiSection, roiSection, CV_BGR2GRAY);
-                //imwrite( "cropped.jpg", roiSection);
                 try {
                     mwArray* mwROI = opencvConvertToMX(roiSection);
                     mwArray numPoints(1, 1, mxINT32_CLASS);
@@ -186,63 +182,47 @@ void CameraTask::doWork()
                           matlabArrays[TOP_REF_WALL], matlabArrays[BOTTOM_REF_WALL],
                           matlabArrays[TOP_STRONG_POINTS], matlabArrays[BOTTOM_STRONG_POINTS]);
                     doneInit = true;
-                    qDebug() << "smooth: " << matlabArrays[SMOOTH_KERNEL].ToString()
-                             << "\nderivate: " << matlabArrays[DERIVATE_KERNEL].ToString()
-                             << "\ntopStrongLine: " << matlabArrays[TOP_STRONG_POINTS].ToString()
-                             << "\nbottomStrongLine: " << matlabArrays[BOTTOM_STRONG_LINE].ToString()
-                             << "\ntopRefWall: " << matlabArrays[TOP_REF_WALL].ToString()
-                             << "\nbottomRefWall: " << matlabArrays[BOTTOM_REF_WALL].ToString()
-                             << "\ntopStrongPoints: " << matlabArrays[TOP_STRONG_POINTS].ToString()
-                             << "\nbottomStrongPoints: " << matlabArrays[BOTTOM_STRONG_POINTS].ToString();
+//                    qDebug() << "smooth: " << matlabArrays[SMOOTH_KERNEL].ToString()
+//                             << "\nderivate: " << matlabArrays[DERIVATE_KERNEL].ToString()
+//                             << "\ntopStrongLine: " << matlabArrays[TOP_STRONG_POINTS].ToString()
+//                             << "\nbottomStrongLine: " << matlabArrays[BOTTOM_STRONG_LINE].ToString()
+//                             << "\ntopRefWall: " << matlabArrays[TOP_REF_WALL].ToString()
+//                             << "\nbottomRefWall: " << matlabArrays[BOTTOM_REF_WALL].ToString()
+//                             << "\ntopStrongPoints: " << matlabArrays[TOP_STRONG_POINTS].ToString()
+//                             << "\nbottomStrongPoints: " << matlabArrays[BOTTOM_STRONG_POINTS].ToString();
                 }
 
                 cv::Mat roiSection = tempMat(getCVROI());  // TODO: check if leaked
                 cv::cvtColor(roiSection, roiSection, CV_BGR2GRAY);
-                imwrite( "croppedplay.jpg", roiSection);
                 mwArray* matlabROI = opencvConvertToMX(roiSection);
                 try {
-                    mwArray outerLumenDiameter;
-                    mwArray topIMT, bottomIMT;
+                    mwArray outerLumenDiameter, topIMT, bottomIMT;
                     const int numReturnValues = 9;
-                    mwArray outTopStrongLine, outBottomStrongLine,
-                            outTopWeakLine, outBottomWeakLine,
-                            outTopRefWall, outBottomRefWall;
-
-                    // FIXME: remove this
-//                    matlabArrays[BOTTOM_STRONG_LINE] = matlabArrays[BOTTOM_STRONG_POINTS];
-//                    matlabArrays[TOP_STRONG_LINE] = matlabArrays[TOP_STRONG_POINTS];
 
                     update(numReturnValues,
-                           outTopStrongLine, outBottomStrongLine,
-                           outerLumenDiameter, outTopWeakLine,
-                           topIMT, outBottomWeakLine,
-                           bottomIMT, outTopRefWall, outBottomRefWall,
+                           matlabArrays[TOP_STRONG_LINE], matlabArrays[BOTTOM_STRONG_LINE],
+                           outerLumenDiameter,  matlabArrays[TOP_WEAK_LINE],
+                           topIMT, matlabArrays[BOTTOM_WEAK_LINE],
+                           bottomIMT, matlabArrays[TOP_REF_WALL], matlabArrays[BOTTOM_REF_WALL],
                            *matlabROI, matlabArrays[SMOOTH_KERNEL], matlabArrays[DERIVATE_KERNEL],
                            matlabArrays[TOP_STRONG_LINE], matlabArrays[BOTTOM_STRONG_LINE],
                            matlabArrays[TOP_STRONG_POINTS], matlabArrays[BOTTOM_STRONG_POINTS],
                            matlabArrays[TOP_REF_WALL], matlabArrays[BOTTOM_REF_WALL]);
 
-                    matlabArrays[TOP_STRONG_LINE] = outTopStrongLine;
-                    matlabArrays[BOTTOM_STRONG_LINE] = outBottomStrongLine;
-                    matlabArrays[TOP_WEAK_LINE] = outTopWeakLine;
-                    matlabArrays[BOTTOM_WEAK_LINE] = outBottomWeakLine;
-                    matlabArrays[TOP_REF_WALL] = outTopRefWall;
-                    matlabArrays[BOTTOM_REF_WALL] = outBottomRefWall;
-
-                    MDataEntry data(curFrame,
+                    MDataEntry data(curFrame + 1,
                                     getFirst(outerLumenDiameter, 0),
                                     getFirst(topIMT, 0),
                                     getFirst(bottomIMT, 0),
                                     (1/frameRate) * curFrame);
                     log.add(data);
 
-                    qDebug() << "OLD: " << outerLumenDiameter.ToString()
-                             << "\ntopIMT: " << topIMT.ToString()
-                             << "\nbottomIMT: " << bottomIMT.ToString()
-                             << "\ntopStrongLine: " << matlabArrays[TOP_STRONG_LINE].ToString()
-                             << "\nbottomStrongLine: " << matlabArrays[BOTTOM_STRONG_LINE].ToString()
-                             << "\ntopWeakLine: " << matlabArrays[TOP_WEAK_LINE].ToString()
-                             << "\nbottomWeakLine: " << matlabArrays[BOTTOM_WEAK_LINE].ToString();
+//                    qDebug() << "OLD: " << outerLumenDiameter.ToString()
+//                             << "\ntopIMT: " << topIMT.ToString()
+//                             << "\nbottomIMT: " << bottomIMT.ToString()
+//                             << "\ntopStrongLine: " << matlabArrays[TOP_STRONG_LINE].ToString()
+//                             << "\nbottomStrongLine: " << matlabArrays[BOTTOM_STRONG_LINE].ToString()
+//                             << "\ntopWeakLine: " << matlabArrays[TOP_WEAK_LINE].ToString()
+//                             << "\nbottomWeakLine: " << matlabArrays[BOTTOM_WEAK_LINE].ToString();
                 } catch (const mwException& e) {
                     std::cerr << "exception caught: " << e.what() << std::endl;
                 }
@@ -271,6 +251,11 @@ void CameraTask::doWork()
 
         emit imageReady(curFrame);
 
+        if (curPlayState == PlayState::Playing && curFrame >= endFrame) {
+            curPlayState = PlayState::Paused;
+            writeResults();
+        }
+
 #if defined(SHOW_FRAMERATE) && !defined(ANDROID)
         millis = (int)timer.restart();
         millisElapsed += millis;
@@ -285,7 +270,18 @@ void CameraTask::doWork()
 
 void CameraTask::play()
 {
-    curPlayState = PlayState::Playing;
+    if (curPlayState != PlayState::Playing) {
+        curPlayState = PlayState::Playing;
+        if (camera) {
+            camera->setProperty(CV_CAP_PROP_POS_FRAMES, startFrame);
+        }
+    }
+}
+
+void CameraTask::continueProcessing() {
+    if (curPlayState != PlayState::Playing) {
+        curPlayState = PlayState::Playing;
+    }
 }
 
 void CameraTask::pause()
@@ -306,12 +302,14 @@ void CameraTask::seek(int frameNumber)
 void CameraTask::setStartFrame(int frameNumber)
 {
     startFrame = frameNumber;
+    qDebug() << "setting start frame: " << startFrame;
     seek(frameNumber);
 }
 
 void CameraTask::setEndFrame(int frameNumber)
 {
     endFrame = frameNumber;
+    qDebug() << "setting end frame: " << endFrame;
     seek(frameNumber);
 }
 
@@ -410,6 +408,17 @@ double CameraTask::getFirst(mwArray &data, double defaultValue)
     return defaultValue;
 }
 
+void CameraTask::writeResults()
+{
+    if (outputVideo.isOpened()) {
+        outputVideo.release(); // flush file and reset
+    }
+
+    log.write(outputFileName + ".csv");
+    log.clear();
+    emit videoFinished();
+}
+
 
 
 
@@ -424,6 +433,7 @@ MCameraThread::MCameraThread(MVideoCapture* camera, QVideoFrame* videoFrame, uns
     connect(&workerThread, SIGNAL(started()), task, SLOT(doWork()));
     connect(task, SIGNAL(imageReady(int)), this, SIGNAL(imageReady(int)));
     connect(task, SIGNAL(initPointsDetected(QList<MPoint>,QList<MPoint>)), this, SIGNAL(initPointsDetected(QList<MPoint>,QList<MPoint>)));
+    connect(task, SIGNAL(videoFinished()), this, SIGNAL(videoFinished()));
     connect(this, SIGNAL(play()), task, SLOT(play()), Qt::QueuedConnection);
     connect(this, SIGNAL(pause()), task, SLOT(pause()), Qt::QueuedConnection);
     connect(this, SIGNAL(seek(int)), task, SLOT(seek(int)), Qt::QueuedConnection);
@@ -431,6 +441,7 @@ MCameraThread::MCameraThread(MVideoCapture* camera, QVideoFrame* videoFrame, uns
     connect(this, SIGNAL(setEndFrame(int)), task, SLOT(setEndFrame(int)), Qt::QueuedConnection);
     connect(this, SIGNAL(setROI(QRect)), task, SLOT(setROI(QRect)), Qt::QueuedConnection);
     connect(this, SIGNAL(setLogMetaData(MLogMetaData)), task, SLOT(setLogMetaData(MLogMetaData)), Qt::QueuedConnection);
+    connect(this, SIGNAL(continueProcessing()), task, SLOT(continueProcessing()), Qt::QueuedConnection);
 }
 
 MCameraThread::~MCameraThread()
@@ -457,6 +468,12 @@ void MCameraThread::doPlay()
 {
     emit play();
 }
+
+void MCameraThread::doContinue()
+{
+    emit continueProcessing();
+}
+
 void MCameraThread::doPause()
 {
     emit pause();

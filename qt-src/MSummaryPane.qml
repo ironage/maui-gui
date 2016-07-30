@@ -22,6 +22,7 @@ Rectangle {
     property int leftMarginPadding: Style.h_padding
 
     signal playClicked()
+    signal continueClicked()
     signal pauseClicked()
 
     onFileNameChanged: {
@@ -87,7 +88,10 @@ Rectangle {
                 state = "playing"
             } else if (state === "playing") {
                 m_root.pauseClicked()
-                state = "ready"
+                state = "paused"
+            } else if (state === "paused") {
+                m_root.continueClicked()
+                state = "playing"
             }
         }
 
@@ -104,7 +108,7 @@ Rectangle {
                 PropertyChanges { target: start; color: Style.ui_color_dark_green }
                 PropertyChanges { target: start; highlight_color: Style.ui_color_light_green }
                 PropertyChanges { target: start; selected_color: Style.ui_color_dark_green }
-                PropertyChanges { target: start; text: "Play" }
+                PropertyChanges { target: start; text: "Start" }
             },
             State {
                 name: "playing"
@@ -112,6 +116,13 @@ Rectangle {
                 PropertyChanges { target: start; highlight_color: Style.ui_color_light_grey }
                 PropertyChanges { target: start; selected_color: Style.ui_color_dark_grey }
                 PropertyChanges { target: start; text: "Pause" }
+            },
+            State {
+                name: "paused"
+                PropertyChanges { target: start; color: Style.ui_color_dark_lblue }
+                PropertyChanges { target: start; highlight_color: Style.ui_color_light_lblue }
+                PropertyChanges { target: start; selected_color: Style.ui_color_dark_grey }
+                PropertyChanges { target: start; text: "Continue" }
             }
         ]
         transitions: [

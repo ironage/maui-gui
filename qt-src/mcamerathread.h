@@ -80,6 +80,7 @@ private:
 public slots:
     void doWork();
     void play();
+    void continueProcessing();
     void pause();
     void seek(int frameNumber);
     void setStartFrame(int frameNumber);
@@ -89,12 +90,14 @@ public slots:
 signals:
     void imageReady(int);
     void initPointsDetected(QList<MPoint>, QList<MPoint>);
+    void videoFinished();
 protected:
     void notifyInitPoints(mwArray topWall, mwArray bottomWall, QPoint offset);
     cv::Rect getCVROI();
     void drawLine(cv::Mat& dest, mwArray& points, cv::Scalar color, QPoint offset);
     void initializeOutputVideo();
     double getFirst(mwArray& data, double defaultValue);
+    void writeResults();
 };
 
 class MCameraThread : public QObject{
@@ -106,6 +109,7 @@ public:
     void start();
     void stop();
     void doPlay();
+    void doContinue();
     void doPause();
     void doSeek(int frameNumber);
     void doSetStartFrame(int frameNumber);
@@ -117,7 +121,9 @@ private:
     CameraTask* task = NULL;
 signals:
     void imageReady(int frameNumber);
+    void videoFinished();
     void play();
+    void continueProcessing();
     void pause();
     void seek(int frameNumber);
     void setStartFrame(int frameNumber);

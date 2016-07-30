@@ -136,6 +136,7 @@ void MCVPlayer::update()
             thread = new MCameraThread(camera,videoFrame,cvImageBuf,size.width(),size.height());
             connect(thread,SIGNAL(imageReady(int)), this, SLOT(imageReceived(int)));
             connect(thread, SIGNAL(initPointsDetected(QList<MPoint>,QList<MPoint>)), this, SLOT(initPointsReceived(QList<MPoint>,QList<MPoint>)));
+            connect(thread, SIGNAL(videoFinished()), this, SIGNAL(videoFinished()));
             thread->doSetEndFrame(numFrames);
             thread->doSetStartFrame(0);
             if(m_surface){
@@ -242,6 +243,13 @@ void MCVPlayer::play()
         stopped = false;
         thread->doSetLogMetaData(logMetaData);
         thread->doPlay();
+    }
+}
+
+void MCVPlayer::continueProcessing()
+{
+    if (thread) {
+        thread->doContinue();
     }
 }
 

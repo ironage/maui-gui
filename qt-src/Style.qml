@@ -1,6 +1,8 @@
 import QtQuick 2.0
 pragma Singleton
 
+// Color swatches: http://designmodo.github.io/Flat-UI/
+
 QtObject {
     property int titleAlignment: Text.AlignHCenter
     property int titleFontSize: 50
@@ -23,6 +25,8 @@ QtObject {
     property color ui_color_dark_green: "#27ae60"
     property color ui_color_light_dblue: "#34495e"
     property color ui_color_dark_dblue: "#2c3e50"
+    property color ui_color_light_lblue: "#3498db"
+    property color ui_color_dark_lblue: "#2980b9"
 
     property int h_padding: 10
     property int v_padding: 10

@@ -51,8 +51,8 @@ ApplicationWindow {
                 Layout.bottomMargin: Style.v_padding * 2
 
                 width: leftPanel.header_width
-                startFrame: m_video_control.totalFrames === 0 ? "" : "" + ~~(m_video_control.start_percent * m_video_control.totalFrames)
-                endFrame: m_video_control.totalFrames === 0 ? "" : "" + ~~(m_video_control.end_percent * m_video_control.totalFrames)
+                startFrame: m_video_control.totalFrames === 0 ? "" : "" + (~~(m_video_control.start_percent * m_video_control.totalFrames) + 1)
+                endFrame: m_video_control.totalFrames === 0 ? "" : "" + (~~(m_video_control.end_percent * m_video_control.totalFrames) + 1)
                 scalePixelValue: m_video.video_height <= 0 ? "" : (scale.bottom_v_value - scale.top_v_value) * m_video.video_height
                 scaleDistanceValue: calibration.scale
                 scaleUnitString: calibration.units
@@ -63,6 +63,9 @@ ApplicationWindow {
                     wall_detection.close()
 
                     m_video.play()
+                }
+                onContinueClicked: {
+                    m_video.continueProcessing();
                 }
                 onPauseClicked: {
                     m_video.pause()
@@ -229,6 +232,9 @@ ApplicationWindow {
                 onSourceChanged: {
                     summaryPane.setStartState("ready")
                 }
+                onVideoFinished: {
+                    summaryPane.setStartState("ready")
+                }
                 onTopPointsChanged: {
                     roi.updateLines()
                 }
@@ -308,7 +314,7 @@ ApplicationWindow {
                 MVideoControl {
                     id: m_video_control
                     progress: m_video.progress
-                    totalFrames: m_video.duration
+                    totalFrames: m_video.duration > 0 ? m_video.duration - 1 : 0
                     onSetProgress: m_video.seek(percent * m_video.duration)
                     Layout.fillWidth: true
                     Layout.bottomMargin: Style.v_padding * 3

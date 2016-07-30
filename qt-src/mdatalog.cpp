@@ -56,7 +56,7 @@ void MDataLog::write(QString fileName)
 
     QTextStream out(&file);
     std::vector<QString> header = metaData.getHeader();
-    double conversion = metaData.getPixels() > 0 ? 1 / metaData.getPixels() : 1;
+    double conversion = metaData.getPixels() > 0 ? 1.0 / metaData.getPixels() : 1;
     size_t maxLines = std::max(header.size(), entries.size());
     for (int i = 0; i < maxLines + 1; i++) {
         if (i < header.size()) {

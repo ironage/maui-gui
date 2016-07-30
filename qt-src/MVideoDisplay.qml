@@ -23,6 +23,7 @@ Item {
     property alias logUnits: cv_player.logUnits
 
     signal videoRectChanged()
+    signal videoFinished()
 
     function viewPointToVideoPoint(viewPoint) {
         return output.mapPointToSource(viewPoint)
@@ -37,15 +38,18 @@ Item {
     function play() {
         cv_player.play()
     }
+    function continueProcessing() {
+        cv_player.continueProcessing()
+    }
     function pause() {
         cv_player.pause()
     }
 
     onProgress_minChanged: {
-        cv_player.setStartFrame(progress_min * cv_player.duration);
+        cv_player.setStartFrame(progress_min * (cv_player.duration - 1));
     }
     onProgress_maxChanged: {
-        cv_player.setEndFrame(progress_max * cv_player.duration);
+        cv_player.setEndFrame(progress_max * (cv_player.duration - 1));
     }
 
     Rectangle {
@@ -63,6 +67,7 @@ Item {
                 m_root.progress = 0
             }
         }
+        onVideoFinished: m_root.videoFinished()
     }
 
     VideoOutput {

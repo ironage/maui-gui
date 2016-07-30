@@ -59,7 +59,14 @@ Item {
             anchors.right: parent.right
         }
         Rectangle {
-            x: (m_root.progress * m_root.width) - 1
+            property int localOffset: totalFrames > 0 ? (m_root.width / totalFrames) : 0
+            property int localDirection: m_root.progress === 0 ? 0 : 1
+            x: (m_root.progress * m_root.width) + (localOffset * localDirection)
+            onXChanged: {
+                console.log("totalFrames:" + totalFrames + " progress: " + m_root.progress + "localOffset:" + localOffset + " localDirection: " + localDirection)
+
+            }
+
             width: 3
             height: m_root.height
             color: Style.ui_color_dark_grey
@@ -67,12 +74,12 @@ Item {
         MPin {
             id: m_start_pin
             value: 0.0
-            description: totalFrames === 0 ? "" : ~~(value * totalFrames)
+            description: totalFrames === 0 ? "" : ~~(value * totalFrames) + 1
         }
         MPin {
             id: m_end_pin
             value: 1.0
-            description: totalFrames === 0 ? "" : ~~(value * totalFrames)
+            description: totalFrames === 0 ? "" : ~~(value * totalFrames) + 1
         }
     }
 }

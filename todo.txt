@@ -9,8 +9,6 @@
 -installer
 
 Priority Bugs for 30 July 2016
--log last frame
--Also, in the summary panel (top left), your frame indexing is off by one.  The first frame number should be 1, not zero, since it is the "first" frame.
 - if the ROI expander isn't opened before pressing play the program crashes. It is because I pass an empty array to matlab setup function
 -test what kind of video files are supported (changed output file type?)
 - When I hit the pause button and move the ROI AND change the size of the ROI, and then hit play again, it doesn't adjust properly.
@@ -24,10 +22,14 @@ Priority Bugs for 30 July 2016
 - Please continue to show the ROI box during processing.
 - When I run "maui-gui.exe" I get many videos, all with size 0 KB, in the output folder.
 Inline image 1  (see: google drive/Hedgehog Medical/GUI library files/Jason/video010.AVI)
-- The OLD, top IMT and bottom IMT (cm/mm) all show up as zero in the CSV.
 - If there is no measurement returned, then we need to write "NaN" to the CSV file.
 
-
+Changes in next release: 
+- logging for last frame
+- change video progress indexing to start at 1 and not 0
+- video finish signal passed to UI, start button resets
+- pause works correctly (continue/pause)
+- fixed rounding error in pixel conversions in results csv file
   
 
 Feedback from meeting with Jason 26-05-2016

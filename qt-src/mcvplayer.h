@@ -56,6 +56,7 @@ public slots:
     void setCurFrame(int newFrame);
     int getPlaybackState();
     void play();
+    void continueProcessing();
     void stop();
     void pause();
     void seek(int frame);
@@ -78,6 +79,7 @@ signals:
     void sizeChanged();
     void videoPropertiesChanged();
     void curFrameChanged();
+    void videoFinished();
     void playbackStateChanged();
     void sourceChanged();
     void roiChanged();

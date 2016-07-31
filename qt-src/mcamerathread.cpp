@@ -23,7 +23,7 @@ CameraTask::CameraTask(MVideoCapture* camera, QVideoFrame* videoFrame,
                        unsigned char* cvImageBuf, int width, int height)
     : running(true), camera(camera), videoFrame(videoFrame),cvImageBuf(cvImageBuf),
     width(width), height(height), curPlayState(Paused), curFrame(-1), frameToSeekTo(-1),
-    startFrame(0), endFrame(0), doneInit(false)
+    startFrame(0), endFrame(0), doneInit(false), cameraFrame(nullptr)
 {
     qDebug() << "Starting initialization of matlab.";
 
@@ -117,7 +117,6 @@ void CameraTask::doWork()
             QThread::msleep(10);
             continue; // loop
         case PlayState::AutoInitCurFrame:
-            //camera->setProperty(CV_CAP_PROP_POS_FRAMES, curFrame); // FIXME: cache current frame
             break;
         case PlayState::Seeking:
             camera->setProperty(CV_CAP_PROP_POS_FRAMES, frameToSeekTo);
@@ -130,6 +129,9 @@ void CameraTask::doWork()
         }
 
         curFrame = camera->getProperty(CV_CAP_PROP_POS_FRAMES); // opencv frame is 0 indexed
+        if (curFrame > 0 && curPlayState == PlayState::AutoInitCurFrame) {
+            --curFrame; // We haven't advanced via grab frame yet but the opencv frame pos property is advanced
+        }
 
         if (curPlayState != PlayState::AutoInitCurFrame) {
             if(!camera->grabFrame()) {
@@ -140,8 +142,8 @@ void CameraTask::doWork()
                 }
                 continue;
             }
+            cameraFrame = camera->retrieveFrame();
         }
-        unsigned char* cameraFrame = camera->retrieveFrame();
 
         //Get camera image into screen frame buffer
         //Assuming desktop, RGB camera image and RGBA QVideoFrame

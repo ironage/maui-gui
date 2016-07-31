@@ -58,6 +58,7 @@ private:
     cv::VideoWriter outputVideo;
     MDataLog log;
     QString outputFileName;
+    unsigned char* cameraFrame;
     void convertUVsp2UVp(unsigned char* __restrict srcptr, unsigned char* __restrict dstptr, int stride);
 
     enum MatlabArrays {

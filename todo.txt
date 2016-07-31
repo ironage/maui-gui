@@ -14,7 +14,6 @@ Priority Bugs for 30 July 2016
 - Please continue to show the ROI box during processing.
 - init matlab immediately on background thread
 - load 2nd video
-- crash on adjust roi on last frame when finished processing
 
 Changes in next release: 
 - logging for last frame
@@ -30,6 +29,8 @@ Changes in next release:
 - if the csv file already exists, append the timestamp to avoid overwriting output data
 - fix video output format, if input video didn't have format set properly. (Jason please verify this works on your machine)
 - ROI adjusts when changed during pause after processing starts
+- fix crash when adjusting ROI on last frame
+- cache current frame data, moving ROI should be faster
 
 For Ahmed (MATLAB side):
 - the autoInit function doesn't return any values if the ROI has a width which is an odd number

@@ -14,11 +14,11 @@ MDataEntry::MDataEntry(int frame, double old, double topIMT, double bottomIMT, d
 
 QString MDataEntry::getCSV(double conversion)
 {
-    return QString() + MDataEntry::getString(frameNumber) + ","
+    return QString() + QString::number(frameNumber) + ","
                      + MDataEntry::getString(OLDPixels) + ","
                      + MDataEntry::getString(topIMTPixels) + ","
                      + MDataEntry::getString(bottomIMTPixels) + ","
-                     + MDataEntry::getString(timeSeconds) + ","
+                     + QString::number(timeSeconds) + ","
                      + MDataEntry::getString(OLDPixels * conversion) + ","
                      + MDataEntry::getString(topIMTPixels * conversion) + ","
                      + MDataEntry::getString(bottomIMTPixels * conversion);

@@ -16,9 +16,9 @@ Rectangle {
     property string endFrame: ""
     property string scaleString: ""
     property int scalePixelValue: 0
-    property int scaleDistanceValue: 1
-    property int scaleComputedValue: scalePixelValue / scaleDistanceValue
-    property string scaleUnitString: "mm"
+    property double scaleDistanceValue: 1
+    property double scaleComputedValue: scalePixelValue / scaleDistanceValue
+    property string scaleUnitString: "cm"
     property int leftMarginPadding: Style.h_padding
 
     signal playClicked()
@@ -67,10 +67,22 @@ Rectangle {
     }
     MText {
         id: scaleText
-        text: scalePixelValue === 0 ? "Scale: " : "Scale: " + scalePixelValue + "/" + scaleDistanceValue + " = " + scaleComputedValue + " pixels/" + scaleUnitString
+        text: scalePixelValue === 0 ? "Scale: " : "Scale: " + scalePixelValue + "/" + scaleDistanceValue + " = " + getDouble(scaleComputedValue)
         style: Text.Normal
         color: Style.ui_color_dark_dblue
         anchors.top: endFrameText.bottom
+        anchors.topMargin: Style.v_padding
+        anchors.left: endFrameText.left
+        function getDouble(x){
+          return x.toFixed(2).replace(/\.?0*$/,'');
+        }
+    }
+    MText {
+        id: scaleText2
+        text: scalePixelValue === 0 ? "Units: " : "Units: pixels/" + scaleUnitString
+        style: Text.Normal
+        color: Style.ui_color_dark_dblue
+        anchors.top: scaleText.bottom
         anchors.topMargin: Style.v_padding
         anchors.left: endFrameText.left
     }
@@ -78,7 +90,7 @@ Rectangle {
     MButton {
         id: start
         text: "Start"
-        anchors.top: scaleText.bottom
+        anchors.top: scaleText2.bottom
         anchors.topMargin: Style.v_padding
         anchors.horizontalCenter: m_root.horizontalCenter
         state: "not_ready"

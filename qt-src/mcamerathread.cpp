@@ -302,14 +302,12 @@ void CameraTask::seek(int frameNumber)
 void CameraTask::setStartFrame(int frameNumber)
 {
     startFrame = frameNumber;
-    qDebug() << "setting start frame: " << startFrame;
     seek(frameNumber);
 }
 
 void CameraTask::setEndFrame(int frameNumber)
 {
     endFrame = frameNumber;
-    qDebug() << "setting end frame: " << endFrame;
     seek(frameNumber);
 }
 
@@ -387,14 +385,15 @@ void CameraTask::drawLine(cv::Mat &dest, mwArray &points, cv::Scalar color, QPoi
 void CameraTask::initializeOutputVideo()
 {
     cv::Size videoSize(width, height);
-    std::string outputDirName("output");
+    MLogMetaData metaData = log.getMetaData();
+    std::string outputDirName(metaData.getOutputDir().isEmpty() ? metaData.getFilePath().toStdString() : metaData.getOutputDir().toStdString());
     if (!QDir(outputDirName.c_str()).exists()) {
         QDir().mkdir(outputDirName.c_str());
     }
     int ex = static_cast<int>(camera->getProperty(CV_CAP_PROP_FOURCC));     // Get Codec Type- Int form
     int fps = camera->getProperty(CV_CAP_PROP_FPS);
-    outputFileName = QString::fromStdString(outputDirName) + "/" + QDateTime::currentDateTime().toString("yyyy-MM-dd_hh-mm-ss");
-    std::string outputName = outputFileName.toStdString() + ".avi";
+    outputFileName = QString::fromStdString(outputDirName) + "/" + (metaData.getOutputName());
+    std::string outputName = outputFileName.toStdString() + "_tracking.avi";
     bool success = outputVideo.open(outputName, ex, fps, videoSize, true);
     qDebug() << "opening output video: " << QString::fromStdString(outputName) << " success ? " << success;
 }
@@ -414,7 +413,7 @@ void CameraTask::writeResults()
         outputVideo.release(); // flush file and reset
     }
 
-    log.write(outputFileName + ".csv");
+    log.write(outputFileName + "_data.csv");
     log.clear();
     emit videoFinished();
 }

@@ -8,6 +8,7 @@ MLogMetaData::MLogMetaData(QObject *parent) : QObject(parent), pixels(1), units(
 
 MLogMetaData::MLogMetaData(const MLogMetaData &other)
     : fileName(other.fileName), filePath(other.filePath),
+      outputFileName(other.outputFileName), outputDirectory(other.outputDirectory),
       pixels(other.pixels), units(other.units)
 {
 }
@@ -29,12 +30,16 @@ void MLogMetaData::operator=(const MLogMetaData &other)
     filePath = other.filePath;
     pixels = other.pixels;
     units = other.units;
+    outputFileName = other.outputFileName;
+    outputDirectory = other.outputDirectory;
 }
 
 bool operator!=(const MLogMetaData& lhs, const MLogMetaData& rhs) {
     return lhs.getFileName() != rhs.getFileName()
             || lhs.getFilePath() != rhs.getFilePath()
             || lhs.getPixels() != rhs.getPixels()
-            || lhs.getUnits() != rhs.getUnits();
+            || lhs.getUnits() != rhs.getUnits()
+            || lhs.getOutputDir() != rhs.getOutputDir()
+            || lhs.getOutputName() != rhs.getOutputName();
 }
 

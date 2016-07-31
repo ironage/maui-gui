@@ -33,10 +33,7 @@ class MCVPlayer : public QObject
     Q_PROPERTY(QRect roi READ getROI WRITE setROI NOTIFY roiChanged)
     Q_PROPERTY(QQmlListProperty<MPoint> initTopPoints READ getTopPoints NOTIFY initPointsChanged)
     Q_PROPERTY(QQmlListProperty<MPoint> initBottomPoints READ getBottomPoints NOTIFY initPointsChanged)
-    Q_PROPERTY(QString logFileName READ getLogFileName WRITE setLogFileName NOTIFY logDataChanged)
-    Q_PROPERTY(QString logFilePath READ getLogFilePath WRITE setLogFilePath NOTIFY logDataChanged)
-    Q_PROPERTY(int logPixels READ getLogPixels WRITE setLogPixels NOTIFY logDataChanged)
-    Q_PROPERTY(QString logUnits READ getLogUnits WRITE setLogUnits NOTIFY logDataChanged)
+    Q_PROPERTY(MLogMetaData* logInfo MEMBER logMetaData NOTIFY logDataChanged)
 public:
     MCVPlayer();
     ~MCVPlayer();
@@ -66,14 +63,6 @@ public slots:
     //QQmlListProperty::QQmlListProperty(QObject *object, void *data, AppendFunction append, CountFunction count, AtFunction at, ClearFunction clear)
     QQmlListProperty<MPoint> getTopPoints() { return QQmlListProperty<MPoint>(this, topPoints); }
     QQmlListProperty<MPoint> getBottomPoints() { return QQmlListProperty<MPoint>(this, bottomPoints); }
-    QString getLogFileName() const { return logMetaData.getFileName(); }
-    QString getLogFilePath() const { return logMetaData.getFilePath(); }
-    int getLogPixels() const { return logMetaData.getPixels(); }
-    QString getLogUnits() const { return logMetaData.getUnits(); }
-    void setLogFileName(QString name) { logMetaData.setFileName(name); }
-    void setLogFilePath(QString path) { logMetaData.setFilePath(path); }
-    void setLogPixels(int numPixels) { logMetaData.setPixels(numPixels); }
-    void setLogUnits(QString newUnits) { logMetaData.setUnits(newUnits); }
 
 signals:
     void sizeChanged();
@@ -109,7 +98,7 @@ private:
     cv::Mat cvImage;
     unsigned char* cvImageBuf = NULL;
     bool stopped;
-    MLogMetaData logMetaData;
+    MLogMetaData* logMetaData;
     void update();
     void updateVideoSettings();
     void allocateCvImage();

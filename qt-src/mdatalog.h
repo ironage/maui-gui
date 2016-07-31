@@ -32,6 +32,7 @@ public:
     void add(MDataEntry entry);
     void write(QString fileName);
     void clear();
+    MLogMetaData getMetaData() { return metaData; }
 private:
     std::vector<MDataEntry> entries;
     MLogMetaData metaData;

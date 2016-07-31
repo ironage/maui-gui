@@ -5,32 +5,33 @@
 -help / about
 ...
 
--frameless window     flags: Qt.FramelessWindowHint
+-frameless window     flags: Qt.FramelessWindowHint 
 -installer
 
 Priority Bugs for 30 July 2016
+- add timestamp on file conflict
 - if the ROI expander isn't opened before pressing play the program crashes. It is because I pass an empty array to matlab setup function
 -test what kind of video files are supported (changed output file type?)
 - When I hit the pause button and move the ROI AND change the size of the ROI, and then hit play again, it doesn't adjust properly.
 - When I am in ROI mode, and I resize the window of the program, it goes all wacky.  The ROI window doesn't seem to call the autoInitialize function at all.
 - call autoinitialize when frame changes in ROI mode.
-- We need to have a save button so the user can select where to save the output.
-- The default location of the output AVI and CSV should be in the same folder as the original video.
-- The output file names should be:
-    originalName_tracking.AVI
-    originalName_data.CSV
 - Please continue to show the ROI box during processing.
 - When I run "maui-gui.exe" I get many videos, all with size 0 KB, in the output folder.
 Inline image 1  (see: google drive/Hedgehog Medical/GUI library files/Jason/video010.AVI)
+- init matlab immediately on background thread
+- load 2nd video
 
 Changes in next release: 
 - logging for last frame
 - change video progress indexing to start at 1 and not 0
 - video finish signal passed to UI, start button resets
 - pause works correctly (continue/pause)
+- handle decimal values in scale conversion properly (previously would round to integers)
 - fixed rounding error in pixel conversions in results csv file
 - scale defaults to 1 cm
-- write "NaN" to the logs if no measurement is found
+- log "NaN" if no measurement is found
+- allow users to choose output directory (default to input directory)
+- allow users to choose output file name (default to input file name + suffix)
 
 
 Future tasks:

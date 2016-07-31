@@ -241,7 +241,8 @@ void MCVPlayer::play()
 {
     if (thread) {
         stopped = false;
-        thread->doSetLogMetaData(logMetaData);
+        qDebug() << "playing now, metadata :  " << logMetaData->getFileName();
+        thread->doSetLogMetaData(*logMetaData);
         thread->doPlay();
     }
 }

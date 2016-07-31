@@ -17,10 +17,7 @@ Item {
     property alias roi: cv_player.roi
     property alias topPoints: cv_player.initTopPoints
     property alias bottomPoints: cv_player.initBottomPoints
-    property alias logFileName: cv_player.logFileName
-    property alias logFilePath: cv_player.logFilePath
-    property alias logPixels: cv_player.logPixels
-    property alias logUnits: cv_player.logUnits
+    property alias logData: cv_player.logInfo
 
     signal videoRectChanged()
     signal videoFinished()

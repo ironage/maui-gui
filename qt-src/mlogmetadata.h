@@ -11,8 +11,10 @@ class MLogMetaData : public QObject
     Q_OBJECT
     Q_PROPERTY(QString inputFileName MEMBER fileName NOTIFY propertiesChanged)
     Q_PROPERTY(QString inputFilePath MEMBER filePath NOTIFY propertiesChanged)
+    Q_PROPERTY(QString outputName MEMBER outputFileName NOTIFY propertiesChanged)
+    Q_PROPERTY(QString outputDir MEMBER outputDirectory NOTIFY propertiesChanged)
     Q_PROPERTY(QString conversionUnits MEMBER units NOTIFY propertiesChanged)
-    Q_PROPERTY(int conversionPixels MEMBER pixels NOTIFY propertiesChanged)
+    Q_PROPERTY(double conversionPixels MEMBER pixels NOTIFY propertiesChanged)
 public:
     explicit MLogMetaData(QObject *parent = 0);
     MLogMetaData(const MLogMetaData& other);
@@ -20,8 +22,10 @@ public:
     QString getFileName() const { return fileName; }
     QString getFilePath() const { return filePath; }
     QString getTimestamp() const;
-    int getPixels() const { return pixels; }
+    double getPixels() const { return pixels; }
     QString getUnits() const { return units; }
+    QString getOutputName() const { return outputFileName; }
+    QString getOutputDir() const { return outputDirectory; }
     void setFileName(QString name) { fileName = name; }
     void setFilePath(QString path) { filePath = path; }
     void setPixels(int numPixels) { pixels = numPixels; }
@@ -35,7 +39,9 @@ public slots:
 private:
     QString fileName;
     QString filePath;
-    int pixels;
+    QString outputFileName;
+    QString outputDirectory;
+    double pixels;
     QString units;
 };
 

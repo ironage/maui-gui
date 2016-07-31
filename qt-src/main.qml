@@ -20,6 +20,7 @@ ApplicationWindow {
 
     FileDialog {
         id: videoSelectDialog
+        title: "Select an input video"
         onAccepted: {
             m_video.source = fileUrl
 
@@ -32,9 +33,35 @@ ApplicationWindow {
             var simpleFileName = match[9]
             var fileExtension = match[10]
             summaryPane.fileName = simpleFileName + fileExtension
-            m_video.logFileName = simpleFileName + fileExtension
-            m_video.logFilePath = directoryPath
+            import_video.defaultOutputName = simpleFileName
+            logMetaData.inputFileName = simpleFileName + fileExtension
+            logMetaData.inputFilePath = directoryPath
+            videoOutputDialog.folder = folder
         }
+    }
+
+    FileDialog {
+        id: videoOutputDialog
+        property string outputDirectory: ""
+        selectFolder: true
+        title: "Select an output directory"
+        onAccepted: {
+            var simpleName = fileUrl.toString();
+            // unescape html codes like '%23' for '#'
+            simpleName = decodeURIComponent(simpleName);
+            var searchExpression = new RegExp("^((file:\\/{3})|(qrc:\\/{2})|(http:\\/{2}))(.*)", "g")
+            var match = searchExpression.exec(simpleName)
+            var directoryPath = match[5]
+            outputDirectory = directoryPath
+        }
+    }
+
+    MLogMetaData {
+        id: logMetaData
+        conversionUnits: calibration.units
+        conversionPixels: m_video.video_height <= 0 ? 1 : ((scale.bottom_v_value - scale.top_v_value) * m_video.video_height) / calibration.scale
+        outputName: import_video.outputName === "" ? import_video.defaultOutputName : import_video.outputName
+        outputDir: videoOutputDialog.outputDirectory
     }
 
     RowLayout {
@@ -86,12 +113,22 @@ ApplicationWindow {
                     MExpander {
                         id: import_video
                         title: "Step 1: Select Input"
+                        property string outputName: loader_item.outputName
+                        property string defaultOutputName: "output name"
+                        onDefaultOutputNameChanged: {
+                            loader_item.defaultName = defaultOutputName
+                        }
+
                         override_width: leftPanel.header_width
                         onOpened: {
                             calibration.close()
                             wall_detection.close()
                         }
-                        payload: Component {
+                        payload: Item {
+                            width: childrenRect.width
+                            height: childrenRect.height
+                            property alias outputName: outputTextInput.text
+                            property string defaultName: "output name"
                             ColumnLayout {
                                 Item {
                                     width: parent.width
@@ -99,9 +136,29 @@ ApplicationWindow {
                                 }
                                 MButton {
                                     id: open_video
-                                    text: "Open Video"
+                                    text: "Input Video"
                                     Layout.alignment: Qt.AlignCenter
                                     onClicked: videoSelectDialog.open()
+                                }
+                                MButton {
+                                    id: save_video
+                                    text: "Output Directory"
+                                    Layout.alignment: Qt.AlignCenter
+                                    onClicked: videoOutputDialog.open()
+                                }
+                                MText {
+                                    text: "Output Title:"
+                                    style: Text.Normal
+                                    color: Style.ui_color_dark_dblue
+                                    Layout.alignment: Qt.AlignCenter
+                                }
+                                MTextInput {
+                                    id: outputTextInput
+                                    text: ""
+                                    width: 60
+                                    placeholderText: defaultName
+                                    borderColor: Style.ui_component_highlight
+                                    horizontalAlignment: TextInput.AlignHCenter
                                 }
                                 Item {
                                     width: parent.width
@@ -144,7 +201,7 @@ ApplicationWindow {
                                     width: 20
                                     placeholderText: "Scale"
                                     borderColor: acceptableInput ? Style.ui_component_highlight : Style.ui_color_light_red
-                                    validator: DoubleValidator{bottom: 0.01; top: 999.0; decimals: 4; notation: DoubleValidator.StandardNotation}
+                                    validator: DoubleValidator{bottom: 0.0001; top: 999.0; decimals: 4; notation: DoubleValidator.StandardNotation}
                                     horizontalAlignment: TextInput.AlignHCenter
                                 }
                                 MCombobox {
@@ -227,8 +284,11 @@ ApplicationWindow {
                 progress_min: m_video_control.start_percent
                 progress_max: m_video_control.end_percent
                 roi: Qt.rect(roi.mappedXY.x, roi.mappedXY.y, roi.mappedWH.x, roi.mappedWH.y)
-                logUnits: calibration.units
-                logPixels: video_height <= 0 ? 1 : ((scale.bottom_v_value - scale.top_v_value) * video_height) / calibration.scale
+                //logData: logMetaData
+                Component.onCompleted: {
+                    logData = logMetaData
+                }
+
                 onSourceChanged: {
                     summaryPane.setStartState("ready")
                 }

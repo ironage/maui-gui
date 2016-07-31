@@ -12,11 +12,21 @@ Item {
 
     property color selected_color: Style.ui_component_selected
     property color highlight_color: Style.ui_component_highlight
+    property color disabled_color: Style.ui_color_dark_grey
 
     signal clicked();
 
     width: m_text.implicitWidth + (2 * h_padding)
     height: m_text.implicitHeight + (2 * v_padding)
+
+    function enable() {
+        m_rect.state = ""
+        enabled = true
+    }
+    function disable() {
+        m_rect.state = "disabled"
+        enabled = false
+    }
 
     Rectangle {
         id: m_rect
@@ -51,7 +61,12 @@ Item {
                 name: "hover"
                 PropertyChanges { target: m_rect; color: m_root.highlight_color}
                 when: m_area.containsMouse && !m_area.containsPress
+            },
+            State {
+                name: "disabled"
+                PropertyChanges { target: m_rect; color: m_root.disabled_color }
             }
+
         ]
         transitions: [
                Transition {

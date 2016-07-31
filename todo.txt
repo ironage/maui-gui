@@ -9,12 +9,12 @@
 -installer
 
 Priority Bugs for 30 July 2016
-- When I hit the pause button and move the ROI AND change the size of the ROI, and then hit play again, it doesn't adjust properly.
 - When I am in ROI mode, and I resize the window of the program, it goes all wacky.  The ROI window doesn't seem to call the autoInitialize function at all.
 - call autoinitialize when frame changes in ROI mode.
 - Please continue to show the ROI box during processing.
 - init matlab immediately on background thread
 - load 2nd video
+- crash on adjust roi on last frame when finished processing
 
 Changes in next release: 
 - logging for last frame
@@ -29,6 +29,7 @@ Changes in next release:
 - allow users to choose output file name (default to input file name + suffix)
 - if the csv file already exists, append the timestamp to avoid overwriting output data
 - fix video output format, if input video didn't have format set properly. (Jason please verify this works on your machine)
+- ROI adjusts when changed during pause after processing starts
 
 For Ahmed (MATLAB side):
 - the autoInit function doesn't return any values if the ROI has a width which is an odd number

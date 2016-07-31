@@ -125,8 +125,8 @@ Rectangle {
             State {
                 name: "playing"
                 PropertyChanges { target: start; color: Style.ui_color_dark_grey }
-                PropertyChanges { target: start; highlight_color: Style.ui_color_light_grey }
-                PropertyChanges { target: start; selected_color: Style.ui_color_dark_grey }
+                PropertyChanges { target: start; highlight_color: Style.ui_color_light_turquoise }
+                PropertyChanges { target: start; selected_color: Style.ui_color_dark_turquoise }
                 PropertyChanges { target: start; text: "Pause" }
             },
             State {

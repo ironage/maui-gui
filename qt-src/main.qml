@@ -85,16 +85,24 @@ ApplicationWindow {
                 scaleUnitString: calibration.units
 
                 onPlayClicked: {
-                    calibration.close()
-                    import_video.close()
-                    wall_detection.close()
+                    calibration.disable()
+                    import_video.disable()
+                    wall_detection.disable()
 
                     m_video.play()
                 }
                 onContinueClicked: {
+                    calibration.disable()
+                    import_video.disable()
+                    wall_detection.disable()
+
                     m_video.continueProcessing();
                 }
                 onPauseClicked: {
+                    calibration.enable()
+                    import_video.enable()
+                    wall_detection.enable()
+
                     m_video.pause()
                 }
             }
@@ -284,16 +292,16 @@ ApplicationWindow {
                 progress_min: m_video_control.start_percent
                 progress_max: m_video_control.end_percent
                 roi: Qt.rect(roi.mappedXY.x, roi.mappedXY.y, roi.mappedWH.x, roi.mappedWH.y)
-                //logData: logMetaData
-                Component.onCompleted: {
-                    logData = logMetaData
-                }
+                logData: logMetaData
 
                 onSourceChanged: {
                     summaryPane.setStartState("ready")
                 }
                 onVideoFinished: {
                     summaryPane.setStartState("ready")
+                    calibration.enable()
+                    import_video.enable()
+                    wall_detection.enable()
                 }
                 onTopPointsChanged: {
                     roi.updateLines()

@@ -24,6 +24,15 @@ Item {
         m_root.state = "expanded"
         opened()
     }
+    function enable() {
+        enabled = true
+        m_header.enable()
+    }
+    function disable() {
+        close()
+        enabled = false
+        m_header.disable()
+    }
 
     signal opened()
     signal closed()

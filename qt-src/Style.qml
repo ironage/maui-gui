@@ -27,6 +27,8 @@ QtObject {
     property color ui_color_dark_dblue: "#2c3e50"
     property color ui_color_light_lblue: "#3498db"
     property color ui_color_dark_lblue: "#2980b9"
+    property color ui_color_light_turquoise: "#1abc9c"
+    property color ui_color_dark_turquoise: "#16a085"
 
     property int h_padding: 10
     property int v_padding: 10

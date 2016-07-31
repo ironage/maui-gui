@@ -165,6 +165,7 @@ void CameraTask::doWork()
                     notifyInitPoints(matlabArrays[TOP_STRONG_POINTS], matlabArrays[BOTTOM_STRONG_POINTS],
                                      QPoint(roi.x(), roi.y()));
                     delete mwROI;
+                    doneInit = false;
                 } catch (const mwException& e) {
                     std::cerr << "exception caught: " << e.what() << std::endl;
                 }
@@ -315,7 +316,9 @@ void CameraTask::setROI(QRect newROI)
 {
     if (roi != newROI) {
         roi = newROI;
-        curPlayState = PlayState::AutoInitCurFrame;
+        if (curPlayState == PlayState::Paused) {
+            curPlayState = PlayState::AutoInitCurFrame;
+        }
     }
 }
 

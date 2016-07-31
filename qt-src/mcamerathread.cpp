@@ -413,7 +413,7 @@ void CameraTask::writeResults()
         outputVideo.release(); // flush file and reset
     }
 
-    log.write(outputFileName + "_data.csv");
+    log.write(outputFileName + "_data");
     log.clear();
     emit videoFinished();
 }

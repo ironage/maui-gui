@@ -2,6 +2,7 @@
 
 #include <algorithm>
 
+#include <QDateTime>
 #include <QDebug>
 #include <QFile>
 #include <QTextStream>
@@ -53,13 +54,13 @@ void MDataLog::add(MDataEntry entry)
 
 void MDataLog::write(QString fileName)
 {
-    QFile file(fileName);
+    QFile file(fileName + ".csv");
     if (file.exists()) {
-        qDebug() << "File exsists already! Aborting! " << fileName;
-        return;
+        qDebug() << "File exsists already! Adding date to avoid conflict " << fileName;
+        file.setFileName(fileName + QDateTime::currentDateTime().toString("yyyy-MM-dd_hh-mm-ss") + ".csv");
     }
     if (!file.open(QIODevice::WriteOnly | QIODevice::Text)) {
-        qDebug() << "Could not open csv file for writing: " << fileName;
+        qDebug() << "Could not open csv file for writing: " << file.fileName();
         return;
     }
 

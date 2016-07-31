@@ -9,7 +9,6 @@
 -installer
 
 Priority Bugs for 30 July 2016
-- add timestamp on file conflict
 - if the ROI expander isn't opened before pressing play the program crashes. It is because I pass an empty array to matlab setup function
 -test what kind of video files are supported (changed output file type?)
 - When I hit the pause button and move the ROI AND change the size of the ROI, and then hit play again, it doesn't adjust properly.
@@ -32,6 +31,7 @@ Changes in next release:
 - log "NaN" if no measurement is found
 - allow users to choose output directory (default to input directory)
 - allow users to choose output file name (default to input file name + suffix)
+- if the csv file already exists, append the timestamp to avoid overwriting output data
 
 
 Future tasks:

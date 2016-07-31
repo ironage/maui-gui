@@ -25,33 +25,12 @@ CameraTask::CameraTask(MVideoCapture* camera, QVideoFrame* videoFrame,
     width(width), height(height), curPlayState(Paused), curFrame(-1), frameToSeekTo(-1),
     startFrame(0), endFrame(0), doneInit(false), cameraFrame(nullptr)
 {
-    qDebug() << "Starting initialization of matlab.";
-
-    const char *pStrings[]={"-nojvm","-nojit"};
-    // Initialize the MATLAB Compiler Runtime global state
-    if (!mclInitializeApplication(pStrings,2))
-    {
-        qDebug() << "Could not initialize the application properly.";
-    }
-
-    qDebug() << "Initializing autoInit matlab library";
-    if (!libAutoInitInitialize()) {
-        qDebug() << "Could not initialize the autoInit library.";
-    }
-    qDebug() << "Initializing MAUI matlab library";
-    if (!libMAUIInitialize()) {
-        qDebug() << "Could not initialize the maui library";
-    }
     matlabArrays = new mwArray[ARRAY_COUNT];
-    qDebug() << "Done initialization stage.";
 }
 
 CameraTask::~CameraTask()
 {
     qDebug() << "CameraTask destructed";
-    libMAUITerminate();
-    libAutoInitTerminate();
-    mclTerminateApplication();  // can only be called once per application
     delete [] matlabArrays;
     //Leave camera and videoFrame alone, they will be destroyed elsewhere
 }
@@ -275,6 +254,7 @@ void CameraTask::play()
 {
     if (curPlayState != PlayState::Playing) {
         curPlayState = PlayState::Playing;
+        doneInit = false;
         if (camera) {
             camera->setProperty(CV_CAP_PROP_POS_FRAMES, startFrame);
         }

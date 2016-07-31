@@ -15,6 +15,10 @@ MCVPlayer::MCVPlayer() : QObject(),
     qRegisterMetaType<QList<MPoint*>>();
     qRegisterMetaType<QList<MPoint>>();
     qRegisterMetaType<MLogMetaData>();
+    qRegisterMetaType<MInitTask::InitStats>();
+    initThread = new MInitThread();
+    connect(initThread, SIGNAL(initFinished(MInitTask::InitStats)), this, SLOT(matlabInitFinished(MInitTask::InitStats)));
+    initThread->init();
 }
 
 MCVPlayer::~MCVPlayer()
@@ -23,6 +27,7 @@ MCVPlayer::~MCVPlayer()
         thread->stop();
     delete thread;
     delete camera;
+    delete initThread;  // cleans up MATLAB
 
     while (topPoints.size() > 0) {
         delete topPoints.takeAt(0);
@@ -301,6 +306,11 @@ void MCVPlayer::setStartFrame(int frame)
     if (thread) {
         thread->doSetStartFrame(frame);
     }
+}
+
+void MCVPlayer::matlabInitFinished(MInitTask::InitStats status)
+{
+    qDebug() << "init status recieved: " << status;
 }
 
 //void MCVPlayer::setTopPoints(QList<MPoint> points)

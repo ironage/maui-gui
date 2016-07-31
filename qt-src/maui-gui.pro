@@ -16,7 +16,8 @@ SOURCES += main.cpp \
     mvideocapture.cpp \
     mpoint.cpp \
     mdatalog.cpp \
-    mlogmetadata.cpp
+    mlogmetadata.cpp \
+    minitthread.cpp
 
 QT += qml quick multimedia
 CONFIG += c++11
@@ -54,4 +55,5 @@ HEADERS += \
     mpoint.h \
     libMAUI.h \
     mdatalog.h \
-    mlogmetadata.h
+    mlogmetadata.h \
+    minitthread.h

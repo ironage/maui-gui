@@ -11,9 +11,8 @@
 Priority Bugs for 30 July 2016
 - When I am in ROI mode, and I resize the window of the program, it goes all wacky.  The ROI window doesn't seem to call the autoInitialize function at all.
 - call autoinitialize when frame changes in ROI mode.
+- call autoinitialize always for first frame when playing or continuing
 - Please continue to show the ROI box during processing.
-- init matlab immediately on background thread
-- load 2nd video
 
 Changes in next release: 
 - logging for last frame
@@ -31,11 +30,13 @@ Changes in next release:
 - ROI adjusts when changed during pause after processing starts
 - fix crash when adjusting ROI on last frame
 - cache current frame data, moving ROI should be faster
+- reinitialized again on load so loading multiple videos in sequence works properly
+- initialized matlab calls in background thread immediately, loading videos should be much faster
 
 For Ahmed (MATLAB side):
-- the autoInit function doesn't return any values if the ROI has a width which is an odd number
-- crash in matlab update function if top or bottom strong points are empty (should return zeros)
-
+- The autoInit function is behaving strangely, it doesn't seem to return any values if the ROI has a width which is an odd number?
+- Crash in matlab update function if top or bottom strong points are empty (should return zeros)
+- Can we combine the two library files into one? I think it will take less time to initialize this way.
 
 Future tasks:
 -reset button

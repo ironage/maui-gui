@@ -14,6 +14,7 @@
 #include <opencv2/opencv.hpp>
 
 #include "mcamerathread.h"
+#include "minitthread.h"
 #include "mlogmetadata.h"
 #include "mpoint.h"
 #include "mvideocapture.h"
@@ -59,6 +60,7 @@ public slots:
     void seek(int frame);
     void setEndFrame(int frame);
     void setStartFrame(int frame);
+    void matlabInitFinished(MInitTask::InitStats status);
     //FIXME: proper list access
     //QQmlListProperty::QQmlListProperty(QObject *object, void *data, AppendFunction append, CountFunction count, AtFunction at, ClearFunction clear)
     QQmlListProperty<MPoint> getTopPoints() { return QQmlListProperty<MPoint>(this, topPoints); }
@@ -94,6 +96,7 @@ private:
     QList<MPoint*> bottomPoints;
     MVideoCapture* camera = NULL;
     MCameraThread* thread = NULL;
+    MInitThread* initThread = NULL;
     QVideoFrame* videoFrame = NULL;
     cv::Mat cvImage;
     unsigned char* cvImageBuf = NULL;

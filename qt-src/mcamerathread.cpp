@@ -390,12 +390,14 @@ void CameraTask::initializeOutputVideo()
     if (!QDir(outputDirName.c_str()).exists()) {
         QDir().mkdir(outputDirName.c_str());
     }
-    int ex = static_cast<int>(camera->getProperty(CV_CAP_PROP_FOURCC));     // Get Codec Type- Int form
+    // the following line didn't work correctly for some videos
+    //int ex = static_cast<int>(camera->getProperty(CV_CAP_PROP_FOURCC));     // Get Codec Type- Int form
+    int ex = CV_FOURCC('M', 'J', 'P', 'G');
     int fps = camera->getProperty(CV_CAP_PROP_FPS);
     outputFileName = QString::fromStdString(outputDirName) + "/" + (metaData.getOutputName());
     std::string outputName = outputFileName.toStdString() + "_tracking.avi";
     bool success = outputVideo.open(outputName, ex, fps, videoSize, true);
-    qDebug() << "opening output video: " << QString::fromStdString(outputName) << " success ? " << success;
+    qDebug() << "opening output video: " << QString::fromStdString(outputName) << " success ? " << success << " (ex: " << ex << ")";
 }
 
 double CameraTask::getFirst(mwArray &data, double defaultValue)

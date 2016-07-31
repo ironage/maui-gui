@@ -9,14 +9,10 @@
 -installer
 
 Priority Bugs for 30 July 2016
-- if the ROI expander isn't opened before pressing play the program crashes. It is because I pass an empty array to matlab setup function
--test what kind of video files are supported (changed output file type?)
 - When I hit the pause button and move the ROI AND change the size of the ROI, and then hit play again, it doesn't adjust properly.
 - When I am in ROI mode, and I resize the window of the program, it goes all wacky.  The ROI window doesn't seem to call the autoInitialize function at all.
 - call autoinitialize when frame changes in ROI mode.
 - Please continue to show the ROI box during processing.
-- When I run "maui-gui.exe" I get many videos, all with size 0 KB, in the output folder.
-Inline image 1  (see: google drive/Hedgehog Medical/GUI library files/Jason/video010.AVI)
 - init matlab immediately on background thread
 - load 2nd video
 
@@ -32,6 +28,11 @@ Changes in next release:
 - allow users to choose output directory (default to input directory)
 - allow users to choose output file name (default to input file name + suffix)
 - if the csv file already exists, append the timestamp to avoid overwriting output data
+- fix video output format, if input video didn't have format set properly. (Jason please verify this works on your machine)
+
+For Ahmed (MATLAB side):
+- the autoInit function doesn't return any values if the ROI has a width which is an odd number
+- crash in matlab update function if top or bottom strong points are empty (should return zeros)
 
 
 Future tasks:

@@ -59,6 +59,7 @@ private:
     MDataLog log;
     QString outputFileName;
     unsigned char* cameraFrame;
+    bool cachedFrameIsDirty;
     void convertUVsp2UVp(unsigned char* __restrict srcptr, unsigned char* __restrict dstptr, int stride);
 
     enum MatlabArrays {
@@ -99,6 +100,8 @@ protected:
     void initializeOutputVideo();
     double getFirst(mwArray& data, double defaultValue);
     void writeResults();
+    void autoInitializeOnROI(mwArray* matlabROI);
+    bool getNextFrameData();
 };
 
 class MCameraThread : public QObject{

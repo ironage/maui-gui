@@ -17,8 +17,8 @@ Canvas {
     property bool fill: true
     property bool stroke: true
     property real alpha: 0.5
-    x: Math.min(x1, x2) - lineWidth
-    y: Math.min(y1, y2) - lineWidth
+    x: Math.min(x1, x2)
+    y: Math.min(y1, y2)
     width: Math.abs(x2 - x1) + lineWidth
     height: Math.abs(y2 - y1) + lineWidth
 
@@ -40,7 +40,6 @@ Canvas {
         ctx.clearRect(0, 0, line.width, line.height);
         ctx.strokeStyle = line.curStrokeColor;
         ctx.lineWidth = line.lineWidth
-        ctx.lineJoin = "round";
         ctx.beginPath();
 
         ctx.moveTo(x1 - x, y1 - y);

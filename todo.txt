@@ -12,7 +12,6 @@ Priority Bugs for 30 July 2016
 - When I am in ROI mode, and I resize the window of the program, it goes all wacky.  The ROI window doesn't seem to call the autoInitialize function at all.
 - call autoinitialize when frame changes in ROI mode.
 - Please continue to show the ROI box during processing.
-- Adjust point lines
 
 Changes in next release: 
 - logging for last frame
@@ -33,6 +32,7 @@ Changes in next release:
 - cache current frame data, moving ROI should be faster
 - reinitialized again on load so loading multiple videos in sequence works properly
 - initialized matlab calls in background thread immediately, loading videos should be much faster
+- ROI point line manual adjustment disabled
 
 For Ahmed (MATLAB side):
 - The autoInit function doesn't seem to return any values if the ROI has a width which is an odd number?

@@ -7,7 +7,7 @@ Rectangle {
     anchors.fill: parent
     color: "transparent"
     property real alpha: 1
-    property int cornerWidth: 14
+    property int cornerWidth: 6
     property color pointColor: "white"
 
     property var pointList
@@ -26,7 +26,7 @@ Rectangle {
         color: pointColor
         radius: width/2
         MouseArea {
-            enabled: m_root.enabled
+            enabled: false //m_root.enabled
             anchors.fill: parent
             hoverEnabled: true
             drag {
@@ -66,7 +66,7 @@ Rectangle {
         color: pointColor
         radius: width/2
         MouseArea {
-            enabled: m_root.enabled
+            enabled: false //m_root.enabled
             anchors.fill: parent
             hoverEnabled: true
             drag {
@@ -106,7 +106,7 @@ Rectangle {
         color: pointColor
         radius: width/2
         MouseArea {
-            enabled: m_root.enabled
+            enabled: false //m_root.enabled
             anchors.fill: parent
             hoverEnabled: true
             drag {

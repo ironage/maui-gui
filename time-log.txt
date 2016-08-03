@@ -32,3 +32,5 @@ fri, 15 july 2016 - 3 hours: matlab interface to setup function, setup for updat
 sat, 16 july 2016 - 12 hours: matlab interface to update function, write avi output, write csv output, fixed lag issue.
 tues, 26 july 2016 - 1 hour: meeting, bug feedback and priorities
 sat, 30 july 2016 - 5 hours: play stability, off by one in frame count, log all frames, fix rounding error in results
+sun, 31 july 2016 - 8 hours: bug fixing, performance improvements, feedback updates
+mon, 1 aug 2016 - 2 hours: bug fixing, message boxes on succes/failure

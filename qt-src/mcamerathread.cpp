@@ -6,6 +6,7 @@
 
 #include "mcamerathread.h"
 #include <algorithm>
+#include <memory>
 
 // Windows includes defines for min,max which collide with std:: versions
 #define NOMINMAX
@@ -25,6 +26,7 @@ CameraTask::CameraTask(MVideoCapture* camera, QVideoFrame* videoFrame,
     width(width), height(height), curPlayState(Paused), curFrame(-1), frameToSeekTo(-1),
     startFrame(0), endFrame(0), doneInit(false), cameraFrame(nullptr), cachedFrameIsDirty(true)
 {
+    qRegisterMetaType<CameraTask::ProcessingState>();
     matlabArrays = new mwArray[ARRAY_COUNT];
 }
 
@@ -99,8 +101,6 @@ void CameraTask::doWork()
             break;
         case PlayState::Seeking:
             camera->setProperty(CV_CAP_PROP_POS_FRAMES, frameToSeekTo);
-            qDebug() << "seeking to frame index: " << frameToSeekTo;
-            curPlayState = PlayState::Paused;
             // fall through
         case PlayState::Playing:
         default:
@@ -109,15 +109,16 @@ void CameraTask::doWork()
 
         curFrame = camera->getProperty(CV_CAP_PROP_POS_FRAMES); // opencv frame is 0 indexed
         if (curPlayState == PlayState::AutoInitCurFrame) {
-            if (curFrame > 0) {
-                --curFrame; // We haven't advanced via grab frame yet but the opencv frame pos property is advanced
-            }
             if (!cameraFrame || cachedFrameIsDirty) {
-                camera->setProperty(CV_CAP_PROP_POS_FRAMES, curFrame);
                 if (!getNextFrameData()) continue;
+                camera->setProperty(CV_CAP_PROP_POS_FRAMES, curFrame); // AutoInit does not advance frames
             }
         } else {
             if (!getNextFrameData()) continue;
+            if (curPlayState == PlayState::Seeking) {
+                curPlayState = PlayState::Paused;
+                camera->setProperty(CV_CAP_PROP_POS_FRAMES, curFrame); // Seek does not advance frames
+            }
         }
 
         //Get camera image into screen frame buffer
@@ -126,17 +127,24 @@ void CameraTask::doWork()
             cv::Mat tempMat(height, width, CV_8UC3, cameraFrame);
             cv::Mat roiSection = tempMat(getCVROI());  // TODO: check if leaked
             cv::cvtColor(roiSection, roiSection, CV_BGR2GRAY);
-            mwArray* matlabROI = opencvConvertToMX(roiSection);
+            std::unique_ptr<mwArray> matlabROI(opencvConvertToMX(roiSection));
 
             if (curPlayState == PlayState::AutoInitCurFrame) {
                 curPlayState = PlayState::Paused;
-                autoInitializeOnROI(matlabROI);
+                autoInitializeOnROI(matlabROI.get());
             } else if (curPlayState == PlayState::Playing) {
                 if (!doneInit) {
                     if (!outputVideo.isOpened()) {
                         initializeOutputVideo();
                     }
-                    autoInitializeOnROI(matlabROI);
+                    bool autoInitSuccess = autoInitializeOnROI(matlabROI.get());
+                    if (!autoInitSuccess || topPoints.empty() || bottomPoints.empty()) {
+                        emit videoFinished(CameraTask::ProcessingState::AUTO_INIT_FAILED);
+                        curPlayState = PlayState::Paused;
+                        camera->setProperty(CV_CAP_PROP_POS_FRAMES, curFrame); // this frame needs reprocessing
+                        cachedFrameIsDirty = true;
+                        continue;
+                    }
                     const int numReturnValues = 6;
                     setup(numReturnValues,
                           matlabArrays[SMOOTH_KERNEL], matlabArrays[DERIVATE_KERNEL],
@@ -185,7 +193,6 @@ void CameraTask::doWork()
             }
 
             cv::cvtColor(tempMat,screenImage,cv::COLOR_RGB2RGBA);
-            delete matlabROI;
         }
 
         //Export camera image
@@ -364,10 +371,10 @@ void CameraTask::writeResults()
 
     log.write(outputFileName + "_data");
     log.clear();
-    emit videoFinished();
+    emit videoFinished(CameraTask::ProcessingState::SUCCESS);
 }
 
-void CameraTask::autoInitializeOnROI(mwArray *matlabROI)
+bool CameraTask::autoInitializeOnROI(mwArray *matlabROI)
 {
     try {
         mwArray numPoints(1, 1, mxINT32_CLASS);
@@ -383,19 +390,21 @@ void CameraTask::autoInitializeOnROI(mwArray *matlabROI)
         doneInit = false;
     } catch (const mwException& e) {
         std::cerr << "exception caught: " << e.what() << std::endl;
+        return false;
     }
+    return true;
 }
 
 bool CameraTask::getNextFrameData()
 {
     if (!camera->grabFrame()) {
-        curPlayState = PlayState::Paused;
         if (curPlayState == PlayState::Playing) {
             writeResults();
             qDebug() << "Could not grab next video frame";
         } else {
             qDebug() << "Something is fatally wrong if we couldn't refresh the current frame! " << curFrame;
         }
+        curPlayState = PlayState::Paused;
         return false;
     }
     cameraFrame = camera->retrieveFrame();
@@ -417,7 +426,7 @@ MCameraThread::MCameraThread(MVideoCapture* camera, QVideoFrame* videoFrame, uns
     connect(&workerThread, SIGNAL(started()), task, SLOT(doWork()));
     connect(task, SIGNAL(imageReady(int)), this, SIGNAL(imageReady(int)));
     connect(task, SIGNAL(initPointsDetected(QList<MPoint>,QList<MPoint>)), this, SIGNAL(initPointsDetected(QList<MPoint>,QList<MPoint>)));
-    connect(task, SIGNAL(videoFinished()), this, SIGNAL(videoFinished()));
+    connect(task, SIGNAL(videoFinished(CameraTask::ProcessingState)), this, SIGNAL(videoFinished(CameraTask::ProcessingState)));
     connect(this, SIGNAL(play()), task, SLOT(play()), Qt::QueuedConnection);
     connect(this, SIGNAL(pause()), task, SLOT(pause()), Qt::QueuedConnection);
     connect(this, SIGNAL(seek(int)), task, SLOT(seek(int)), Qt::QueuedConnection);

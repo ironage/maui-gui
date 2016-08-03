@@ -56,6 +56,16 @@ ApplicationWindow {
         }
     }
 
+    MessageDialog {
+        id: videoFinishedSuccess
+        title: "Video Processing Finished!"
+        text: "The video has been processed successfully!"
+    }
+    MessageDialog {
+        id: videoFinishedError
+        title: "Video Processing Error!"
+    }
+
     MLogMetaData {
         id: logMetaData
         conversionUnits: calibration.units
@@ -298,10 +308,23 @@ ApplicationWindow {
                     summaryPane.setStartState("ready")
                 }
                 onVideoFinished: {
-                    summaryPane.setStartState("ready")
                     calibration.enable()
                     import_video.enable()
                     wall_detection.enable()
+                    if (state === 0) { // MCVPlayer.SUCCESS
+                        summaryPane.setStartState("ready")
+                        videoFinishedSuccess.open()
+                    } else if (state === 1) { // MCVPlayer.AUTO_INIT_FAILED
+                        summaryPane.setStartState("paused")
+                        videoFinishedError.text = "Could not find initial points on the start frame!"
+                        videoFinishedError.informativeText = "Try adjusting the region of interest."
+                        videoFinishedError.open()
+                        wall_detection.open()
+                    } else {
+                        summaryPane.setStartState("ready")
+                        console.log("unhandled state when video finished: " + state)
+
+                    }
                 }
                 onTopPointsChanged: {
                     roi.updateLines()

@@ -39,6 +39,7 @@ public:
     MCVPlayer();
     ~MCVPlayer();
     QAbstractVideoSurface* videoSurface() const { return m_surface; }
+    Q_ENUM(CameraTask::ProcessingState)
 
     void setVideoSurface(QAbstractVideoSurface *surface);
 public slots:
@@ -70,7 +71,7 @@ signals:
     void sizeChanged();
     void videoPropertiesChanged();
     void curFrameChanged();
-    void videoFinished();
+    void videoFinished(CameraTask::ProcessingState state);
     void playbackStateChanged();
     void sourceChanged();
     void roiChanged();

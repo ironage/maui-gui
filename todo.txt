@@ -11,14 +11,15 @@
 Priority Bugs for 30 July 2016
 - When I am in ROI mode, and I resize the window of the program, it goes all wacky.  The ROI window doesn't seem to call the autoInitialize function at all.
 - call autoinitialize when frame changes in ROI mode.
-- call autoinitialize always for first frame when playing or continuing
 - Please continue to show the ROI box during processing.
+- Adjust point lines
 
 Changes in next release: 
 - logging for last frame
 - change video progress indexing to start at 1 and not 0
-- video finish signal passed to UI, start button resets
+- video finish signal passed to UI, start button resets, dialog box on error or success
 - pause works correctly (continue/pause)
+- disable expanders when processing
 - handle decimal values in scale conversion properly (previously would round to integers)
 - fixed rounding error in pixel conversions in results csv file
 - scale defaults to 1 cm
@@ -34,7 +35,7 @@ Changes in next release:
 - initialized matlab calls in background thread immediately, loading videos should be much faster
 
 For Ahmed (MATLAB side):
-- The autoInit function is behaving strangely, it doesn't seem to return any values if the ROI has a width which is an odd number?
+- The autoInit function doesn't seem to return any values if the ROI has a width which is an odd number?
 - Crash in matlab update function if top or bottom strong points are empty (should return zeros)
 - Can we combine the two library files into one? I think it will take less time to initialize this way.
 

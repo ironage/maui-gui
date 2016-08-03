@@ -28,6 +28,11 @@ public:
     virtual ~CameraTask();
     void stop();
 
+    enum ProcessingState {
+        SUCCESS,
+        AUTO_INIT_FAILED
+    };
+
 private:
     enum PlayState {
         Playing,
@@ -92,7 +97,7 @@ public slots:
 signals:
     void imageReady(int);
     void initPointsDetected(QList<MPoint>, QList<MPoint>);
-    void videoFinished();
+    void videoFinished(CameraTask::ProcessingState state);
 protected:
     void notifyInitPoints(mwArray topWall, mwArray bottomWall, QPoint offset);
     cv::Rect getCVROI();
@@ -100,7 +105,7 @@ protected:
     void initializeOutputVideo();
     double getFirst(mwArray& data, double defaultValue);
     void writeResults();
-    void autoInitializeOnROI(mwArray* matlabROI);
+    bool autoInitializeOnROI(mwArray* matlabROI);
     bool getNextFrameData();
 };
 
@@ -125,7 +130,7 @@ private:
     CameraTask* task = NULL;
 signals:
     void imageReady(int frameNumber);
-    void videoFinished();
+    void videoFinished(CameraTask::ProcessingState state);
     void play();
     void continueProcessing();
     void pause();
@@ -136,6 +141,9 @@ signals:
     void setLogMetaData(MLogMetaData d);
     void initPointsDetected(QList<MPoint>, QList<MPoint>);
 };
+
+Q_DECLARE_METATYPE(CameraTask::ProcessingState)
+
 
 #endif /* CAMERATHREAD_H */
 

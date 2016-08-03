@@ -20,7 +20,7 @@ Item {
     property alias logData: cv_player.logInfo
 
     signal videoRectChanged()
-    signal videoFinished()
+    signal videoFinished(int state)
 
     function viewPointToVideoPoint(viewPoint) {
         return output.mapPointToSource(viewPoint)
@@ -64,7 +64,7 @@ Item {
                 m_root.progress = 0
             }
         }
-        onVideoFinished: m_root.videoFinished()
+        onVideoFinished: m_root.videoFinished(state)
     }
 
     VideoOutput {

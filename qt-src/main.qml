@@ -98,6 +98,8 @@ ApplicationWindow {
                     calibration.disable()
                     import_video.disable()
                     wall_detection.disable()
+                    roi.visible = true
+                    roi.adjustable = false
 
                     m_video.play()
                 }
@@ -105,6 +107,8 @@ ApplicationWindow {
                     calibration.disable()
                     import_video.disable()
                     wall_detection.disable()
+                    roi.visible = true
+                    roi.adjustable = false
 
                     m_video.continueProcessing();
                 }
@@ -112,6 +116,7 @@ ApplicationWindow {
                     calibration.enable()
                     import_video.enable()
                     wall_detection.enable()
+                    roi.visible = false
 
                     m_video.pause()
                 }
@@ -249,6 +254,7 @@ ApplicationWindow {
                             import_video.close()
                             roi.updateLines()
                             roi.visible = true
+                            roi.adjustable = true
                         }
                         onClosed: {
                             roi.visible = false
@@ -388,11 +394,11 @@ ApplicationWindow {
                 }
                 MPointLine {
                     id: line1
-                    visible: roi.visible
+                    visible: roi.visible && roi.adjustable
                 }
                 MPointLine {
                     id: line2
-                    visible: roi.visible
+                    visible: roi.visible && roi.adjustable
                 }
 
                 MScaleAdjuster {

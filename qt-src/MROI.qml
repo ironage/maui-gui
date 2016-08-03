@@ -12,6 +12,7 @@ Rectangle {
     property alias roiWidth: roi.width
     property alias roiHeight: roi.height
 
+    property bool adjustable: true
     property int cornerWidth: 16
     property int rectMin: 20
     property bool backgroundActive: true
@@ -67,7 +68,7 @@ Rectangle {
 
         MouseArea {
             id: roi_area
-            enabled: m_root.enabled
+            enabled: m_root.enabled && adjustable
             anchors.fill:  parent
             hoverEnabled: true
             drag {
@@ -90,6 +91,7 @@ Rectangle {
         width: cornerWidth
         height: width
         //opacity: alpha
+        visible: adjustable
         color: roi.border.color
         radius: width/2
         MouseArea {
@@ -127,6 +129,7 @@ Rectangle {
         y: roi.y + yOffset
         width: cornerWidth
         height: width
+        visible: adjustable
         //opacity: alpha
         color: roi.border.color
         radius: width/2
@@ -167,6 +170,7 @@ Rectangle {
         y: roi.y + yOffset
         width: cornerWidth
         height: width
+        visible: adjustable
         //opacity: alpha
         color: roi.border.color
         radius: width/2
@@ -206,6 +210,7 @@ Rectangle {
         y: roi.y + roi.height + yOffset
         width: cornerWidth
         height: width
+        visible: adjustable
         //opacity: alpha
         color: roi.border.color
         radius: width/2

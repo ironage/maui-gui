@@ -67,7 +67,7 @@ Rectangle {
     }
     MText {
         id: scaleText
-        text: scalePixelValue === 0 ? "Scale: " : "Scale: " + scalePixelValue + "/" + scaleDistanceValue + " = " + getDouble(scaleComputedValue)
+        text: scalePixelValue === 0 ? "Scale: " : "Scale: " + getDouble(scaleComputedValue) + " pixels/" + scaleUnitString
         style: Text.Normal
         color: Style.ui_color_dark_dblue
         anchors.top: endFrameText.bottom
@@ -77,20 +77,11 @@ Rectangle {
           return x.toFixed(2).replace(/\.?0*$/,'');
         }
     }
-    MText {
-        id: scaleText2
-        text: scalePixelValue === 0 ? "Units: " : "Units: pixels/" + scaleUnitString
-        style: Text.Normal
-        color: Style.ui_color_dark_dblue
-        anchors.top: scaleText.bottom
-        anchors.topMargin: Style.v_padding
-        anchors.left: endFrameText.left
-    }
 
     MButton {
         id: start
         text: "Start"
-        anchors.top: scaleText2.bottom
+        anchors.top: scaleText.bottom
         anchors.topMargin: Style.v_padding
         anchors.horizontalCenter: m_root.horizontalCenter
         state: "not_ready"

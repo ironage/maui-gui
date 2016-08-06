@@ -15,8 +15,7 @@
 // studio on the matlab generated header files.
 #pragma warning(push)
 #pragma warning( disable : 4100 )
-#include "libAutoInit.h"   // custom generated header (with lib) from matlab code
-#include "libMAUI.h"       // matlab generated header
+#include "libAutoMAUI.h"   // custom generated header (with lib) from matlab code
 #pragma warning(pop)
 
 
@@ -380,10 +379,12 @@ bool CameraTask::autoInitializeOnROI(mwArray *matlabROI)
         mwArray numPoints(1, 1, mxINT32_CLASS);
         int numPointsData [] = { 3 };
         numPoints.SetData(numPointsData, 1);
+        mwArray kerUpHeight, kerBotHeight;
 
-        const int numReturnValues = 2;
+
+        const int numReturnValues = 4;
         autoInitializer(numReturnValues, matlabArrays[TOP_STRONG_POINTS],
-                        matlabArrays[BOTTOM_STRONG_POINTS], *matlabROI, numPoints);
+                        matlabArrays[BOTTOM_STRONG_POINTS], kerUpHeight, kerBotHeight, *matlabROI, numPoints);
 
         notifyInitPoints(matlabArrays[TOP_STRONG_POINTS], matlabArrays[BOTTOM_STRONG_POINTS],
                          QPoint(roi.x(), roi.y()));

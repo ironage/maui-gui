@@ -9,7 +9,6 @@
 -installer
 
 Feedback From Jason 4 Aug 2016
-- Calibration remove explicit calculations
 - resize window on processing roi malfunction
 - roi update when frame changes
 - end frame not set before start frame
@@ -20,6 +19,8 @@ Priority Bugs for 30 July 2016
 
 Changes in next release: 
 - Custom popup dialog box with no help button in title bar.
+- Removed explicit calculations of scale from summary pane
+- Update to new version of matlab libraries; single combined library
 
 For Ahmed (MATLAB side):
 - The autoInit function doesn't seem to return any values if the ROI has a width which is an odd number?

@@ -39,7 +39,7 @@ LIBS += -lopencv_core2413 -lopencv_highgui2413 -lopencv_imgproc2413 -lopencv_vid
 
 LIBS += -L"$$MATLAB_LIBS"
 LIBS += -L$$PWD/libs/
-LIBS += -l$$PWD/libs/libAutoInit -l$$PWD/libs/libMAUI -lmclmcrrt -lmclmcr
+LIBS += -l$$PWD/libs/libAutoMAUI -lmclmcrrt -lmclmcr
 LIBS += -llibmat -llibmx -lmclbase -llibmwservices -lmclcommain  -lmclxlmain
 
 LIBS += -lkernel32 -luser32 -lgdi32 -lwinspool
@@ -51,9 +51,8 @@ HEADERS += \
     mcvplayer.h \
     mcamerathread.h \
     mvideocapture.h \
-    libAutoInit.h \
     mpoint.h \
-    libMAUI.h \
     mdatalog.h \
     mlogmetadata.h \
-    minitthread.h
+    minitthread.h \
+    libAutoMAUI.h

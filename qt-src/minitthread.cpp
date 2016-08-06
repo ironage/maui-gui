@@ -6,8 +6,7 @@
 // studio on the matlab generated header files.
 #pragma warning(push)
 #pragma warning( disable : 4100 )
-#include "libAutoInit.h"   // custom generated header (with lib) from matlab code
-#include "libMAUI.h"       // matlab generated header
+#include "libAutoMAUI.h"   // custom generated header (with lib) from matlab code
 #pragma warning(pop)
 
 MInitThread::MInitThread(QObject *parent) : QObject(parent)
@@ -25,8 +24,7 @@ MInitThread::~MInitThread()
     if (task) {
         delete task;
     }
-    libMAUITerminate();
-    libAutoInitTerminate();
+    libAutoMAUITerminate();
     mclTerminateApplication();  // can only be called once per application
 
     qDebug() << "Cleaned up init thread successfully";
@@ -50,15 +48,9 @@ void MInitTask::doWork()
         return;
     }
 
-    qDebug() << "Initializing autoInit matlab library";
-    if (!libAutoInitInitialize()) {
-        qDebug() << "Could not initialize the autoInit library.";
-        emit done(InitStats::FAILURE_IN_AUTO_INIT);
-        return;
-    }
-    qDebug() << "Initializing MAUI matlab library";
-    if (!libMAUIInitialize()) {
-        qDebug() << "Could not initialize the maui library";
+    qDebug() << "Initializing autoMaui matlab library";
+    if (!libAutoMAUIInitialize()) {
+        qDebug() << "Could not initialize the autoMaui matlab library.";
         emit done(InitStats::FAILURE_IN_MAUI_INIT);
         return;
     }

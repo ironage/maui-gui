@@ -20,7 +20,7 @@ SOURCES += main.cpp \
     minitthread.cpp
 
 QT += qml quick multimedia
-CONFIG += c++11 console
+CONFIG += c++11
 
 RESOURCES += qml.qrc
 

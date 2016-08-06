@@ -32,6 +32,7 @@ class MCVPlayer : public QObject
     Q_PROPERTY(int position READ getCurFrame WRITE setCurFrame NOTIFY curFrameChanged)
     Q_PROPERTY(int playbackState READ getPlaybackState NOTIFY playbackStateChanged)
     Q_PROPERTY(QRect roi READ getROI WRITE setROI NOTIFY roiChanged)
+    Q_PROPERTY(bool recomputeROIOnChange READ getRecomputeROIMode WRITE setRecomputeROIMode NOTIFY recomputeROIChanged)
     Q_PROPERTY(QQmlListProperty<MPoint> initTopPoints READ getTopPoints NOTIFY initPointsChanged)
     Q_PROPERTY(QQmlListProperty<MPoint> initBottomPoints READ getBottomPoints NOTIFY initPointsChanged)
     Q_PROPERTY(MLogMetaData* logInfo MEMBER logMetaData NOTIFY logDataChanged)
@@ -52,6 +53,8 @@ public slots:
     int getCurFrame() { return curFrame; }
     QRect getROI() { return roi; }
     void setROI(const QRect& newROI);
+    bool getRecomputeROIMode() { return recomputeROIMode; }
+    void setRecomputeROIMode(bool mode);
     void setCurFrame(int newFrame);
     int getPlaybackState();
     void play();
@@ -75,6 +78,7 @@ signals:
     void playbackStateChanged();
     void sourceChanged();
     void roiChanged();
+    void recomputeROIChanged();
     void initPointsChanged();
     void logDataChanged();
 private:
@@ -93,6 +97,7 @@ private:
     int curFrame;
     QSize size;
     QRect roi;
+    bool recomputeROIMode;
     QList<MPoint*> topPoints;
     QList<MPoint*> bottomPoints;
     MVideoCapture* camera = NULL;

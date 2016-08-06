@@ -57,6 +57,7 @@ private:
     int startFrame;
     int endFrame;
     QRect roi;
+    bool autoRecomputeROI;
     bool doneInit;
     QList<MPoint> topPoints, bottomPoints;
     mwArray* matlabArrays;
@@ -92,7 +93,8 @@ public slots:
     void seek(int frameNumber);
     void setStartFrame(int frameNumber);
     void setEndFrame(int frameNumber);
-    void setROI(QRect newROI);    
+    void setROI(QRect newROI);
+    void setRecomputeROIMode(bool mode);
     void setLogMetaData(MLogMetaData data);
 signals:
     void imageReady(int);
@@ -124,6 +126,7 @@ public:
     void doSetStartFrame(int frameNumber);
     void doSetEndFrame(int frameNumber);
     void doSetROI(QRect roi);
+    void doSetRecomputeROIMode(bool mode);
     void doSetLogMetaData(MLogMetaData m);
 private:
     QThread workerThread;
@@ -138,6 +141,7 @@ signals:
     void setStartFrame(int frameNumber);
     void setEndFrame(int frameNumber);
     void setROI(QRect roi);
+    void setRecomputeROIMode(bool mode);
     void setLogMetaData(MLogMetaData d);
     void initPointsDetected(QList<MPoint>, QList<MPoint>);
 };

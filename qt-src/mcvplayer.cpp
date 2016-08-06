@@ -8,6 +8,7 @@
 MCVPlayer::MCVPlayer() : QObject(),
     m_format(QSize(500, 500), QVideoFrame::Format_ARGB32),
     m_surface(NULL),
+    recomputeROIMode(false),
     stopped(true),
     numFrames(0)
 {
@@ -61,6 +62,16 @@ void MCVPlayer::setROI(const QRect &newROI)
             thread->doSetROI(roi);
         }
         emit roiChanged();
+    }
+}
+
+void MCVPlayer::setRecomputeROIMode(bool mode)
+{
+    if (recomputeROIMode != mode) {
+        recomputeROIMode = mode;
+        if (thread) {
+            thread->doSetRecomputeROIMode(recomputeROIMode);
+        }
     }
 }
 

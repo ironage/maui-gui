@@ -10,6 +10,8 @@ Rectangle {
     property color selected_color: Style.ui_color_light_red
     property color idle_color: Style.ui_color_dark_dblue
     property string description: ""
+    property alias minimumX: dragArea.minimumX
+    property alias maximumX: dragArea.maximumX
 
     x: (value * parent.width) - width/2
     anchors.bottom: parent.top
@@ -23,6 +25,7 @@ Rectangle {
         enabled: grip.enabled
         anchors.fill:  parent
         drag {
+            id: dragArea
             target: grip
             axis: Drag.XAxis
             minimumX: -parent.width/2

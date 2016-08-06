@@ -23,7 +23,8 @@ CameraTask::CameraTask(MVideoCapture* camera, QVideoFrame* videoFrame,
                        unsigned char* cvImageBuf, int width, int height)
     : running(true), camera(camera), videoFrame(videoFrame),cvImageBuf(cvImageBuf),
     width(width), height(height), curPlayState(Paused), curFrame(-1), frameToSeekTo(-1),
-    startFrame(0), endFrame(0), doneInit(false), cameraFrame(nullptr), cachedFrameIsDirty(true)
+    startFrame(0), endFrame(0), autoRecomputeROI(false), doneInit(false),
+    cameraFrame(nullptr), cachedFrameIsDirty(true)
 {
     qRegisterMetaType<CameraTask::ProcessingState>();
     matlabArrays = new mwArray[ARRAY_COUNT];
@@ -128,7 +129,11 @@ void CameraTask::doWork()
             cv::cvtColor(roiSection, roiSection, CV_BGR2GRAY);
             std::unique_ptr<mwArray> matlabROI(opencvConvertToMX(roiSection));
 
-            if (curPlayState == PlayState::AutoInitCurFrame) {
+            if (curPlayState == PlayState::Paused) {
+                if (autoRecomputeROI) {
+                    autoInitializeOnROI(matlabROI.get());
+                }
+            } else if (curPlayState == PlayState::AutoInitCurFrame) {
                 curPlayState = PlayState::Paused;
                 autoInitializeOnROI(matlabROI.get());
             } else if (curPlayState == PlayState::Playing) {
@@ -270,6 +275,11 @@ void CameraTask::setROI(QRect newROI)
             curPlayState = PlayState::AutoInitCurFrame;
         }
     }
+}
+
+void CameraTask::setRecomputeROIMode(bool mode)
+{
+    autoRecomputeROI = mode;
 }
 
 void CameraTask::setLogMetaData(MLogMetaData data)
@@ -434,6 +444,7 @@ MCameraThread::MCameraThread(MVideoCapture* camera, QVideoFrame* videoFrame, uns
     connect(this, SIGNAL(setStartFrame(int)), task, SLOT(setStartFrame(int)), Qt::QueuedConnection);
     connect(this, SIGNAL(setEndFrame(int)), task, SLOT(setEndFrame(int)), Qt::QueuedConnection);
     connect(this, SIGNAL(setROI(QRect)), task, SLOT(setROI(QRect)), Qt::QueuedConnection);
+    connect(this, SIGNAL(setRecomputeROIMode(bool)), task, SLOT(setRecomputeROIMode(bool)), Qt::QueuedConnection);
     connect(this, SIGNAL(setLogMetaData(MLogMetaData)), task, SLOT(setLogMetaData(MLogMetaData)), Qt::QueuedConnection);
     connect(this, SIGNAL(continueProcessing()), task, SLOT(continueProcessing()), Qt::QueuedConnection);
 }
@@ -491,6 +502,11 @@ void MCameraThread::doSetEndFrame(int frameNumber)
 void MCameraThread::doSetROI(QRect roi)
 {
     emit setROI(roi);
+}
+
+void MCameraThread::doSetRecomputeROIMode(bool mode)
+{
+    emit setRecomputeROIMode(mode);
 }
 
 void MCameraThread::doSetLogMetaData(MLogMetaData m)

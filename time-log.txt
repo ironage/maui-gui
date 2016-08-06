@@ -36,3 +36,4 @@ sun, 31 july 2016 - 8 hours: bug fixing, performance improvements, feedback upda
 mon, 1 aug 2016 - 2 hours: bug fixing, message boxes on succes/failure
 wed, 3 aug 2016 - 3 hours: more fixes, make and send out release
 thurs, 4 aug 2016 - 1 hour: meeting and prioritization
+sat, 8 aug 2016 - 6 hours: video control bounds, custom message box, auto init on frame progression, window resize fix on ROI, update to new matlab lib, release

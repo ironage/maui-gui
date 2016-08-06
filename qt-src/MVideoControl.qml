@@ -71,11 +71,13 @@ Item {
             id: m_start_pin
             value: 0.0
             description: totalFrames === 0 ? "" : ~~(value * totalFrames) + 1
+            maximumX: m_end_pin.x - 3
         }
         MPin {
             id: m_end_pin
             value: 1.0
             description: totalFrames === 0 ? "" : ~~(value * totalFrames) + 1
+            minimumX: m_start_pin.x + 3
         }
     }
 }

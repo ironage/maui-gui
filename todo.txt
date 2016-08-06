@@ -8,24 +8,20 @@
 -frameless window     flags: Qt.FramelessWindowHint 
 -installer
 
-Feedback From Jason 4 Aug 2016
-- roi update when frame changes
-- end frame not set before start frame
-
-Priority Bugs for 30 July 2016
-- When I am in ROI mode, and I resize the window of the program, it goes all wacky.  The ROI window doesn't seem to call the autoInitialize function at all.
-- call autoinitialize when frame changes in ROI mode?
-
 Changes in next release: 
 - Custom popup dialog box with no help button in title bar.
 - Removed explicit calculations of scale from summary pane
 - Update to new version of matlab libraries; single combined library
 - Fixed ROI resize on window resize
+- ROI updates automatically when frame changes
+- Enforce logical bounds on start and end pins in video control bar
 
 For Ahmed (MATLAB side):
-- The autoInit function doesn't seem to return any values if the ROI has a width which is an odd number?
-- Crash in matlab update function if top or bottom strong points are empty (should return zeros)
-- Can we combine the two library files into one? I think it will take less time to initialize this way.
+Error using -
+Matrix dimensions must agree.
+Error in makeParallel2Init (line 3)
+Error in update (line 20)
+exception caught: Matrix dimensions must agree.
 
 Future tasks:
 -reset button

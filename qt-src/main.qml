@@ -309,6 +309,7 @@ ApplicationWindow {
                 progress_min: m_video_control.start_percent
                 progress_max: m_video_control.end_percent
                 roi: Qt.rect(roi.mappedXY.x, roi.mappedXY.y, roi.mappedWH.x, roi.mappedWH.y)
+                recomputeROIMode: roi.visible
                 logData: logMetaData
                 onWidthChanged: roi.parentLayoutChanged()
                 onHeightChanged: roi.parentLayoutChanged()
@@ -323,17 +324,16 @@ ApplicationWindow {
                     wall_detection.enable()
                     if (state === 0) { // MCVPlayer.SUCCESS
                         summaryPane.setStartState("ready")
-                        videoFinishedSuccess.open()
+                        videoFinishedSuccess.show()
                     } else if (state === 1) { // MCVPlayer.AUTO_INIT_FAILED
                         summaryPane.setStartState("paused")
                         videoFinishedError.text = "Could not find initial points on the start frame!"
                         videoFinishedError.informativeText = "Try adjusting the region of interest."
-                        videoFinishedError.open()
+                        videoFinishedError.show()
                         wall_detection.open()
                     } else {
                         summaryPane.setStartState("ready")
                         console.log("unhandled state when video finished: " + state)
-
                     }
                 }
                 onTopPointsChanged: {

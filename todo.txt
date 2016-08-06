@@ -8,32 +8,18 @@
 -frameless window     flags: Qt.FramelessWindowHint 
 -installer
 
+Feedback From Jason 4 Aug 2016
+- Calibration remove explicit calculations
+- resize window on processing roi malfunction
+- roi update when frame changes
+- end frame not set before start frame
+
 Priority Bugs for 30 July 2016
 - When I am in ROI mode, and I resize the window of the program, it goes all wacky.  The ROI window doesn't seem to call the autoInitialize function at all.
 - call autoinitialize when frame changes in ROI mode?
 
 Changes in next release: 
-- logging for last frame
-- change video progress indexing to start at 1 and not 0
-- video finish signal passed to UI, start button resets, dialog box on error or success
-- pause works correctly (continue/pause)
-- disable expanders when processing
-- handle decimal values in scale conversion properly (previously would round to integers)
-- fixed rounding error in pixel conversions in results csv file
-- scale defaults to 1 cm
-- log "NaN" if no measurement is found
-- allow users to choose output directory (default to input directory)
-- allow users to choose output file name (default to input file name + suffix)
-- if the csv file already exists, append the timestamp to avoid overwriting output data
-- fix video output format, if input video didn't have format set properly. (Jason please verify this works on your machine)
-- ROI adjusts when changed during pause after processing starts
-- fix crash when adjusting ROI on last frame
-- cache current frame data, moving ROI should be faster
-- reinitialized again on load so loading multiple videos in sequence works properly
-- initialized matlab calls in background thread immediately, loading videos should be much faster
-- ROI point line manual adjustment disabled
-- Show a non-adjustable ROI box during processing.
-
+- Custom popup dialog box with no help button in title bar.
 
 For Ahmed (MATLAB side):
 - The autoInit function doesn't seem to return any values if the ROI has a width which is an odd number?

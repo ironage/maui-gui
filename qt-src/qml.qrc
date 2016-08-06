@@ -18,5 +18,6 @@
         <file>MROI.qml</file>
         <file>MPointLine.qml</file>
         <file>MLine.qml</file>
+        <file>MMessageWindow.qml</file>
     </qresource>
 </RCC>

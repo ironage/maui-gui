@@ -56,12 +56,12 @@ ApplicationWindow {
         }
     }
 
-    MessageDialog {
+    MMessageWindow {
         id: videoFinishedSuccess
         title: "Video Processing Finished!"
         text: "The video has been processed successfully!"
     }
-    MessageDialog {
+    MMessageWindow {
         id: videoFinishedError
         title: "Video Processing Error!"
     }
@@ -82,6 +82,7 @@ ApplicationWindow {
             Layout.topMargin: Style.h_padding
             Layout.leftMargin: Style.h_padding
             spacing: Style.v_padding * 4
+
             MSummaryPane {
                 id: summaryPane
                 Layout.leftMargin: Style.h_padding

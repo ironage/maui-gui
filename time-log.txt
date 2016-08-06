@@ -34,3 +34,5 @@ tues, 26 july 2016 - 1 hour: meeting, bug feedback and priorities
 sat, 30 july 2016 - 5 hours: play stability, off by one in frame count, log all frames, fix rounding error in results
 sun, 31 july 2016 - 8 hours: bug fixing, performance improvements, feedback updates
 mon, 1 aug 2016 - 2 hours: bug fixing, message boxes on succes/failure
+wed, 3 aug 2016 - 3 hours: more fixes, make and send out release
+thurs, 4 aug 2016 - 1 hour: meeting and prioritization

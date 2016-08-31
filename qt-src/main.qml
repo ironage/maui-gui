@@ -90,7 +90,8 @@ ApplicationWindow {
             loginWindow.show()
         }
         onValidationFailed: {
-            loginWindow.setMessage("Login failed.")
+            loginWindow.preset(username, password)
+            loginWindow.setMessage("Login failed.\nPlease check your internet connection.\n[Code " + failureReason + "]")
             loginWindow.show()
             summaryPane.setStartState("ready")
         }

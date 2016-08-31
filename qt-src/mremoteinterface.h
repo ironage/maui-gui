@@ -4,6 +4,7 @@
 #include "msettings.h"
 
 #include <QObject>
+#include <QNetworkAccessManager>
 
 class MRemoteInterface : public QObject
 {
@@ -14,7 +15,7 @@ public:
     explicit MRemoteInterface(QObject *parent = 0);
 
 signals:
-    void validationFailed();
+    void validationFailed(QString failureReason);
     void validationNoConnection();
     void validationSuccess();
     void validationAccountExpired();
@@ -30,10 +31,15 @@ public slots:
 
     QString getUsername();
     QString getPassword();
+private slots:
+    void replyFinished(QNetworkReply *reply);
+
 
 private:
     void validate(QString username, QString password);
     MSettings settings;
+    QNetworkAccessManager networkManager;
+    bool transactionActive;
 };
 
 #endif // MREMOTEINTERFACE_H

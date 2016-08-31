@@ -28,6 +28,17 @@ QString MSettings::getUUID()
     return stored;
 }
 
+QString MSettings::getBaseUrl()
+{
+    return "http://www.hedgehogmedical.com/dev/"; // FIXME: remove
+    QString stored = settings.value("baseUrl", "").toString();
+    if (stored.isEmpty()) {
+        stored = "http://www.hedgehogmedical.com/users/";
+        settings.setValue("baseUrl", stored);
+    }
+    return stored;
+}
+
 void MSettings::setUsername(QString name)
 {
     settings.setValue("username", name);

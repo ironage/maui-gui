@@ -54,6 +54,10 @@ Window {
             id: message
             Layout.alignment: Qt.AlignLeft
             text: ""
+            width: 100
+            elide: Text.ElideRight
+            wrapMode: Text.WrapAnywhere
+            maximumLineCount: 7
             font.pointSize: 12
         }
         Item {

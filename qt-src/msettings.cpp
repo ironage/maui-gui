@@ -30,7 +30,6 @@ QString MSettings::getUUID()
 
 QString MSettings::getBaseUrl()
 {
-    return "http://www.hedgehogmedical.com/dev/"; // FIXME: remove
     QString stored = settings.value("baseUrl", "").toString();
     if (stored.isEmpty()) {
         stored = "http://www.hedgehogmedical.com/users/";

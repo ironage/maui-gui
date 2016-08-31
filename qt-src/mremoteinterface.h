@@ -20,7 +20,7 @@ signals:
     void validationSuccess();
     void validationAccountExpired();
     void validationBadCredentials();
-    void validationNewVersionAvailable();
+    void validationNewVersionAvailable(QString versionMessage);
     void noExistingCredentials();
 
     void usernameChanged();

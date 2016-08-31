@@ -89,9 +89,27 @@ ApplicationWindow {
             loginWindow.setMessage("Please login to continue.")
             loginWindow.show()
         }
+        onValidationNoConnection: {
+            loginWindow.preset(username, password)
+            loginWindow.setMessage("Connection failure.\nPlease check your internet connection and try again.")
+            loginWindow.show()
+            summaryPane.setStartState("ready")
+        }
         onValidationFailed: {
             loginWindow.preset(username, password)
-            loginWindow.setMessage("Login failed.\nPlease check your internet connection.\n[Code " + failureReason + "]")
+            loginWindow.setMessage("Login failed.\n" + failureReason)
+            loginWindow.show()
+            summaryPane.setStartState("ready")
+        }
+        onValidationBadCredentials: {
+            loginWindow.preset(username, password)
+            loginWindow.setMessage("Your username and password did not match.\nPlease try again.")
+            loginWindow.show()
+            summaryPane.setStartState("ready")
+        }
+        onValidationAccountExpired: {
+            loginWindow.preset(username, password)
+            loginWindow.setMessage("Your account has expired.\nPlease renew your account at hedgehogmedical.com")
             loginWindow.show()
             summaryPane.setStartState("ready")
         }
@@ -104,6 +122,12 @@ ApplicationWindow {
 
             m_video.play()
             summaryPane.setStartState("playing")
+        }
+        onValidationNewVersionAvailable: {
+            loginWindow.preset(username, password)
+            loginWindow.setMessage(versionMessage)
+            loginWindow.show()
+            summaryPane.setStartState("ready")
         }
     }
 

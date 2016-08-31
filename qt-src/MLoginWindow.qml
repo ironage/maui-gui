@@ -8,8 +8,8 @@ Window {
     id: windowRoot
 
     color: Style.ui_form_bg
-    width: layout.childrenRect.width + (Style.h_padding * 2)
-    height: layout.height + (Style.v_padding * 2)
+    width: 400//layout.childrenRect.width + (Style.h_padding * 2)
+    height: 300//layout.height + (Style.v_padding * 2)
     minimumHeight: layout.height + (Style.v_padding * 2)
     minimumWidth: 300
     modality: Qt.WindowModal
@@ -45,21 +45,27 @@ Window {
         }
     }
 
+    Text {
+        id: message
+        text: ""
+        maximumLineCount: 7
+        font.pointSize: 12
+        anchors.margins: Style.v_padding
+        anchors.top: parent.top
+        anchors.left: parent.left
+        width: parent.width - (2 * Style.h_padding)
+        wrapMode: Text.Wrap
+        horizontalAlignment: Text.AlignHCenter
+    }
+
     ColumnLayout {
         id: layout
-        anchors.centerIn: parent
+        //anchors.centerIn: parent
+        anchors.horizontalCenter: parent.horizontalCenter
+        anchors.top: message.bottom
+        anchors.topMargin: (2 * Style.v_padding)
         spacing: 12
 
-        Text {
-            id: message
-            Layout.alignment: Qt.AlignLeft
-            text: ""
-            width: 100
-            elide: Text.ElideRight
-            wrapMode: Text.WrapAnywhere
-            maximumLineCount: 7
-            font.pointSize: 12
-        }
         Item {
             width: 2
             height: Style.v_padding

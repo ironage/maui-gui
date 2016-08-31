@@ -88,13 +88,15 @@ Rectangle {
         onClicked: {
             if (state === "ready") {
                 m_root.playClicked()
-                state = "playing"
+                state = "validating"
             } else if (state === "playing") {
                 m_root.pauseClicked()
                 state = "paused"
             } else if (state === "paused") {
                 m_root.continueClicked()
                 state = "playing"
+            } else if (state === "validating") {
+
             }
         }
 
@@ -126,6 +128,13 @@ Rectangle {
                 PropertyChanges { target: start; highlight_color: Style.ui_color_light_lblue }
                 PropertyChanges { target: start; selected_color: Style.ui_color_dark_grey }
                 PropertyChanges { target: start; text: "Continue" }
+            },
+            State {
+                name: "validating"
+                PropertyChanges { target: start; color: Style.ui_color_light_orange }
+                PropertyChanges { target: start; highlight_color: Style.ui_color_light_orange }
+                PropertyChanges { target: start; selected_color: Style.ui_color_light_orange }
+                PropertyChanges { target: start; text: "Validating..." }
             }
         ]
         transitions: [

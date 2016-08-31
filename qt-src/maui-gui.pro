@@ -17,7 +17,8 @@ SOURCES += main.cpp \
     mpoint.cpp \
     mdatalog.cpp \
     mlogmetadata.cpp \
-    minitthread.cpp
+    minitthread.cpp \
+    mremoteinterface.cpp
 
 QT += qml quick multimedia
 CONFIG += c++11
@@ -55,4 +56,5 @@ HEADERS += \
     mdatalog.h \
     mlogmetadata.h \
     minitthread.h \
-    libAutoMAUI.h
+    libAutoMAUI.h \
+    mremoteinterface.h

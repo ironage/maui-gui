@@ -37,3 +37,8 @@ mon, 1 aug 2016 - 2 hours: bug fixing, message boxes on succes/failure
 wed, 3 aug 2016 - 3 hours: more fixes, make and send out release
 thurs, 4 aug 2016 - 1 hour: meeting and prioritization
 sat, 8 aug 2016 - 6 hours: video control bounds, custom message box, auto init on frame progression, window resize fix on ROI, update to new matlab lib, release
+sun, 9 aug 2016 - 4 hours: setup django project, new repo.
+sun, 21 aug 2016 - 6 hours: polls application test, templates, views, models.
+sat, 27 aug 2016 - 7 hours: init custom app, welcome page, bootstrap, user auth.
+sun, 28 aug 2016 - 5 hours: custom user, auth via email address.
+mon, 29 aug 2016 - 3 hours: python encryption with blowfish.

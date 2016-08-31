@@ -5,8 +5,8 @@ import "."
 
 TextField {
     id: textField
-    height: 40;
-    width: 75;
+    height: 40
+    width: 200
 
     property string borderColor: focus ? Style.ui_component_highlight : Style.ui_component_bg;
     property color backgroundColor: disabled ? "#f7f9f9" : "white";
@@ -23,13 +23,10 @@ TextField {
     placeholderText: "Input";
     style: TextFieldStyle {
         padding.left: 12;
-        font {
-            pointSize: control.pointSize;
-        }
 
         background: Rectangle {
             height: control.height;
-            width: control.width;
+            implicitWidth: control.width;
             color: control.backgroundColor;
             border {
                 width: 2;

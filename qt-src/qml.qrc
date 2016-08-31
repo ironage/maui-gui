@@ -19,5 +19,6 @@
         <file>MPointLine.qml</file>
         <file>MLine.qml</file>
         <file>MMessageWindow.qml</file>
+        <file>MLoginWindow.qml</file>
     </qresource>
 </RCC>

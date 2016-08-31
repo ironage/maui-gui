@@ -6,7 +6,7 @@ import QtQuick.Controls.Styles 1.4
 import QtQuick.Dialogs 1.2
 import QtMultimedia 5.5
 import "."
-import com.maui.custom 1.0  // MPoint
+import com.maui.custom 1.0  // MPoint, MRemoteInterface
 
 ApplicationWindow {
     visible: true
@@ -74,6 +74,29 @@ ApplicationWindow {
         outputDir: videoOutputDialog.outputDirectory
     }
 
+    MLoginWindow {
+        id: loginWindow
+        onVerifyAccount: remoteInterface.validateRequest(username, password)
+    }
+
+    MRemoteInterface {
+        id: remoteInterface
+        onNoExistingCredentials: {
+            loginWindow.preset(username, password)
+            loginWindow.setMessage("Please login to continue.")
+            loginWindow.show()
+        }
+        onValidationFailed: {
+            loginWindow.setMessage("Login failed.")
+            loginWindow.show()
+            summaryPane.setStartState("ready")
+        }
+        onValidationSuccess: {
+            m_video.play()
+            summaryPane.setStartState("playing")
+        }
+    }
+
     RowLayout {
         anchors.fill: parent
         spacing: 1
@@ -101,8 +124,8 @@ ApplicationWindow {
                     wall_detection.disable()
                     roi.visible = true
                     roi.adjustable = false
+                    remoteInterface.validateWithExistingCredentials()
 
-                    m_video.play()
                 }
                 onContinueClicked: {
                     calibration.disable()
@@ -179,7 +202,7 @@ ApplicationWindow {
                                 MTextInput {
                                     id: outputTextInput
                                     text: ""
-                                    width: 60
+                                    width: 128
                                     placeholderText: defaultName
                                     borderColor: Style.ui_component_highlight
                                     horizontalAlignment: TextInput.AlignHCenter
@@ -222,7 +245,7 @@ ApplicationWindow {
                                 MTextInput {
                                     id: scale_input
                                     text: "1"
-                                    width: 20
+                                    width: 128
                                     placeholderText: "Scale"
                                     borderColor: acceptableInput ? Style.ui_component_highlight : Style.ui_color_light_red
                                     validator: DoubleValidator{bottom: 0.0001; top: 999.0; decimals: 4; notation: DoubleValidator.StandardNotation}

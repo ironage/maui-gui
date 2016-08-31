@@ -1,6 +1,8 @@
 #ifndef MREMOTEINTERFACE_H
 #define MREMOTEINTERFACE_H
 
+#include "msettings.h"
+
 #include <QObject>
 
 class MRemoteInterface : public QObject
@@ -28,6 +30,10 @@ public slots:
 
     QString getUsername();
     QString getPassword();
+
+private:
+    void validate(QString username, QString password);
+    MSettings settings;
 };
 
 #endif // MREMOTEINTERFACE_H

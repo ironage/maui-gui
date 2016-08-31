@@ -33,6 +33,12 @@ Rectangle {
         start.state = newState
     }
 
+    function cancelValidation() {
+        if (start.state === "validating") {
+            start.state = "ready"
+        }
+    }
+
     MText {
         id: nameText
         x: leftMarginPadding

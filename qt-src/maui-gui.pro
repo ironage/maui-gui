@@ -18,7 +18,9 @@ SOURCES += main.cpp \
     mdatalog.cpp \
     mlogmetadata.cpp \
     minitthread.cpp \
-    mremoteinterface.cpp
+    mremoteinterface.cpp \
+    msettings.cpp \
+    qblowfish.cpp
 
 QT += qml quick multimedia
 CONFIG += c++11
@@ -57,4 +59,7 @@ HEADERS += \
     mlogmetadata.h \
     minitthread.h \
     libAutoMAUI.h \
-    mremoteinterface.h
+    mremoteinterface.h \
+    msettings.h \
+    qblowfish.h \
+    qblowfish_p.h

@@ -7,20 +7,33 @@ MRemoteInterface::MRemoteInterface(QObject *parent) : QObject(parent)
 
 void MRemoteInterface::validateWithExistingCredentials()
 {
-    emit noExistingCredentials();
+    QString u = settings.getUsername();
+    QString p = settings.getPassword();
+    if (u.isEmpty() || p.isEmpty()) {
+        emit noExistingCredentials();
+    } else {
+        validate(u, p);
+    }
 }
 
 QString MRemoteInterface::getUsername()
 {
-    return "user1";
+    return settings.getUsername();
 }
 
 QString MRemoteInterface::getPassword()
 {
-    return "pw";
+    return settings.getPassword();
+}
+
+void MRemoteInterface::validate(QString username, QString password)
+{
+    emit validationSuccess();
 }
 
 void MRemoteInterface::validateRequest(QString username, QString password)
 {
-    emit validationSuccess();
+    settings.setUsername(username);
+    settings.setPassword(password);
+    validate(username, password);
 }

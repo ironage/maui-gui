@@ -77,6 +77,9 @@ ApplicationWindow {
     MLoginWindow {
         id: loginWindow
         onVerifyAccount: remoteInterface.validateRequest(username, password)
+        onClosing: {
+            summaryPane.cancelValidation()
+        }
     }
 
     MRemoteInterface {
@@ -92,6 +95,12 @@ ApplicationWindow {
             summaryPane.setStartState("ready")
         }
         onValidationSuccess: {
+            calibration.disable()
+            import_video.disable()
+            wall_detection.disable()
+            roi.visible = true
+            roi.adjustable = false
+
             m_video.play()
             summaryPane.setStartState("playing")
         }
@@ -119,11 +128,6 @@ ApplicationWindow {
                 scaleUnitString: calibration.units
 
                 onPlayClicked: {
-                    calibration.disable()
-                    import_video.disable()
-                    wall_detection.disable()
-                    roi.visible = true
-                    roi.adjustable = false
                     remoteInterface.validateWithExistingCredentials()
 
                 }

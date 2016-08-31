@@ -17,6 +17,12 @@ Window {
     title: "Login"
     property int textSize: 11
 
+    onVisibilityChanged: {
+        if (visibility) {
+            usernameInput.forceActiveFocus()
+        }
+    }
+
     signal verifyAccount(string username, string password)
 
     function setMessage(newMessage) {
@@ -27,6 +33,16 @@ Window {
         usernameInput.text = username
         passwordInput.text = password
         message.text = ""
+    }
+    function finish() {
+        if (usernameInput.text.length <= 0) {
+            message.text = "Email field cannot be blank!"
+        } else if (passwordInput.text.length <= 0) {
+            message.text = "Password field cannot be blank!"
+        } else {
+            verifyAccount(usernameInput.text, passwordInput.text)
+            windowRoot.close()
+        }
     }
 
     ColumnLayout {
@@ -53,6 +69,9 @@ Window {
             id: usernameInput
             text: ""
             width: 250
+            onAccepted: {
+                finish()
+            }
             placeholderText: "Email"
             borderColor: text.length > 0 ? Style.ui_component_highlight : Style.ui_color_light_red
             horizontalAlignment: TextInput.AlignLeft
@@ -67,10 +86,9 @@ Window {
             id: passwordInput
             text: ""
             width: 250
-            onWidthChanged: {
-                console.log("width changed: "  + width)
+            onAccepted: {
+                finish()
             }
-
             echoMode: TextInput.Password
             placeholderText: "Password"
             borderColor: text.length > 0 ? Style.ui_component_highlight : Style.ui_color_light_red
@@ -81,14 +99,7 @@ Window {
             text: "OK"
             Layout.alignment: Qt.AlignHCenter
             onClicked: {
-                if (usernameInput.text.length <= 0) {
-                    message.text = "Email field cannot be blank!"
-                } else if (passwordInput.text.length <= 0) {
-                    message.text = "Password field cannot be blank!"
-                } else {
-                    verifyAccount(usernameInput.text, passwordInput.text)
-                    windowRoot.close()
-                }
+                finish()
             }
         }
         Item {

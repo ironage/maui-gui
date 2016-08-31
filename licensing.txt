@@ -3,3 +3,4 @@ https://www.qt.io/faq/
 
 credit https://github.com/kyamagu/mexopencv
 credit opencv
+credit qblowfish https://github.com/roop/qblowfish MIT

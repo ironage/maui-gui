@@ -113,7 +113,7 @@ void MRemoteInterface::validate(QString username, QString password)
     json.insert("nonce", "asdfasdf");
     json.insert("jump", "jump");
 
-    qDebug() << "json request: " << json;
+    //qDebug() << "json request: " << json;
     transactionActive = true;
     networkManager.post(request, QJsonDocument(json).toJson());
 }
@@ -122,5 +122,7 @@ void MRemoteInterface::validateRequest(QString username, QString password)
 {
     settings.setUsername(username);
     settings.setPassword(password);
+    emit usernameChanged();
+    emit passwordChanged();
     validate(username, password);
 }

@@ -14,6 +14,8 @@ public:
     void setUsername(QString name);
     void setPassword(QString pw);
 private:
+    QString getEncryptedSetting(QString key, QByteArray encryptionKey, QString defaultValue = "");
+    void setEncryptedSetting(QString key, QString value, QByteArray encryptionKey);
     QSettings settings;
 };
 

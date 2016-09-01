@@ -42,3 +42,5 @@ sun, 21 aug 2016 - 6 hours: polls application test, templates, views, models.
 sat, 27 aug 2016 - 7 hours: init custom app, welcome page, bootstrap, user auth.
 sun, 28 aug 2016 - 5 hours: custom user, auth via email address.
 mon, 29 aug 2016 - 3 hours: python encryption with blowfish.
+wed, 31 aug 2016 - 12 hours: server-gui comunication works in plaintext, gui handles errors
+thur, 1 sept 2016 - 2 hours: encrypt local gui settings.

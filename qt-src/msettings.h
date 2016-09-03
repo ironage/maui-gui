@@ -16,7 +16,10 @@ public:
 private:
     QString getEncryptedSetting(QString key, QByteArray encryptionKey, QString defaultValue = "");
     void setEncryptedSetting(QString key, QString value, QByteArray encryptionKey);
+    void initSalt();
+    void newSalt();
     QSettings settings;
+    QString salt;
 };
 
 #endif // MSETTINGS_H

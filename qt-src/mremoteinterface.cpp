@@ -1,9 +1,32 @@
 #include "mremoteinterface.h"
 
+#include "qblowfish.h"
+
+#include <QDebug>
+#include <QByteArray>
+#include <QJsonArray>
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <QNetworkReply>
 #include <QNetworkRequest>
+
+static QByteArray sharedKey = "6mC4zR5SVzug3uiB9L42I164Wn640wt1";
+
+QJsonArray toJsonArray(QByteArray ba) {
+    QJsonArray array;
+    for (int i = 0; i < ba.size(); i++) {
+        array.append(QJsonValue(static_cast<unsigned char>(ba.at(i))));
+    }
+    return array;
+}
+
+QByteArray fromJsonArray(QJsonArray ja) {
+    QByteArray ba;
+    for (int i = 0; i < ja.size(); i++) {
+        ba.append(ja.at(i).toInt());
+    }
+    return ba;
+}
 
 MRemoteInterface::MRemoteInterface(QObject *parent) : QObject(parent), transactionActive(false)
 {
@@ -36,13 +59,16 @@ void MRemoteInterface::replyFinished(QNetworkReply *reply)
     transactionActive = false;
     if (!reply) return;
 
+    qDebug() << "reply code: " + QString::number(reply->error());
     if (reply->error()) {
         QString errorString = reply->errorString();
         QString replyBody = reply->readAll();
         QString message = "Please check your internet connection.";
         message += "\n[code " + QString::number(reply->error()) + "]";
-        message += "\n" + replyBody;
-        qDebug() << "reply error:" << replyBody << errorString;
+        message += "\n" + errorString;
+
+        qDebug() << "reply error:" << replyBody;
+        qDebug() << "error string: " << errorString;
         if (reply->error() == QNetworkReply::InternalServerError) {
             message = "Authentication problem.\n" + replyBody;
         }
@@ -70,24 +96,34 @@ void MRemoteInterface::replyFinished(QNetworkReply *reply)
                                       " of this software is available!"
                                       "\nPlease download the latest version to continue."
                                       "\nYou currently are running version " + QString::number(currentVersion));
-            } else if (jump.isUndefined() || jump.toString().isEmpty()
-                       || nonce.isUndefined() || nonce.toString().isEmpty()
-                       || status.isUndefined() || status.toString().isEmpty()
-                       || name.isUndefined() || name.toString().isEmpty()
+            } else if (jump.isUndefined() || !jump.isArray()
+                       || nonce.isUndefined() || !nonce.isArray()
+                       || status.isUndefined() || !status.isArray()
+                       || name.isUndefined() || !name.isArray()
                        || version.isUndefined()) {
                 emit validationFailed("Unexpected response from the server!"
                                       "\nTry updating the software to the latest version."
                                       "\nYou currently are running version " + QString::number(currentVersion));
             } else {
-                if (name.toString() != settings.getUsername()
-                        || jump.toString() != "Omnia cum pretio") {
-                    emit validationFailed("Encryption failure.");
-                } else if (status.toString() == "invalid") {
-                    emit validationBadCredentials();
-                } else if (status.toString() == "expired") {
-                    emit validationAccountExpired();
-                } else if (status.toString() == "valid") {
-                    emit validationSuccess();
+                QByteArray nonceR = fromJsonArray(nonce.toArray());
+                QBlowfish bf(sharedKey);
+                bf.setPaddingEnabled(true);
+                nonceR = bf.decrypted(nonceR);
+                if (nonceR.isEmpty()) {
+                    emit validationFailed("Could not read server encryption details.");
+                } else {
+                    QString nameR = decryptFromServer(fromJsonArray(name.toArray()), sharedKey, nonceR);
+                    QString statusR = decryptFromServer(fromJsonArray(status.toArray()), sharedKey, nonceR);
+                    QString jumpR = decryptFromServer(fromJsonArray(jump.toArray()), sharedKey, nonceR);
+                    if (nameR != settings.getUsername() || jumpR != "Omnia cum pretio") {
+                        emit validationFailed("Encryption failure.");
+                    } else if (statusR == "invalid") {
+                        emit validationBadCredentials();
+                    } else if (statusR == "expired") {
+                        emit validationAccountExpired();
+                    } else if (statusR == "valid") {
+                        emit validationSuccess();
+                    }
                 }
             }
         } else {
@@ -105,17 +141,54 @@ void MRemoteInterface::validate(QString username, QString password)
     QNetworkRequest request;
     request.setUrl(QUrl(settings.getBaseUrl() + "welcome/verify/"));
     request.setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
-    QJsonObject json;
-    json.insert("username", username);
-    json.insert("password", password);
-    json.insert("version", 1);
-    json.insert("request", "verify");
-    json.insert("nonce", "asdfasdf");
-    json.insert("jump", "jump");
+    QString nonceQString = MSettings::getRandomString(16);
+    qDebug() << "sending nonce: " << nonceQString;
+    std::string stdNonce = nonceQString.toStdString();
+    QByteArray nonce = QByteArray::fromRawData(stdNonce.c_str(), nonceQString.size());
 
-    //qDebug() << "json request: " << json;
+    QJsonObject json;
+    json.insert("username", encryptForServer(username, nonce, sharedKey));
+    json.insert("password", encryptForServer(password, nonce, sharedKey));
+    json.insert("version", 1);
+    json.insert("request", encryptForServer("verify", nonce, sharedKey));
+    json.insert("nonce", encryptForServer(nonceQString, sharedKey));
+    json.insert("jump", encryptForServer("Abyssus abyssum invocat", nonce, sharedKey));
+
+    qDebug() << "json request: " << json;
     transactionActive = true;
     networkManager.post(request, QJsonDocument(json).toJson());
+}
+
+QJsonArray MRemoteInterface::encryptForServer(QString value, QByteArray key, QByteArray key2)
+{
+    std::string stdValue = value.toStdString();
+    QByteArray storable = QByteArray::fromRawData(stdValue.c_str(), value.size());
+    if (!key.isEmpty()) {
+        QBlowfish bf(key);
+        bf.setPaddingEnabled(true);
+        storable = bf.encrypted(storable);
+    }
+    if (!key2.isEmpty()) {
+        QBlowfish bf(key2);
+        bf.setPaddingEnabled(true);
+        storable = bf.encrypted(storable);
+    }
+    return toJsonArray(storable);
+}
+
+QString MRemoteInterface::decryptFromServer(QByteArray value, QByteArray key, QByteArray key2)
+{
+    if (!key.isEmpty()) {
+        QBlowfish bf(key);
+        bf.setPaddingEnabled(true);
+        value = bf.decrypted(value);
+    }
+    if (!key2.isEmpty()) {
+        QBlowfish bf(key2);
+        bf.setPaddingEnabled(true);
+        value = bf.decrypted(value);
+    }
+    return QString::fromStdString(value.toStdString());
 }
 
 void MRemoteInterface::validateRequest(QString username, QString password)

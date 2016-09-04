@@ -25,6 +25,8 @@ QString MSettings::getPassword()
     return getEncryptedSetting("password", PW_KEY, "");
 }
 
+
+
 QString MSettings::getUUID()
 {
     QString stored = settings.value("uuid", "").toString();
@@ -34,6 +36,17 @@ QString MSettings::getUUID()
         stored = id.toString();
     }
     return stored;
+}
+
+QString MSettings::getRandomString(int length)
+{
+    QString str;
+    qsrand(uint(QDateTime::currentMSecsSinceEpoch()));
+    str.resize(length);
+    for (int s = 0; s < length; s++) {
+        str[s] = QChar(char(qrand() % 240) + 10);
+    }
+    return str;
 }
 
 void MSettings::initSalt()
@@ -58,7 +71,7 @@ void MSettings::newSalt()
     QBlowfish bf(SALT_KEY);
     bf.setPaddingEnabled(true);
     qsrand(uint(QDateTime::currentMSecsSinceEpoch()));
-    salt = QString::number(qrand());
+    salt = getRandomString(16);
     qDebug() << "salt: " << salt;
     QByteArray encryptedSalt = bf.encrypted(QByteArray::fromRawData(salt.toStdString().c_str(), salt.size()));
     settings.setValue("salt", encryptedSalt);

@@ -10,6 +10,7 @@ public:
     QString getUsername();
     QString getPassword();
     QString getUUID();
+    static QString getRandomString(int length);
     QString getBaseUrl();
     void setUsername(QString name);
     void setPassword(QString pw);

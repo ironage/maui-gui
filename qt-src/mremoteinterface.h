@@ -37,6 +37,8 @@ private slots:
 
 private:
     void validate(QString username, QString password);
+    static QJsonArray encryptForServer(QString value, QByteArray key, QByteArray key2 = "");
+    static QString decryptFromServer(QByteArray value, QByteArray key, QByteArray key2 = "");
     MSettings settings;
     QNetworkAccessManager networkManager;
     bool transactionActive;

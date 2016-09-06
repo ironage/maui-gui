@@ -49,19 +49,23 @@ QString MSettings::getRandomString(int length)
     return str;
 }
 
+QString MSettings::salt = "";
+
 void MSettings::initSalt()
 {
-    QByteArray storedSalt = settings.value("salt", "").toByteArray();
-    if (storedSalt.isEmpty()) {
-        newSalt();
-    } else {
-        QBlowfish bf(SALT_KEY);
-        bf.setPaddingEnabled(true);
-        QByteArray rawSalt = bf.decrypted(storedSalt);
-        if (rawSalt.isEmpty()) {
+    if (salt.isEmpty()) {
+        QByteArray storedSalt = settings.value("salt", "").toByteArray();
+        if (storedSalt.isEmpty()) {
             newSalt();
         } else {
-            salt = QString::fromStdString(rawSalt.toStdString());
+            QBlowfish bf(SALT_KEY);
+            bf.setPaddingEnabled(true);
+            QByteArray rawSalt = bf.decrypted(storedSalt);
+            if (rawSalt.isEmpty()) {
+                newSalt();
+            } else {
+                salt = QString::fromStdString(rawSalt.toStdString());
+            }
         }
     }
 }
@@ -101,9 +105,9 @@ QString MSettings::getEncryptedSetting(QString key, QByteArray encryptionKey, QS
 {
     QByteArray rawValue = settings.value(key, defaultValue).toByteArray();
     if (rawValue != defaultValue && !rawValue.isEmpty() && !encryptionKey.isEmpty()) {
-        QBlowfish bfs(QByteArray::fromRawData(salt.toStdString().c_str(), salt.size()));
-        bfs.setPaddingEnabled(true);
-        rawValue = bfs.decrypted(rawValue);
+        //QBlowfish bfs(QByteArray::fromRawData(salt.toStdString().c_str(), salt.size()));
+        //bfs.setPaddingEnabled(true);
+        //rawValue = bfs.decrypted(rawValue);
         QBlowfish bf(encryptionKey);
         bf.setPaddingEnabled(true);
         rawValue = bf.decrypted(rawValue);
@@ -119,9 +123,9 @@ void MSettings::setEncryptedSetting(QString key, QString value, QByteArray encry
         QBlowfish bf(encryptionKey);
         bf.setPaddingEnabled(true);
         storable = bf.encrypted(storable);
-        QBlowfish bfs(QByteArray::fromRawData(salt.toStdString().c_str(), salt.size()));
-        bfs.setPaddingEnabled(true);
-        storable = bfs.encrypted(storable);
+        //QBlowfish bfs(QByteArray::fromRawData(salt.toStdString().c_str(), salt.size()));
+        //bfs.setPaddingEnabled(true);
+        //storable = bfs.encrypted(storable);
     }
     settings.setValue(key, storable);
 }

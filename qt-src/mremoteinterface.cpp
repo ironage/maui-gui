@@ -65,12 +65,13 @@ void MRemoteInterface::replyFinished(QNetworkReply *reply)
         QString replyBody = reply->readAll();
         QString message = "Please check your internet connection.";
         message += "\n[code " + QString::number(reply->error()) + "]";
-        message += "\n" + errorString;
+        //message += "\n" + errorString;
 
         qDebug() << "reply error:" << replyBody;
         qDebug() << "error string: " << errorString;
         if (reply->error() == QNetworkReply::InternalServerError) {
-            message = "Authentication problem.\n" + replyBody;
+            message = "Authentication problem.";
+            message += "\n[code " + QString::number(reply->error()) + "]";
         }
         emit validationFailed(message);
     } else {
@@ -121,8 +122,14 @@ void MRemoteInterface::replyFinished(QNetworkReply *reply)
                         emit validationBadCredentials();
                     } else if (statusR == "expired") {
                         emit validationAccountExpired();
+                    } else if (statusR == "multiple_sessions") {
+                        emit multipleSessionsDetected();
                     } else if (statusR == "valid") {
                         emit validationSuccess();
+                    } else {
+                        emit validationFailed("Unexpected response from the server!"
+                                              "\nTry updating the software to the latest version."
+                                              "\nYou currently are running version " + QString::number(currentVersion));
                     }
                 }
             }

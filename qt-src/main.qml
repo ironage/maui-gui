@@ -5,6 +5,7 @@ import QtQuick.Layouts 1.1
 import QtQuick.Controls.Styles 1.4
 import QtQuick.Dialogs 1.2
 import QtMultimedia 5.5
+import QtQml 2.2
 import "."
 import com.maui.custom 1.0  // MPoint, MRemoteInterface
 
@@ -84,6 +85,8 @@ ApplicationWindow {
 
     MRemoteInterface {
         id: remoteInterface
+        property bool doneInitialVerify: false
+        property bool requiresVerifyOnContinue: false
         onNoExistingCredentials: {
             loginWindow.preset(username, password)
             loginWindow.setMessage("Please login to continue.")
@@ -113,6 +116,17 @@ ApplicationWindow {
             loginWindow.show()
             summaryPane.setStartState("ready")
         }
+        onMultipleSessionsDetected: {
+            summaryPane.pauseIfPlaying()
+            calibration.enable()
+            import_video.enable()
+            wall_detection.enable()
+            requiresVerifyOnContinue = true
+
+            loginWindow.preset("", "")
+            loginWindow.setMessage("Multiple user sessions have been detected.\nOnly one active session is allowed per account.")
+            loginWindow.show()
+        }
         onValidationSuccess: {
             calibration.disable()
             import_video.disable()
@@ -120,14 +134,36 @@ ApplicationWindow {
             roi.visible = true
             roi.adjustable = false
 
-            m_video.play()
-            summaryPane.setStartState("playing")
+            if (!doneInitialVerify) {
+                doneInitialVerify = true
+                m_video.play()
+                summaryPane.setStartState("playing")
+            } else if (requiresVerifyOnContinue) {
+                //summaryPane.doContinue()
+            }
+            requiresVerifyOnContinue = false
+
+            validationTimer.restart()
         }
         onValidationNewVersionAvailable: {
             loginWindow.preset(username, password)
             loginWindow.setMessage(versionMessage)
             loginWindow.show()
             summaryPane.setStartState("ready")
+        }
+    }
+    Timer {
+        id: validationTimer
+        triggeredOnStart: false
+        interval: 30000
+        repeat: false
+        running: false
+        onTriggered: {
+            if (summaryPane.isPlaying()) {
+                remoteInterface.validateWithExistingCredentials()
+            } else {
+                validationTimer.restart()
+            }
         }
     }
 
@@ -152,11 +188,7 @@ ApplicationWindow {
                 scaleDistanceValue: calibration.scale
                 scaleUnitString: calibration.units
 
-                onPlayClicked: {
-                    remoteInterface.validateWithExistingCredentials()
-
-                }
-                onContinueClicked: {
+                function doContinue() {
                     calibration.disable()
                     import_video.disable()
                     wall_detection.disable()
@@ -164,6 +196,20 @@ ApplicationWindow {
                     roi.adjustable = false
 
                     m_video.continueProcessing();
+                }
+
+                onPlayClicked: {
+                    remoteInterface.doneInitialVerify = false
+                    remoteInterface.validateWithExistingCredentials()
+                }
+                onContinueClicked: {
+                    if (remoteInterface.requiresVerifyOnContinue) {
+                        loginWindow.preset("", "")
+                        loginWindow.setMessage("Multiple user sessions have been detected.\nOnly one active session is allowed per account.")
+                        loginWindow.show()
+                    } else {
+                        doContinue()
+                    }
                 }
                 onPauseClicked: {
                     calibration.enable()

@@ -29,6 +29,17 @@ Rectangle {
         height: childrenRect.height
     }
 
+    function isPlaying() {
+        return (start.state === "playing")
+    }
+
+    function pauseIfPlaying() {
+        if (start.state === "playing") {
+            start.state = "paused"
+            pauseClicked()
+        }
+    }
+
     function setStartState(newState) {
         start.state = newState
     }

@@ -22,6 +22,7 @@ signals:
     void validationBadCredentials();
     void validationNewVersionAvailable(QString versionMessage);
     void noExistingCredentials();
+    void multipleSessionsDetected();
 
     void usernameChanged();
     void passwordChanged();

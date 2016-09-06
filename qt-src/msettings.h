@@ -20,7 +20,7 @@ private:
     void initSalt();
     void newSalt();
     QSettings settings;
-    QString salt;
+    static QString salt;
 };
 
 #endif // MSETTINGS_H

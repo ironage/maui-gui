@@ -339,7 +339,7 @@ void CameraTask::drawLine(cv::Mat &dest, mwArray &points, cv::Scalar color, QPoi
         for (int i = 0; i < numPoints - 1; ++i) {
             cv::Point p1(data[i] + offset.x(), data[numPoints + i] + offset.y());
             cv::Point p2(data[i+1] + offset.x(), data[numPoints + i + 1] + offset.y());
-            cv::line(dest, p1, p2, color, 2);
+            cv::line(dest, p1, p2, color, 1, CV_AA); // antialised line of thickness 1
         }
         delete [] data;
     }

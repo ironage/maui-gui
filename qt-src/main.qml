@@ -70,7 +70,7 @@ ApplicationWindow {
     MLogMetaData {
         id: logMetaData
         conversionUnits: calibration.units
-        conversionPixels: m_video.video_height <= 0 ? 1 : ((scale.bottom_v_value - scale.top_v_value) * m_video.video_height) / calibration.scale
+        conversionPixels: m_video.video_height <= 0 ? 1 : (scale.mappedBottomValue - scale.mappedTopValue) / calibration.scale
         outputName: import_video.outputName === "" ? import_video.defaultOutputName : import_video.outputName
         outputDir: videoOutputDialog.outputDirectory
     }
@@ -184,7 +184,7 @@ ApplicationWindow {
                 width: leftPanel.header_width
                 startFrame: m_video_control.totalFrames === 0 ? "" : "" + (~~(m_video_control.start_percent * m_video_control.totalFrames) + 1)
                 endFrame: m_video_control.totalFrames === 0 ? "" : "" + (~~(m_video_control.end_percent * m_video_control.totalFrames) + 1)
-                scalePixelValue: m_video.video_height <= 0 ? "" : (scale.bottom_v_value - scale.top_v_value) * m_video.video_height
+                scalePixelValue: m_video.video_height <= 0 ? "" : (scale.mappedBottomValue - scale.mappedTopValue)
                 scaleDistanceValue: calibration.scale
                 scaleUnitString: calibration.units
 
@@ -409,13 +409,22 @@ ApplicationWindow {
                 roi: Qt.rect(roi.mappedXY.x, roi.mappedXY.y, roi.mappedWH.x, roi.mappedWH.y)
                 recomputeROIMode: roi.visible
                 logData: logMetaData
-                onWidthChanged: roi.parentLayoutChanged()
-                onHeightChanged: roi.parentLayoutChanged()
-
+                onWidthChanged: {
+                    roi.parentLayoutChanged()
+                    scale.parentLayoutChanged()
+                }
+                onHeightChanged: {
+                    roi.parentLayoutChanged()
+                    scale.parentLayoutChanged()
+                }
                 onSourceChanged: {
                     summaryPane.setStartState("ready")
                     roi.reInitToCenter()
                 }
+                onVideoRectChanged: {
+                    scale.initializeMappedPoints(m_video.width, m_video.height)
+                }
+
                 onVideoFinished: {
                     calibration.enable()
                     import_video.enable()
@@ -523,6 +532,27 @@ ApplicationWindow {
                     id: scale
                     visible: false
                     text: calibration.scale + " " + calibration.units
+                    Timer {
+                        // This is because the hValue of each component in the scale
+                        // depends on each other and by the time the window maximizes to the
+                        // final height, the qml property binding has already been broken.
+                        interval: 700
+                        running: true
+                        repeat: false
+                        onTriggered: {
+                            scale.updateViewPoints(0.7 * m_video.width, 0.25 * m_video.height, 0.75 * m_video.height)
+                        }
+                    }
+                    onViewPointsChanged: {
+                        var scaleTop = m_video.viewPointToVideoPoint(Qt.point(hValue, topValue))
+                        var scaleBottom = m_video.viewPointToVideoPoint(Qt.point(hValue, bottomValue))
+                        scale.changeMappedPoints(scaleTop.x, scaleTop.y, scaleBottom.y)
+                    }
+                    function parentLayoutChanged() {
+                        var newTop = m_video.videoPointToViewPoint(Qt.point(scale.mappedHValue, scale.mappedTopValue))
+                        var newBottom = m_video.videoPointToViewPoint(Qt.point(scale.mappedHValue, scale.mappedBottomValue))
+                        scale.updateViewPoints(newTop.x, newTop.y, newBottom.y)
+                    }
                 }
             }
             RowLayout {

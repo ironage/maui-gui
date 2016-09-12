@@ -19,8 +19,8 @@ Item {
     property alias topPoints: cv_player.initTopPoints
     property alias bottomPoints: cv_player.initBottomPoints
     property alias logData: cv_player.logInfo
+    property alias videoRect: output.sourceRect
 
-    signal videoRectChanged()
     signal videoFinished(int state)
 
     function viewPointToVideoPoint(viewPoint) {
@@ -72,7 +72,6 @@ Item {
         id: output
         anchors.fill: parent
         source: cv_player
-        onSourceRectChanged: m_root.videoRectChanged()
         onWidthChanged: {
             setSize()
         }

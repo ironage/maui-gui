@@ -1,17 +1,19 @@
-import QtQuick 2.2
+import QtQuick 2.4
 import "."
 
 Rectangle {
     id: m_root
     color: "transparent"
     radius: 5
-    property alias h_value: grip.h_value
-    property alias v_value: grip.v_value
+    property int startY: 10
+    property int startX: 10
+    property alias hPos: grip.x
+    property int vPos: grip.y + (grip.height / 2) + 0.5
     property color fill_color: Style.ui_color_dark_dblue
     property color stroke_color: Style.ui_color_dark_dblue
     property color fill_color_highlight: Style.ui_color_light_dblue
     property color stroke_color_highlight: Style.ui_color_light_dblue
-    property real gripSize: 22
+    property int gripSize: 22
     property real increment: 0.1
     property bool enabled: true
     property real bound_width: parent.width
@@ -20,14 +22,22 @@ Rectangle {
     property int end_mark_width: 10
     property alias drag_specs: mouse_area.drag
 
+    function updateHPos(newHPos) {
+        grip.x = newHPos
+    }
+    function updateVPos(newVPos) {
+        grip.y = newVPos - (grip.height / 2)
+    }
+    signal doneDrag()
+
     width: grip.width
     height: grip.height
 
     Rectangle {
         id: end_line
-        x: grip.x - 1
+        x: grip.x
         width: end_mark_width
-        y: grip.y + (grip.height/2) + 1
+        y: grip.y + (grip.height/2)
         color: stroke_color
         opacity: grip.alpha
         height: 1
@@ -35,10 +45,9 @@ Rectangle {
     }
     MTriangle {
         id: grip
-        property real h_value: 0.5
-        property real v_value: 0.5
-        x: (h_value * m_root.bound_width)
-        y: (v_value * m_root.bound_height) - (height/2)
+        x: startX
+        y: startY
+        xOffset: 2
         triangle_width: m_root.gripSize
         triangle_height: triangle_width
         stroke_color: m_root.stroke_color
@@ -59,16 +68,8 @@ Rectangle {
                 maximumY: m_root.bound_height - (grip.height/2)
                 threshold: Style.drag_threshold
             }
-            onPositionChanged:  {
-                if (drag.active)
-                    updatePosition()
-            }
             onReleased: {
-                updatePosition()
-            }
-            function updatePosition() {
-                h_value = (grip.x) / m_root.bound_width
-                v_value = (grip.y + (grip.height/2)) / m_root.bound_height
+                doneDrag()
             }
         }
     }

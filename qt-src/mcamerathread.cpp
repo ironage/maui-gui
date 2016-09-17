@@ -323,9 +323,14 @@ cv::Rect CameraTask::getCVROI()
 {
     // Trying to crop an image outside of bounds will crash, bound check here
     int roiX = std::max(0, roi.x());
+    if (roiX >= width) roiX = width - 1;
     int roiY = std::max(0, roi.y());
+    if (roiY >= height) roiY = height - 1;
+
     int roiW = std::min(width - roiX - 1, roi.width());
+    if (roiW < 0) roiW = 0;
     int roiH = std::min(height - roiY - 1, roi.height());
+    if (roiH < 0) roiH = 0;
     return cv::Rect(roiX, roiY, roiW, roiH);
 }
 

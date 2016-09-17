@@ -13,7 +13,7 @@ Rectangle {
     property var pointList
 
     Rectangle {
-        id: point1
+        id: pt
         visible: pointList.length >= 1
         property int xOffset: -width/2
         property int yOffset: -height/2
@@ -26,16 +26,16 @@ Rectangle {
         color: pointColor
         radius: width/2
         MouseArea {
-            enabled: false //m_root.enabled
+            enabled: false//true //m_root.enabled
             anchors.fill: parent
             hoverEnabled: true
             drag {
-                target: point1
+                target: pt
                 axis: Drag.XAndYAxis
-                minimumX: point1.xOffset
-                maximumX: m_root.width + point1.xOffset
-                minimumY: point1.yOffset
-                maximumY: m_root.height + point1.yOffset
+                minimumX: pt.xOffset
+                maximumX: m_root.width + pt.xOffset
+                minimumY: pt.yOffset
+                maximumY: m_root.height + pt.yOffset
                 threshold: Style.drag_threshold
             }
             onPositionChanged:  {
@@ -47,12 +47,14 @@ Rectangle {
             }
             function updatePosition() {
                 if (pointList.length >= 1) {
-                    pointList[0].x = (point1.x - point1.xOffset)
-                    pointList[0].y = (point1.y - point1.yOffset)
+                    pointList[0].x = (pt.x - pt.xOffset)
+                    pointList[0].y = (pt.y - pt.yOffset)
                 }
             }
         }
     }
+
+
     Rectangle {
         id: point2
         visible: (pointList.length >= 2)
@@ -135,9 +137,9 @@ Rectangle {
     }
     MLine {
         visible: (pointList.length >= 2)
-        x1: point1.x - point1.xOffset
+        x1: pt.x - pt.xOffset
         x2: point2.x - point2.xOffset
-        y1: point1.y - point1.yOffset
+        y1: pt.y - pt.yOffset
         y2: point2.y - point2.yOffset
     }
     MLine {

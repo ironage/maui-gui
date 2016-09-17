@@ -139,7 +139,7 @@ void MCVPlayer::update()
     camera = new MVideoCapture();
 
     //Open newly created device
-    try{
+    try {
         if(camera->open(sourceFile.toStdString())){
             updateVideoSettings();
             emit sourceChanged();

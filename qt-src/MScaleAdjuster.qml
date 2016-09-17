@@ -19,7 +19,6 @@ Rectangle {
         mappedHValue = hValue
         mappedTopValue = topValue
         mappedBottomValue = bottomValue
-        console.log("mapped points changed: " + hValue + " " + topValue + " " + bottomValue)
     }
     function updateViewPoints(hValue, topValue, bottomValue) {
         slider.updateHPos(hValue)

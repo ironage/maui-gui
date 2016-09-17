@@ -135,6 +135,86 @@ Rectangle {
             }
         }
     }
+    Rectangle {
+        id: point4
+        property int xOffset: -width/2
+        property int yOffset: -height/2
+        visible: (pointList.length >= 4)
+        x: (pointList.length >= 4) ? pointList[3].x + xOffset : 0
+        y: (pointList.length >= 4) ? pointList[3].y + yOffset : 0
+        width: cornerWidth
+        height: width
+        opacity: alpha
+        color: pointColor
+        radius: width/2
+        MouseArea {
+            enabled: false //m_root.enabled
+            anchors.fill: parent
+            hoverEnabled: true
+            drag {
+                target: point4
+                axis: Drag.XAndYAxis
+                minimumX: point4.xOffset
+                maximumX: m_root.width + point4.xOffset
+                minimumY: point4.yOffset
+                maximumY: m_root.height + point4.yOffset
+                threshold: Style.drag_threshold
+            }
+            onPositionChanged:  {
+                if (drag.active)
+                    updatePosition()
+            }
+            onReleased: {
+                updatePosition()
+            }
+            function updatePosition() {
+                if (pointList.length >= 4) {
+                    pointList[3].x = (point4.x - point4.xOffset)
+                    pointList[3].y = (point4.y - point4.yOffset)
+                }
+            }
+        }
+    }
+    Rectangle {
+        id: point5
+        property int xOffset: -width/2
+        property int yOffset: -height/2
+        visible: (pointList.length >= 3)
+        x: (pointList.length >= 5) ? pointList[4].x + xOffset : 0
+        y: (pointList.length >= 5) ? pointList[4].y + yOffset : 0
+        width: cornerWidth
+        height: width
+        opacity: alpha
+        color: pointColor
+        radius: width/2
+        MouseArea {
+            enabled: false //m_root.enabled
+            anchors.fill: parent
+            hoverEnabled: true
+            drag {
+                target: point5
+                axis: Drag.XAndYAxis
+                minimumX: point5.xOffset
+                maximumX: m_root.width + point5.xOffset
+                minimumY: point5.yOffset
+                maximumY: m_root.height + point5.yOffset
+                threshold: Style.drag_threshold
+            }
+            onPositionChanged:  {
+                if (drag.active)
+                    updatePosition()
+            }
+            onReleased: {
+                updatePosition()
+            }
+            function updatePosition() {
+                if (pointList.length >= 5) {
+                    pointList[4].x = (point5.x - point5.xOffset)
+                    pointList[4].y = (point5.y - point5.yOffset)
+                }
+            }
+        }
+    }
     MLine {
         visible: (pointList.length >= 2)
         x1: pt.x - pt.xOffset
@@ -148,5 +228,19 @@ Rectangle {
         x2: point3.x - point3.xOffset
         y1: point2.y - point2.yOffset
         y2: point3.y - point3.yOffset
+    }
+    MLine {
+        visible: (pointList.length >= 4)
+        x1: point3.x - point3.xOffset
+        x2: point4.x - point4.xOffset
+        y1: point3.y - point3.yOffset
+        y2: point4.y - point4.yOffset
+    }
+    MLine {
+        visible: (pointList.length >= 5)
+        x1: point4.x - point4.xOffset
+        x2: point5.x - point5.xOffset
+        y1: point4.y - point4.yOffset
+        y2: point5.y - point5.yOffset
     }
 }

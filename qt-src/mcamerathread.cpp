@@ -392,7 +392,7 @@ bool CameraTask::autoInitializeOnROI(mwArray *matlabROI)
 {
     try {
         mwArray numPoints(1, 1, mxINT32_CLASS);
-        int numPointsData [] = { 3 };
+        int numPointsData [] = { 5 };
         numPoints.SetData(numPointsData, 1);
         mwArray kerUpHeight, kerBotHeight;
 

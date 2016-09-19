@@ -3,8 +3,10 @@
 
 #include "msettings.h"
 
-#include <QObject>
+
 #include <QNetworkAccessManager>
+#include <QObject>
+#include <QTimer>
 
 class MRemoteInterface : public QObject
 {
@@ -23,26 +25,30 @@ signals:
     void validationNewVersionAvailable(QString versionMessage);
     void noExistingCredentials();
     void multipleSessionsDetected();
+    void sessionFinished();
 
     void usernameChanged();
     void passwordChanged();
 public slots:
     void validateRequest(QString username, QString password);
     void validateWithExistingCredentials();
+    void finishSession();
+    void doUpdate();
 
     QString getUsername();
     QString getPassword();
 private slots:
     void replyFinished(QNetworkReply *reply);
-
+    void die();
 
 private:
-    void validate(QString username, QString password);
+    void validate(QString username, QString password, QString method);
     static QJsonArray encryptForServer(QString value, QByteArray key, QByteArray key2 = "");
     static QString decryptFromServer(QByteArray value, QByteArray key, QByteArray key2 = "");
     MSettings settings;
     QNetworkAccessManager networkManager;
     bool transactionActive;
+    QTimer killTimer;
 };
 
 #endif // MREMOTEINTERFACE_H

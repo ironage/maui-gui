@@ -2,13 +2,15 @@
 
 #include "qblowfish.h"
 
-#include <QDebug>
+#include <QCoreApplication>
 #include <QByteArray>
+#include <QDebug>
 #include <QJsonArray>
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <QNetworkReply>
 #include <QNetworkRequest>
+#include <QProcess>
 
 static QByteArray sharedKey = "6mC4zR5SVzug3uiB9L42I164Wn640wt1";
 
@@ -40,8 +42,40 @@ void MRemoteInterface::validateWithExistingCredentials()
     if (u.isEmpty() || p.isEmpty()) {
         emit noExistingCredentials();
     } else {
-        validate(u, p);
+        validate(u, p, "verify");
     }
+}
+
+void MRemoteInterface::validateRequest(QString username, QString password)
+{
+    settings.setUsername(username);
+    settings.setPassword(password);
+    emit usernameChanged();
+    emit passwordChanged();
+    validate(username, password, "verify");
+}
+
+void MRemoteInterface::finishSession()
+{
+    QString u = settings.getUsername();
+    QString p = settings.getPassword();
+    if (u.isEmpty() || p.isEmpty()) {
+        emit noExistingCredentials();
+    } else {
+        validate(u, p, "finish");
+    }
+}
+
+void MRemoteInterface::doUpdate()
+{
+    QProcess::startDetached("maintenancetool.exe", QStringList());
+    connect(&killTimer, SIGNAL(timeout()), this, SLOT(die()));
+    killTimer.setSingleShot(true);
+    killTimer.start(2500);
+}
+
+void MRemoteInterface::die() {
+    QCoreApplication::quit();
 }
 
 QString MRemoteInterface::getUsername()
@@ -126,6 +160,8 @@ void MRemoteInterface::replyFinished(QNetworkReply *reply)
                         emit multipleSessionsDetected();
                     } else if (statusR == "valid") {
                         emit validationSuccess();
+                    } else if (statusR == "finished") {
+                        emit sessionFinished();
                     } else {
                         emit validationFailed("Unexpected response from the server!"
                                               "\nTry updating the software to the latest version."
@@ -141,7 +177,7 @@ void MRemoteInterface::replyFinished(QNetworkReply *reply)
     reply->deleteLater();
 }
 
-void MRemoteInterface::validate(QString username, QString password)
+void MRemoteInterface::validate(QString username, QString password, QString method)
 {
     if (transactionActive) return; // concurrent access is not supported and probably not needed
 
@@ -157,7 +193,7 @@ void MRemoteInterface::validate(QString username, QString password)
     json.insert("username", encryptForServer(username, nonce, sharedKey));
     json.insert("password", encryptForServer(password, nonce, sharedKey));
     json.insert("version", 1);
-    json.insert("request", encryptForServer("verify", nonce, sharedKey));
+    json.insert("request", encryptForServer(method, nonce, sharedKey));
     json.insert("nonce", encryptForServer(nonceQString, sharedKey));
     json.insert("jump", encryptForServer("Abyssus abyssum invocat", nonce, sharedKey));
 
@@ -196,13 +232,4 @@ QString MRemoteInterface::decryptFromServer(QByteArray value, QByteArray key, QB
         value = bf.decrypted(value);
     }
     return QString::fromStdString(value.toStdString());
-}
-
-void MRemoteInterface::validateRequest(QString username, QString password)
-{
-    settings.setUsername(username);
-    settings.setPassword(password);
-    emit usernameChanged();
-    emit passwordChanged();
-    validate(username, password);
 }

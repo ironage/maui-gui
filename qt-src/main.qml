@@ -56,15 +56,26 @@ ApplicationWindow {
             outputDirectory = directoryPath
         }
     }
-
     MMessageWindow {
         id: videoFinishedSuccess
         title: "Video Processing Finished!"
         text: "The video has been processed successfully!"
+        onAccepted: {
+            validationTimer.stop()
+            remoteInterface.finishSession();
+        }
     }
     MMessageWindow {
         id: videoFinishedError
         title: "Video Processing Error!"
+    }
+    MMessageWindow {
+        id: newVersionMessage
+        title: "Update Available!"
+        text: "A new version of MAUI is available for download!\nWould you like to perform the update now?";
+        onAccepted: {
+            remoteInterface.doUpdate()
+        }
     }
 
     MLogMetaData {
@@ -128,14 +139,15 @@ ApplicationWindow {
             loginWindow.show()
         }
         onValidationSuccess: {
-            calibration.disable()
-            import_video.disable()
-            wall_detection.disable()
-            roi.visible = true
-            roi.adjustable = false
-
             if (!doneInitialVerify) {
                 doneInitialVerify = true
+
+                calibration.disable()
+                import_video.disable()
+                wall_detection.disable()
+                roi.visible = true
+                roi.adjustable = false
+
                 m_video.play()
                 summaryPane.setStartState("playing")
             } else if (requiresVerifyOnContinue) {
@@ -145,10 +157,11 @@ ApplicationWindow {
 
             validationTimer.restart()
         }
+        onSessionFinished: {
+            console.log("session complete")
+        }
         onValidationNewVersionAvailable: {
-            loginWindow.preset(username, password)
-            loginWindow.setMessage(versionMessage)
-            loginWindow.show()
+            newVersionMessage.show()
             summaryPane.setStartState("ready")
         }
     }

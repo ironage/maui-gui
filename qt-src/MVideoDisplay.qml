@@ -1,6 +1,5 @@
 import QtQuick 2.0
 import QtMultimedia 5.5
-import QtGraphicalEffects 1.0
 
 import com.maui.custom 1.0  // MMediaPlayer.h
 

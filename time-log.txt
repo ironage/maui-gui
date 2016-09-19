@@ -27,7 +27,8 @@ sat, 1 july 2016 - 1 hour: attempt to link to matlab
 mon, 4 july 2016 - 2 hours: attempt to link to matlab
 tues, 5 july 2016 - 3 hours: linked to matlab, fixed bugs in image array initialization
 wed, 6 july 2016 - 5 hours: matlab autoInit work: cleanup/fix/check bounds on inputs, start passing results to gui
-...
+thurs, 7 july 2016 - 2 hours: pass coords from Matlab to GUI
+wed, 13 july 2016 - 3 hours: update autoinit lib from Ahmed, transform lines from view to video display
 fri, 15 july 2016 - 3 hours: matlab interface to setup function, setup for update function
 sat, 16 july 2016 - 12 hours: matlab interface to update function, write avi output, write csv output, fixed lag issue.
 tues, 26 july 2016 - 1 hour: meeting, bug feedback and priorities
@@ -44,3 +45,12 @@ sun, 28 aug 2016 - 5 hours: custom user, auth via email address.
 mon, 29 aug 2016 - 3 hours: python encryption with blowfish.
 wed, 31 aug 2016 - 12 hours: server-gui comunication works in plaintext, gui handles errors
 thur, 1 sept 2016 - 2 hours: encrypt local gui settings.
+sat, 3 sept 2016 - 5 hours: server side decryption
+sun, 4 sept 2016 - 5 hours: server side parse response and encrypt json to gui
+tues, 6 sept 2016 - 10 hours: multiple session blocking (server and gui)
+mon, 12 sept 2016 - 3 hours: bug fix for anchoring scale to video not view, fix ROI out of bounds crash
+sat, 17 sept 2016 - 6 hours: bug fixes, research installers static build qt from src
+sun, 18 sept 2016 - 10 hours: automatic update mechanism via qt installer finished
+mon, 19 sept 2016 - 2 hours: add missing opengl libs, support, do update
+
+=== total hours: 210

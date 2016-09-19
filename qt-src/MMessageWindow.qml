@@ -16,6 +16,8 @@ Window {
     modality: Qt.WindowModal
     flags: Qt.Dialog | Qt.CustomizeWindowHint | Qt.WindowTitleHint | Qt.WindowCloseButtonHint & (~Qt.WindowContextHelpButtonHint)
 
+    signal accepted()
+
     ColumnLayout {
         id: layout
         anchors.centerIn: parent
@@ -32,7 +34,10 @@ Window {
         }
         Button {
             text: "OK"
-            onClicked: windowRoot.close()
+            onClicked: {
+                accepted()
+                windowRoot.close()
+            }
             Layout.alignment: Qt.AlignHCenter
         }
     }

@@ -10,6 +10,8 @@ MATLAB_INCLUDE_PATH = "$$(MATLAB_INCLUDE)"
 #MATLAB_LIBS = $$(_PRO_FILE_PWD_)\libs
 MATLAB_LIBS = "$$PWD/libs/"
 
+win32:RC_ICONS += hh.ico
+
 SOURCES += main.cpp \
     mcvplayer.cpp \
     mcamerathread.cpp \
@@ -23,7 +25,7 @@ SOURCES += main.cpp \
     qblowfish.cpp
 
 QT += qml quick multimedia network
-CONFIG += c++11 console
+CONFIG += c++11
 
 RESOURCES += qml.qrc
 

@@ -20,5 +20,6 @@
         <file>MLine.qml</file>
         <file>MMessageWindow.qml</file>
         <file>MLoginWindow.qml</file>
+        <file>hh.ico</file>
     </qresource>
 </RCC>

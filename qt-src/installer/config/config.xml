@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Installer>
+    <Name>MAUI</Name>
+    <Version>1.0.2</Version>
+    <Title>MAUI Installer</Title>
+    <Publisher>Hedgehog Medical</Publisher>
+    <StartMenuDir>Hedgehog Medical</StartMenuDir>
+    <TargetDir>@HomeDir@/HedgehogMedical/MAUI/</TargetDir>
+	<RunProgram>@TargetDir@/maui-gui.exe</RunProgram>
+    <RunProgramDescription> Run MAUI</RunProgramDescription>
+	<RemoteRepositories>
+        <Repository>
+            <Url>http://www.hedgehogmedical.com/downloads/maui-gui-repo</Url>
+        </Repository>
+    </RemoteRepositories>
+</Installer>

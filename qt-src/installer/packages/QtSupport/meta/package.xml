@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Package>
+    <DisplayName>Support files (required)</DisplayName>
+    <Description>Install Support libraries for MAUI (required).</Description>
+    <Version>1.0.2-1</Version>
+    <ReleaseDate>2016-09-19</ReleaseDate>
+    <Default>true</Default>
+</Package>

@@ -6,25 +6,15 @@
 ...
 
 -frameless window     flags: Qt.FramelessWindowHint 
--installer
 
 Changes in next release: 
-- Custom popup dialog box with no help button in title bar.
-- Removed explicit calculations of scale from summary pane
-- Update to new version of matlab libraries; single combined library
-- Fixed ROI resize on window resize
-- ROI updates automatically when frame changes
-- Enforce logical bounds on start and end pins in video control bar
+- Fixed a race condition which could cause crashes when opening a video.
+- Log data overwrites previous results if user pauses and rewinds and plays again.
 
 For Ahmed (MATLAB side):
-Error using -
-Matrix dimensions must agree.
-Error in makeParallel2Init (line 3)
-Error in update (line 20)
-exception caught: Matrix dimensions must agree.
+
 
 Future tasks:
 -reset button
 -open image for one frame processing
 -batch image processing
--output csv data

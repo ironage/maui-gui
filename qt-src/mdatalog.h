@@ -3,7 +3,7 @@
 
 #include <QString>
 
-#include <vector>
+#include <map>
 
 #include "mlogmetadata.h"
 
@@ -11,7 +11,9 @@ class MDataEntry
 {
 public:
     MDataEntry(int frame, double old, double topIMT, double bottomIMT, double time);
+    MDataEntry();
 
+    int getFrameNumber() const { return frameNumber; }
     QString getCSV(double conversion);
     static QString getHeader(QString units);
     static QString getEmptyEntry();
@@ -34,7 +36,7 @@ public:
     void clear();
     MLogMetaData getMetaData() { return metaData; }
 private:
-    std::vector<MDataEntry> entries;
+    std::map<int, MDataEntry> entries;
     MLogMetaData metaData;
 };
 

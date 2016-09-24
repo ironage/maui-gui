@@ -13,6 +13,12 @@ MDataEntry::MDataEntry(int frame, double old, double topIMT, double bottomIMT, d
 {
 }
 
+// This default ctr is just for iterator support via std::map
+MDataEntry::MDataEntry()
+    : frameNumber(-1), OLDPixels(-1), topIMTPixels(-1), bottomIMTPixels(-1), timeSeconds(-1)
+{
+}
+
 QString MDataEntry::getCSV(double conversion)
 {
     return QString() + QString::number(frameNumber) + ","
@@ -49,7 +55,7 @@ QString MDataEntry::getString(T value)
 
 void MDataLog::add(MDataEntry entry)
 {
-    entries.push_back(entry);
+    entries[entry.getFrameNumber()] = entry;
 }
 
 void MDataLog::write(QString fileName)
@@ -68,6 +74,7 @@ void MDataLog::write(QString fileName)
     std::vector<QString> header = metaData.getHeader();
     double conversion = metaData.getPixels() > 0 ? 1.0 / metaData.getPixels() : 1;
     size_t maxLines = std::max(header.size(), entries.size());
+    std::map<int, MDataEntry>::iterator curData = entries.begin();
     for (int i = 0; i < maxLines + 1; i++) {
         if (i < header.size()) {
             out << header[i];
@@ -76,8 +83,9 @@ void MDataLog::write(QString fileName)
         if (i == 0) {
             out << MDataEntry::getHeader(metaData.getUnits());
         } else {
-            if (i - 1 < entries.size()) {
-                out << entries[i - 1].getCSV(conversion);
+            if (curData != entries.end()) {
+                out << curData->second.getCSV(conversion);
+                ++curData;
             } else {
                 out << MDataEntry::getEmptyEntry();
             }

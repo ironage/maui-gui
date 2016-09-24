@@ -19,6 +19,8 @@ public:
     static QString getEmptyEntry();
     template<typename T> static QString getString(T value);
 private:
+    QString getILTPixels();
+    QString getILTUnits(double conversion);
     int frameNumber;
     double OLDPixels;
     double topIMTPixels;

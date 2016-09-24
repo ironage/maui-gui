@@ -15,6 +15,7 @@ Changes in next release:
 - Remember input and output directories, even across quit/reopen.
 - Add single axis handles for ROI adjustments.
 - Added a version string in the bottom left corner, and added to output csv file.
+- Added ILT calculation to the output CSV.
 
 For Ahmed (MATLAB side):
 

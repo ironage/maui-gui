@@ -28,7 +28,9 @@ QString MDataEntry::getCSV(double conversion)
                      + QString::number(timeSeconds) + ","
                      + MDataEntry::getString(OLDPixels * conversion) + ","
                      + MDataEntry::getString(topIMTPixels * conversion) + ","
-                     + MDataEntry::getString(bottomIMTPixels * conversion);
+                     + MDataEntry::getString(bottomIMTPixels * conversion) + ","
+                     + getILTPixels() + ","
+                     + getILTUnits(conversion);
 }
 
 QString MDataEntry::getHeader(QString units)
@@ -36,12 +38,28 @@ QString MDataEntry::getHeader(QString units)
     return QString("frame number, OLD distance(pixels),Top IMT distance(pixels),"
                    "Bottom IMT distance(pixels),time(seconds),OLD distance(")
             + units + "),Top IMT distance(" + units + "),Bottom IMT distance("
-            + units + ")";
+            + units + "),ILT distance(pixels),ILT distance(" + units + ")";
 }
 
 QString MDataEntry::getEmptyEntry()
 {
-    return QString(",,,,,,,");
+    return QString(",,,,,,,,,");
+}
+
+QString MDataEntry::getILTPixels()
+{
+    if (OLDPixels != 0 && topIMTPixels != 0 && bottomIMTPixels != 0) {
+        return QString::number(OLDPixels - topIMTPixels - bottomIMTPixels);
+    }
+    return QString("NaN");
+}
+
+QString MDataEntry::getILTUnits(double conversion)
+{
+    if (OLDPixels != 0 && topIMTPixels != 0 && bottomIMTPixels != 0) {
+        return QString::number((OLDPixels - topIMTPixels - bottomIMTPixels) * conversion);
+    }
+    return QString("NaN");
 }
 
 template<typename T>

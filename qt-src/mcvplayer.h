@@ -20,6 +20,7 @@
 #include "mvideocapture.h"
 
 #include <QMediaPlayer>
+#include <QMutex>
 #include <QQmlListProperty>
 
 class MCVPlayer : public QObject
@@ -100,6 +101,7 @@ private:
     bool recomputeROIMode;
     QList<MPoint*> topPoints;
     QList<MPoint*> bottomPoints;
+    QMutex lock; // protects camera and thread from race conditions
     MVideoCapture* camera = NULL;
     MCameraThread* thread = NULL;
     MInitThread* initThread = NULL;

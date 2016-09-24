@@ -1,6 +1,7 @@
 #include "mcvplayer.h"
 
 #include <QDebug>
+#include <QMutexLocker>
 #include <QSize>
 #include <QUrl>
 #include <QRgb>
@@ -24,10 +25,13 @@ MCVPlayer::MCVPlayer() : QObject(),
 
 MCVPlayer::~MCVPlayer()
 {
-    if(thread)
-        thread->stop();
-    delete thread;
-    delete camera;
+    {
+        QMutexLocker locker(&lock);
+        if(thread)
+            thread->stop();
+        delete thread;
+        delete camera;
+    }
     delete initThread;  // cleans up MATLAB
 
     while (topPoints.size() > 0) {
@@ -58,6 +62,7 @@ void MCVPlayer::setROI(const QRect &newROI)
 {
     if (roi != newROI) {
         roi = newROI;
+        QMutexLocker locker(&lock);
         if (thread) {
             thread->doSetROI(roi);
         }
@@ -69,6 +74,7 @@ void MCVPlayer::setRecomputeROIMode(bool mode)
 {
     if (recomputeROIMode != mode) {
         recomputeROIMode = mode;
+        QMutexLocker locker(&lock);
         if (thread) {
             thread->doSetRecomputeROIMode(recomputeROIMode);
         }
@@ -125,7 +131,8 @@ void MCVPlayer::updateVideoSettings() {
 void MCVPlayer::update()
 {
     if (sourceFile.isEmpty()) return;
-    qDebug() << "Starting video width: " << size.width() << " height: " << size.height();
+    qDebug() << "cleaning up the previous video";
+    QMutexLocker locker(&lock);
     //Destroy old thread, camera accessor and buffers
     delete thread;
     delete camera;
@@ -137,12 +144,10 @@ void MCVPlayer::update()
     cvImageBuf = NULL;
 
     camera = new MVideoCapture();
-
     //Open newly created device
     try {
         if(camera->open(sourceFile.toStdString())){
             updateVideoSettings();
-            emit sourceChanged();
             qDebug() << "starting video at size: " << size;
             //Create new buffers, camera accessor and thread
             allocateCvImage();
@@ -162,6 +167,8 @@ void MCVPlayer::update()
                     qDebug() << "Could not start QAbstractVideoSurface, error: %d" << m_surface->error();
             }
             thread->start();
+            locker.unlock(); // for seek
+            emit sourceChanged();
             seek(0);
             qDebug() << "Opened file: " << sourceFile;
         }
@@ -248,13 +255,13 @@ void MCVPlayer::setSourceFile(QString file)
     sourceFile = fileUrl.path();
     if (sourceFile.size() > 1 && sourceFile.at(0) == QChar('/')) {
         sourceFile.remove(0, 1);
-        qDebug() << "prefix / removed.";
     }
     update();
 }
 
 void MCVPlayer::play()
 {
+    QMutexLocker locker(&lock);
     if (thread) {
         stopped = false;
         qDebug() << "playing now, metadata :  " << logMetaData->getFileName();
@@ -265,6 +272,7 @@ void MCVPlayer::play()
 
 void MCVPlayer::continueProcessing()
 {
+    QMutexLocker locker(&lock);
     if (thread) {
         thread->doContinue();
     }
@@ -272,6 +280,7 @@ void MCVPlayer::continueProcessing()
 
 void MCVPlayer::pause()
 {
+    QMutexLocker locker(&lock);
     if (thread) {
         thread->doPause();
     }
@@ -279,6 +288,7 @@ void MCVPlayer::pause()
 
 void MCVPlayer::stop()
 {
+    QMutexLocker locker(&lock);
     if (thread) {
         stopped = true;
         thread->stop();
@@ -300,6 +310,7 @@ int MCVPlayer::getPlaybackState()
 
 void MCVPlayer::seek(int frame)
 {
+    QMutexLocker locker(&lock);
     if (thread) {
         thread->doSeek(frame);
     }
@@ -307,6 +318,7 @@ void MCVPlayer::seek(int frame)
 
 void MCVPlayer::setEndFrame(int frame)
 {
+    QMutexLocker locker(&lock);
     if (thread) {
         thread->doSetEndFrame(frame);
     }
@@ -314,6 +326,7 @@ void MCVPlayer::setEndFrame(int frame)
 
 void MCVPlayer::setStartFrame(int frame)
 {
+    QMutexLocker locker(&lock);
     if (thread) {
         thread->doSetStartFrame(frame);
     }

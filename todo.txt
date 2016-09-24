@@ -11,6 +11,7 @@ Changes in next release:
 - Fixed a race condition which could cause crashes when opening a video.
 - Log data overwrites previous results if user pauses and rewinds and plays again.
 - Start and end positions of the video control bar reset when opening a new video.
+- Persist the default name in the output name box for quick editing.
 
 For Ahmed (MATLAB side):
 

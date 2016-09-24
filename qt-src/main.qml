@@ -252,6 +252,7 @@ ApplicationWindow {
                         property string defaultOutputName: "output name"
                         onDefaultOutputNameChanged: {
                             loader_item.defaultName = defaultOutputName
+                            loader_item.outputName = defaultOutputName
                         }
 
                         override_width: leftPanel.header_width
@@ -290,7 +291,7 @@ ApplicationWindow {
                                 MTextInput {
                                     id: outputTextInput
                                     text: ""
-                                    width: 128
+                                    width: 168
                                     placeholderText: defaultName
                                     borderColor: Style.ui_component_highlight
                                     horizontalAlignment: TextInput.AlignHCenter

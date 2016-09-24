@@ -24,6 +24,7 @@ ApplicationWindow {
         title: "Select an input video"
         onAccepted: {
             m_video.source = fileUrl
+            remoteInterface.setLocalSetting("directory_in", folder)
 
             var simpleName = fileUrl.toString();
             // unescape html codes like '%23' for '#'
@@ -39,6 +40,12 @@ ApplicationWindow {
             logMetaData.inputFilePath = directoryPath
             videoOutputDialog.folder = folder
         }
+        onVisibleChanged: {
+            if (visible) {
+                var previousFolder = remoteInterface.getLocalSetting("directory_in")
+                folder = previousFolder
+            }
+        }
     }
 
     FileDialog {
@@ -47,6 +54,7 @@ ApplicationWindow {
         selectFolder: true
         title: "Select an output directory"
         onAccepted: {
+            remoteInterface.setLocalSetting("directory_out", folder)
             var simpleName = fileUrl.toString();
             // unescape html codes like '%23' for '#'
             simpleName = decodeURIComponent(simpleName);
@@ -54,6 +62,12 @@ ApplicationWindow {
             var match = searchExpression.exec(simpleName)
             var directoryPath = match[5]
             outputDirectory = directoryPath
+        }
+        onVisibleChanged: {
+            if (visible) {
+                var previousFolder = remoteInterface.getLocalSetting("directory_out")
+                folder = previousFolder
+            }
         }
     }
     MMessageWindow {

@@ -101,6 +101,16 @@ void MSettings::setPassword(QString pw)
     setEncryptedSetting("password", pw, PW_KEY);
 }
 
+void MSettings::setRaw(QString key, QString value)
+{
+    settings.setValue(key, value);
+}
+
+QString MSettings::getRaw(QString key, QString defaultValue)
+{
+    return settings.value(key, defaultValue).toString();
+}
+
 QString MSettings::getEncryptedSetting(QString key, QByteArray encryptionKey, QString defaultValue)
 {
     QByteArray rawValue = settings.value(key, defaultValue).toByteArray();

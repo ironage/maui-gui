@@ -34,6 +34,8 @@ public slots:
     void validateWithExistingCredentials();
     void finishSession();
     void doUpdate();
+    void setLocalSetting(QString key, QString value);
+    QString getLocalSetting(QString key);
 
     QString getUsername();
     QString getPassword();

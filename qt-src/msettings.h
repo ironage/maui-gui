@@ -14,6 +14,8 @@ public:
     QString getBaseUrl();
     void setUsername(QString name);
     void setPassword(QString pw);
+    void setRaw(QString key, QString value);
+    QString getRaw(QString key, QString defaultValue = "");
 private:
     QString getEncryptedSetting(QString key, QByteArray encryptionKey, QString defaultValue = "");
     void setEncryptedSetting(QString key, QString value, QByteArray encryptionKey);

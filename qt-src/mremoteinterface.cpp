@@ -35,6 +35,16 @@ MRemoteInterface::MRemoteInterface(QObject *parent) : QObject(parent), transacti
     connect(&networkManager, SIGNAL(finished(QNetworkReply*)),this, SLOT(replyFinished(QNetworkReply*)));
 }
 
+void MRemoteInterface::setLocalSetting(QString key, QString value)
+{
+    settings.setRaw(key, value);
+}
+
+QString MRemoteInterface::getLocalSetting(QString key)
+{
+    return settings.getRaw(key);
+}
+
 void MRemoteInterface::validateWithExistingCredentials()
 {
     QString u = settings.getUsername();

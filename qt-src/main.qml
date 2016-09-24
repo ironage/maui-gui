@@ -432,6 +432,8 @@ ApplicationWindow {
                 }
                 onSourceChanged: {
                     summaryPane.setStartState("ready")
+                    m_video_control.start_percent = 0
+                    m_video_control.end_percent = 1;
                     roi.reInitToCenter()
                 }
                 onVideoRectChanged: {

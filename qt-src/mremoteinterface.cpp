@@ -13,6 +13,7 @@
 #include <QProcess>
 
 static QByteArray sharedKey = "6mC4zR5SVzug3uiB9L42I164Wn640wt1";
+const double MRemoteInterface::CURRENT_VERSION = 3.1;
 
 QJsonArray toJsonArray(QByteArray ba) {
     QJsonArray array;
@@ -33,6 +34,11 @@ QByteArray fromJsonArray(QJsonArray ja) {
 MRemoteInterface::MRemoteInterface(QObject *parent) : QObject(parent), transactionActive(false)
 {
     connect(&networkManager, SIGNAL(finished(QNetworkReply*)),this, SLOT(replyFinished(QNetworkReply*)));
+}
+
+QString MRemoteInterface::getDisplayVersion()
+{
+    return QString::number(CURRENT_VERSION, 'g', 2);
 }
 
 void MRemoteInterface::setLocalSetting(QString key, QString value)
@@ -133,14 +139,13 @@ void MRemoteInterface::replyFinished(QNetworkReply *reply)
             QJsonValue status = response.value("status");
             QJsonValue name = response.value("username");
             QJsonValue version = response.value("version");
-            int currentVersion = 2;
             if (softwareVersion.isUndefined()) {
                 emit validationFailed("Could not read the software version.\nInstalling the latest version may fix this problem.");
-            } else if (softwareVersion.toInt() > currentVersion) {
-                emit validationNewVersionAvailable("Version " + QString::number(softwareVersion.toInt()) +
+            } else if (softwareVersion.toDouble() > CURRENT_VERSION) {
+                emit validationNewVersionAvailable("Version " + QString::number(softwareVersion.toDouble()) +
                                       " of this software is available!"
                                       "\nPlease download the latest version to continue."
-                                      "\nYou currently are running version " + QString::number(currentVersion));
+                                      "\nYou currently are running version " + getDisplayVersion());
             } else if (jump.isUndefined() || !jump.isArray()
                        || nonce.isUndefined() || !nonce.isArray()
                        || status.isUndefined() || !status.isArray()
@@ -148,7 +153,7 @@ void MRemoteInterface::replyFinished(QNetworkReply *reply)
                        || version.isUndefined()) {
                 emit validationFailed("Unexpected response from the server!"
                                       "\nTry updating the software to the latest version."
-                                      "\nYou currently are running version " + QString::number(currentVersion));
+                                      "\nYou currently are running version " + getDisplayVersion());
             } else {
                 QByteArray nonceR = fromJsonArray(nonce.toArray());
                 QBlowfish bf(sharedKey);
@@ -175,7 +180,7 @@ void MRemoteInterface::replyFinished(QNetworkReply *reply)
                     } else {
                         emit validationFailed("Unexpected response from the server!"
                                               "\nTry updating the software to the latest version."
-                                              "\nYou currently are running version " + QString::number(currentVersion));
+                                              "\nYou currently are running version " + getDisplayVersion());
                     }
                 }
             }

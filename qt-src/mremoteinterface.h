@@ -15,6 +15,7 @@ class MRemoteInterface : public QObject
     Q_PROPERTY(QString password READ getPassword NOTIFY passwordChanged)
 public:
     explicit MRemoteInterface(QObject *parent = 0);
+    const static double CURRENT_VERSION;
 
 signals:
     void validationFailed(QString failureReason);
@@ -30,6 +31,7 @@ signals:
     void usernameChanged();
     void passwordChanged();
 public slots:
+    static QString getDisplayVersion();
     void validateRequest(QString username, QString password);
     void validateWithExistingCredentials();
     void finishSession();

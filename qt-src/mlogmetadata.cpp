@@ -1,4 +1,5 @@
 #include "mlogmetadata.h"
+#include "mremoteinterface.h"
 
 #include <QDateTime>
 
@@ -21,7 +22,8 @@ QString MLogMetaData::getTimestamp() const
 std::vector<QString> MLogMetaData::getHeader() const
 {
     QString conversion = QString("") + QString::number(getPixels()) + " pixels = 1 " + getUnits();
-    return std::vector<QString> {getFileName(), getFilePath(), getTimestamp(), conversion};
+    QString version = "MAUI version " + MRemoteInterface::getDisplayVersion();
+    return std::vector<QString> {getFileName(), getFilePath(), getTimestamp(), conversion, version};
 }
 
 void MLogMetaData::operator=(const MLogMetaData &other)

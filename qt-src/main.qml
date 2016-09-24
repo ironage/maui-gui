@@ -600,4 +600,13 @@ ApplicationWindow {
             }
         }
     }
+    MText {
+        id: versionString
+        text: " v" + remoteInterface.getDisplayVersion() + "  "
+        style: Text.Normal
+        color: Style.ui_color_dark_dblue
+        font.pixelSize: 12
+        anchors.bottom: parent.bottom
+        anchors.left: parent.left
+    }
 }

@@ -14,6 +14,7 @@ Changes in next release:
 - Persist the default name in the output name box for quick editing.
 - Remember input and output directories, even across quit/reopen.
 - Add single axis handles for ROI adjustments.
+- Added a version string in the bottom left corner, and added to output csv file.
 
 For Ahmed (MATLAB side):
 

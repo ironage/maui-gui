@@ -241,4 +241,146 @@ Rectangle {
             }
         }
     }
+    Rectangle {
+        id: midTop
+        property int xOffset: -width/2
+        property int yOffset: -height/2
+        x: roi.x + xOffset + (roi.width / 2)
+        y: roi.y + yOffset
+        width: cornerWidth
+        height: width
+        visible: adjustable
+        //opacity: alpha
+        color: roi.border.color
+        radius: width/2
+        MouseArea {
+            enabled: m_root.enabled
+            anchors.fill: parent
+            hoverEnabled: true
+            drag {
+                target: midTop
+                axis: Drag.YAxis
+                minimumY: midTop.yOffset
+                maximumY: roi.y + roi.height + midTop.yOffset - rectMin
+                threshold: Style.drag_threshold
+            }
+            onPositionChanged: {
+                if (drag.active)
+                    updatePosition()
+            }
+            onReleased: {
+                updatePosition()
+            }
+            function updatePosition() {
+                roi.height = roi.y - midTop.y + roi.height + midTop.yOffset
+                roi.y = midTop.y - midTop.yOffset
+            }
+        }
+    }
+    Rectangle {
+        id: midBottom
+        property int xOffset: -width/2
+        property int yOffset: -height/2
+        x: roi.x + xOffset + (roi.width / 2)
+        y: roi.y + yOffset + roi.height
+        width: cornerWidth
+        height: width
+        visible: adjustable
+        //opacity: alpha
+        color: roi.border.color
+        radius: width/2
+        MouseArea {
+            enabled: m_root.enabled
+            anchors.fill: parent
+            hoverEnabled: true
+            drag {
+                target: midBottom
+                axis: Drag.YAxis
+                minimumY: roi.y + rectMin + midBottom.yOffset
+                maximumY: m_root.height + midBottom.yOffset
+                threshold: Style.drag_threshold
+            }
+            onPositionChanged: {
+                if (drag.active)
+                    updatePosition()
+            }
+            onReleased: {
+                updatePosition()
+            }
+            function updatePosition() {
+                roi.height = midBottom.y - roi.y - midBottom.yOffset
+            }
+        }
+    }
+    Rectangle {
+        id: midLeft
+        property int xOffset: -width/2
+        property int yOffset: -height/2
+        x: roi.x + xOffset
+        y: roi.y + yOffset + (roi.height / 2)
+        width: cornerWidth
+        height: width
+        visible: adjustable
+        //opacity: alpha
+        color: roi.border.color
+        radius: width/2
+        MouseArea {
+            enabled: m_root.enabled
+            anchors.fill: parent
+            hoverEnabled: true
+            drag {
+                target: midLeft
+                axis: Drag.XAxis
+                minimumX: midLeft.xOffset
+                maximumX: roi.x + roi.width - rectMin + midLeft.xOffset
+                threshold: Style.drag_threshold
+            }
+            onPositionChanged: {
+                if (drag.active)
+                    updatePosition()
+            }
+            onReleased: {
+                updatePosition()
+            }
+            function updatePosition() {
+                roi.width = roi.x - midLeft.x + roi.width + midLeft.xOffset
+                roi.x = midLeft.x - midLeft.xOffset
+            }
+        }
+    }
+    Rectangle {
+        id: midRight
+        property int xOffset: -width/2
+        property int yOffset: -height/2
+        x: roi.x + xOffset + roi.width
+        y: roi.y + yOffset + (roi.height / 2)
+        width: cornerWidth
+        height: width
+        visible: adjustable
+        //opacity: alpha
+        color: roi.border.color
+        radius: width/2
+        MouseArea {
+            enabled: m_root.enabled
+            anchors.fill: parent
+            hoverEnabled: true
+            drag {
+                target: midRight
+                axis: Drag.XAxis
+                minimumX: roi.x + rectMin + midRight.xOffset
+                maximumX: m_root.width + midRight.xOffset
+                threshold: Style.drag_threshold
+            }
+            onPositionChanged: {
+                if (drag.active)
+                    updatePosition()
+            }
+            onReleased: {
+                updatePosition()
+            }
+            function updatePosition() {
+                roi.width = midRight.x - roi.x - midRight.xOffset
+            }
+        }
+    }
 }

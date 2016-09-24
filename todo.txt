@@ -13,6 +13,7 @@ Changes in next release:
 - Start and end positions of the video control bar reset when opening a new video.
 - Persist the default name in the output name box for quick editing.
 - Remember input and output directories, even across quit/reopen.
+- Add single axis handles for ROI adjustments.
 
 For Ahmed (MATLAB side):
 

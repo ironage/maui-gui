@@ -18,6 +18,7 @@ ApplicationWindow {
     visibility: ApplicationWindow.Maximized
     minimumWidth: 400
     minimumHeight: 300
+    title: "Measurements from Arterial Ultrasound Imaging (MAUI)"
 
     FileDialog {
         id: videoSelectDialog

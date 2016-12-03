@@ -52,5 +52,6 @@ mon, 12 sept 2016 - 3 hours: bug fix for anchoring scale to video not view, fix 
 sat, 17 sept 2016 - 6 hours: bug fixes, research installers static build qt from src
 sun, 18 sept 2016 - 10 hours: automatic update mechanism via qt installer finished
 mon, 19 sept 2016 - 2 hours: add missing opengl libs, support, do update
+sat, 24 sept 2016 - 6 hours: many small fixes and features per trello, release 3.1
 
-=== total hours: 210
+=== total hours: 216

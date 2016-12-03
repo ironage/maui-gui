@@ -15,3 +15,15 @@ binarycreator.exe --online-only -c config\config.xml -p packages maui-installer.
 
 
 **See http://doc.qt.io/qtinstallerframework/qt-installer-framework-online-example.html
+
+RELEASE PROCESS:
+Increase CURRENT_VERSION in MRemoteInterface.cpp
+Add CONFIG += console in maui-gui.pro, clean, build, copy the exe to installer/packages/maui/data as maui-gui-console.exe
+Take out console from maui-gui.pro, clean, build, copy the exe to installer/packages/maui/data as maui-gui.exe
+Change installer/packages/MAUI/meta/package.xml, increase version (this can be different, nobody sees it) and change release date
+Rebuild repo: repogen.exe --update-new-components -p packages maui-gui-repo
+copy to server: scp -r maui-gui-repo hedgehp2@server.hedgehogmedical.com:~/public_html/downloads/
+modify ~/djdev/maui-server/mauisky/welcome/views.py change version to CURRENT_VERSION of GUI
+touch ~/public_html/cgi-bin/maui.fcgi to get the server to reload the python files.
+test upgrade locally
+

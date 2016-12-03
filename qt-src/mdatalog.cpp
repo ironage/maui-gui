@@ -35,10 +35,10 @@ QString MDataEntry::getCSV(double conversion)
 
 QString MDataEntry::getHeader(QString units)
 {
-    return QString("frame number, OLD distance(pixels),Top IMT distance(pixels),"
-                   "Bottom IMT distance(pixels),time(seconds),OLD distance(")
-            + units + "),Top IMT distance(" + units + "),Bottom IMT distance("
-            + units + "),ILT distance(pixels),ILT distance(" + units + ")";
+    return QString("frame number,media-media distance(pixels),Top intima-media distance(pixels),"
+                   "Bottom intima-media distance(pixels),time(seconds),media-media distance(")
+            + units + "),Top intima-media distance(" + units + "),Bottom intima-media distance("
+            + units + "),intima-intima distance(pixels),intima-intima distance(" + units + ")";
 }
 
 QString MDataEntry::getEmptyEntry()

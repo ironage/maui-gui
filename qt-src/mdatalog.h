@@ -19,12 +19,12 @@ public:
     static QString getEmptyEntry();
     template<typename T> static QString getString(T value);
 private:
-    QString getILTPixels();
+    QString getILTPixels(); // intima-intima, computed
     QString getILTUnits(double conversion);
     int frameNumber;
-    double OLDPixels;
-    double topIMTPixels;
-    double bottomIMTPixels;
+    double OLDPixels;       // media-media
+    double topIMTPixels;    // top intima-media
+    double bottomIMTPixels; // bottom intima-media
     double timeSeconds;
 };
 

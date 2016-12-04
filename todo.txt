@@ -3,11 +3,25 @@
 -checkmark icons for settings progress
 -settings, color chooser
 -help / about
+
+
+- write log files to disk
+- output video at end doe to checkbox option store ovrlay in memory
+- preview lines from past processing when going back to old frames
+- video always appends to output even if user skipped back to redo some frames
+
 ...
 
--frameless window     flags: Qt.FramelessWindowHint 
 
-Changes in next release: 
+Changes in the next release: v3.1
+- Change window title to "Measurements from Arterial Ultrasound Imaging (MAUI)"
+- Changed output CSV: OLD to media-media, ILT to intima-intima, IMT to intima-media
+- Added 64 bit visual studio libraries to install (msvcp120.dll, msvcpr120.dll, vccorlib120.dll)
+- Support loading videos from network drive
+
+https://d.docs.live.net/CAA5DFEAD496C8FB
+
+Changes in next release: v3
 - Fixed a race condition which could cause crashes when opening a video.
 - Log data overwrites previous results if user pauses and rewinds and plays again.
 - Start and end positions of the video control bar reset when opening a new video.

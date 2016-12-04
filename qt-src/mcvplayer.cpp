@@ -169,6 +169,7 @@ void MCVPlayer::update()
             thread->start();
             locker.unlock(); // for seek
             emit sourceChanged();
+            emit sourceUpdated();
             seek(0);
             qDebug() << "Opened file: " << sourceFile;
         }
@@ -250,12 +251,9 @@ void MCVPlayer::onNewVideoContentReceived(const QVideoFrame &frame)
 
 void MCVPlayer::setSourceFile(QString file)
 {
-    QUrl fileUrl(file);
-    qDebug() << "source file set: " << fileUrl.path();;
-    sourceFile = fileUrl.path();
-    if (sourceFile.size() > 1 && sourceFile.at(0) == QChar('/')) {
-        sourceFile.remove(0, 1);
-    }
+    sourceUrl = QUrl(file);
+    qDebug() << "source file set: " << sourceUrl.toLocalFile();
+    sourceFile = sourceUrl.toLocalFile();
     update();
 }
 

@@ -27,18 +27,11 @@ ApplicationWindow {
             m_video.source = fileUrl
             remoteInterface.setLocalSetting("directory_in", folder)
 
-            var simpleName = fileUrl.toString();
-            // unescape html codes like '%23' for '#'
-            simpleName = decodeURIComponent(simpleName);
-            var searchExpression = new RegExp("^((file:\\/{3})|(qrc:\\/{2})|(http:\\/{2}))(.*)((\\\\)|(\\/))(.*)(\\..+)", "g")
-            var match = searchExpression.exec(simpleName)
-            var directoryPath = match[5]
-            var simpleFileName = match[9]
-            var fileExtension = match[10]
-            summaryPane.fileName = simpleFileName + fileExtension
-            import_video.defaultOutputName = simpleFileName
-            logMetaData.inputFileName = simpleFileName + fileExtension
-            logMetaData.inputFilePath = directoryPath
+            var fullName = m_video.readSrcName + "." + m_video.readSrcExtension
+            summaryPane.fileName = fullName
+            import_video.defaultOutputName = m_video.readSrcName
+            logMetaData.inputFileName = fullName
+            logMetaData.inputFilePath = m_video.readSrcDir
             videoOutputDialog.folder = folder
         }
         onVisibleChanged: {

@@ -6,6 +6,9 @@ import com.maui.custom 1.0  // MMediaPlayer.h
 Item {
     id: m_root
     property alias source: cv_player.sourceFile
+    property alias readSrcDir: cv_player.sourceDir
+    property alias readSrcName: cv_player.sourceName
+    property alias readSrcExtension: cv_player.sourceExtension
     property double progress: 0
     property alias duration: cv_player.duration
     property double progress_min: 0.0

@@ -1,8 +1,10 @@
 #ifndef MCVPLAYER_H
 #define MCVPLAYER_H
 
+#include <QDir>
 #include <QObject>
 #include <QAbstractVideoSurface>
+#include <QFileInfo>
 #include <QVideoFrame>
 #include <QVideoSurfaceFormat>
 #include <QString>
@@ -27,6 +29,9 @@ class MCVPlayer : public QObject
 {
     Q_OBJECT
     Q_PROPERTY(QString sourceFile READ getSourceFile WRITE setSourceFile NOTIFY sourceChanged)
+    Q_PROPERTY(QString sourceDir READ getSourceDir NOTIFY sourceUpdated)
+    Q_PROPERTY(QString sourceName READ getSourceName NOTIFY sourceUpdated)
+    Q_PROPERTY(QString sourceExtension READ getSourceExtension NOTIFY sourceUpdated)
     Q_PROPERTY(QAbstractVideoSurface *videoSurface READ videoSurface WRITE setVideoSurface)
     Q_PROPERTY(QSize size READ getSize WRITE setSize NOTIFY sizeChanged)
     Q_PROPERTY(int duration READ getNumFrames NOTIFY videoPropertiesChanged)
@@ -48,6 +53,9 @@ public slots:
     void onNewVideoContentReceived(const QVideoFrame &frame);
     QString getSourceFile() { return sourceFile; }
     void setSourceFile(QString file);
+    QString getSourceDir() { return QFileInfo(sourceUrl.toLocalFile()).dir().absolutePath(); }
+    QString getSourceExtension() { return QFileInfo(sourceUrl.fileName()).suffix(); }
+    QString getSourceName() { return QFileInfo(sourceUrl.fileName()).completeBaseName(); }
     QSize getSize() const;
     void setSize(QSize size);
     int getNumFrames() { return numFrames; }
@@ -82,6 +90,7 @@ signals:
     void recomputeROIChanged();
     void initPointsChanged();
     void logDataChanged();
+    void sourceUpdated();
 private:
 
 #ifdef ANDROID
@@ -93,6 +102,7 @@ private:
     QAbstractVideoSurface *m_surface;
     QVideoSurfaceFormat m_format;
     QString sourceFile;
+    QUrl sourceUrl;
 
     int numFrames;
     int curFrame;

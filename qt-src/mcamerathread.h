@@ -61,7 +61,6 @@ private:
     bool doneInit;
     QList<MPoint> topPoints, bottomPoints;
     mwArray* matlabArrays;
-    cv::VideoWriter outputVideo;
     MDataLog log;
     QString outputFileName;
     unsigned char* cameraFrame;
@@ -104,12 +103,13 @@ protected:
     void notifyInitPoints(mwArray topWall, mwArray bottomWall, QPoint offset);
     cv::Rect getCVROI();
     void drawLine(cv::Mat &dest, const std::vector<cv::Point>& points, cv::Scalar color);
-    void initializeOutputVideo();
+    void initializeOutputVideo(cv::VideoWriter &outputVideo);
     double getFirst(mwArray& data, double defaultValue);
     void writeResults();
     bool autoInitializeOnROI(mwArray* matlabROI);
     bool getNextFrameData();
     void drawOverlay(int frame, cv::Mat &mat);
+    void processOutputVideo();
 };
 
 class MCameraThread : public QObject{

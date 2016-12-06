@@ -6,11 +6,16 @@
 
 
 - write log files to disk
-- output video at end doe to checkbox option store ovrlay in memory
-- preview lines from past processing when going back to old frames
-- video always appends to output even if user skipped back to redo some frames
+- checkbox choose output video
+- progress dialog on video write
+
 
 ...
+
+Changes in the next release: v3.2
+- preview lines from past processing when going back to old frames
+- Fixed video output issue (always appended frames even if they were reprocessed)
+- output video at end store ovrlay in memory
 
 
 Changes in the next release: v3.1

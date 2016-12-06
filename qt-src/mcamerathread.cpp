@@ -166,9 +166,6 @@ void CameraTask::doWork()
                 autoInitializeOnROI(matlabROI.get());
             } else if (curPlayState == PlayState::Playing) {
                 if (!doneInit) {
-                    if (!outputVideo.isOpened()) {
-                        initializeOutputVideo();
-                    }
                     bool autoInitSuccess = autoInitializeOnROI(matlabROI.get());
                     if (!autoInitSuccess || topPoints.empty() || bottomPoints.empty()) {
                         emit videoFinished(CameraTask::ProcessingState::AUTO_INIT_FAILED);
@@ -361,13 +358,13 @@ cv::Rect CameraTask::getCVROI()
 
 void CameraTask::drawLine(cv::Mat &dest, const std::vector<cv::Point>& points, cv::Scalar color)
 {
-    int numPoints = points.size();
+    int numPoints = int(points.size());
     for (int i = 0; i < numPoints - 1; ++i) {
         cv::line(dest, points[i], points[i+1], color, 1, CV_AA); // antialised line of thickness 1
     }
 }
 
-void CameraTask::initializeOutputVideo()
+void CameraTask::initializeOutputVideo(cv::VideoWriter& outputVideo)
 {
     cv::Size videoSize(width, height);
     MLogMetaData metaData = log.getMetaData();
@@ -385,6 +382,40 @@ void CameraTask::initializeOutputVideo()
     qDebug() << "opening output video: " << QString::fromStdString(outputName) << " success ? " << success << " (ex: " << ex << ")";
 }
 
+void CameraTask::processOutputVideo() {
+    double frameRate = 1;
+    if (camera) {
+        frameRate = camera->getProperty(CV_CAP_PROP_FPS);
+        if (frameRate == 0) frameRate = 1;
+        camera->setProperty(CV_CAP_PROP_POS_FRAMES, startFrame);
+    }
+    cv::VideoWriter outputVideo;
+    initializeOutputVideo(outputVideo);
+
+    //Assuming desktop, RGB camera image and RGBA QVideoFrame
+    while(running && camera != NULL) {
+        curFrame = camera->getProperty(CV_CAP_PROP_POS_FRAMES); // opencv frame is 0 indexed
+
+        if (!camera->grabFrame()) {
+            break;
+        }
+        cameraFrame = camera->retrieveFrame();
+
+        cv::Mat tempMat(height, width, CV_8UC3, cameraFrame);
+
+        drawOverlay(curFrame + 1, tempMat);
+        if (outputVideo.isOpened()) {
+            outputVideo << tempMat;
+        }
+        if (curFrame >= endFrame) {
+            break;
+        }
+    }
+    if (outputVideo.isOpened()) {
+        outputVideo.release(); // flush file and reset
+    }
+}
+
 double CameraTask::getFirst(mwArray &data, double defaultValue)
 {
     size_t numElements = data.NumberOfElements();
@@ -396,11 +427,8 @@ double CameraTask::getFirst(mwArray &data, double defaultValue)
 
 void CameraTask::writeResults()
 {
-    if (outputVideo.isOpened()) {
-        outputVideo.release(); // flush file and reset
-    }
-
     log.write(outputFileName + "_data");
+    processOutputVideo();
     log.clear();
     emit videoFinished(CameraTask::ProcessingState::SUCCESS);
 }

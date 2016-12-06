@@ -7,9 +7,12 @@
 #include <QFile>
 #include <QTextStream>
 
-MDataEntry::MDataEntry(int frame, double old, double topIMT, double bottomIMT, double time)
+MDataEntry::MDataEntry(int frame, double old, double topIMT, double bottomIMT, double time,
+                       std::vector<cv::Point>&& topStrong, std::vector<cv::Point>&& topWeak,
+                       std::vector<cv::Point>&& bottomStrong, std::vector<cv::Point>&& bottomWeak)
     : frameNumber(frame), OLDPixels(old), topIMTPixels(topIMT), bottomIMTPixels(bottomIMT),
-      timeSeconds(time)
+      timeSeconds(time), topStrongLine(topStrong), topWeakLine(topWeak),
+      bottomStrongLine(bottomStrong), bottomWeakLine(bottomWeak)
 {
 }
 
@@ -71,9 +74,9 @@ QString MDataEntry::getString(T value)
     return QString::number(value);
 }
 
-void MDataLog::add(MDataEntry entry)
+void MDataLog::add(MDataEntry &&entry)
 {
-    entries[entry.getFrameNumber()] = entry;
+    entries[entry.getFrameNumber()] = entry;    //FIXME: copying vectors could be expensive here
 }
 
 void MDataLog::write(QString fileName)
@@ -116,6 +119,15 @@ void MDataLog::write(QString fileName)
 void MDataLog::clear()
 {
     entries.clear();
+}
+
+const MDataEntry* MDataLog::get(int frame) const
+{
+    auto needle = entries.find(frame);
+    if (needle != entries.end()) {
+        return &(needle->second);
+    }
+    return nullptr;
 }
 
 MDataLog::MDataLog()

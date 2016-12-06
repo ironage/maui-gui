@@ -58,11 +58,39 @@ mwArray* opencvConvertToMX(cv::Mat& m) {
     return T;
 }
 
+std::vector<cv::Point> convertMWArray(mwArray &points, QPoint offset) {
+    size_t numElements = points.NumberOfElements();
+    std::vector<cv::Point> result;
+    if (numElements > 0 && numElements % 2 == 0) { // Assuming two dimensions
+        size_t numPoints = numElements / 2;
+        mxInt32 *data = new mxInt32[numElements];
+        points.GetData(data, numElements);
+        for (int i = 0; i < numPoints; ++i) {
+            result.emplace_back(cv::Point(data[i] + offset.x(), data[numPoints + i] + offset.y()));
+        }
+        delete [] data;
+    }
+    return result;
+}
+
 void CameraTask::convertUVsp2UVp(unsigned char* __restrict srcptr, unsigned char* __restrict dstptr, int stride)
 {
     for(int i=0;i<stride;i++){
         dstptr[i]           = srcptr[i*2];
         dstptr[i + stride]  = srcptr[i*2 + 1];
+    }
+}
+
+void CameraTask::drawOverlay(int frame, cv::Mat& mat) {
+    const MDataEntry *existing = log.get(frame);
+    if (existing) {
+        cv::Scalar strongColor(0, 0, 250);  // b,g,r
+        cv::Scalar weakColor(0, 250, 0);    // b,g,r
+        drawLine(mat, existing->getTopStrongLine(), strongColor);
+        drawLine(mat, existing->getTopWeakLine(), weakColor);
+        drawLine(mat, existing->getBottomStrongLine(), strongColor);
+        drawLine(mat, existing->getBottomWeakLine(), weakColor);
+        cachedFrameIsDirty = true; // now that we have drawn on this frame, force re-load cache next time
     }
 }
 
@@ -172,30 +200,27 @@ void CameraTask::doWork()
                            matlabArrays[TOP_STRONG_POINTS], matlabArrays[BOTTOM_STRONG_POINTS],
                            matlabArrays[TOP_REF_WALL], matlabArrays[BOTTOM_REF_WALL]);
 
-                    MDataEntry data(curFrame + 1,
-                                    getFirst(outerLumenDiameter, 0),
-                                    getFirst(topIMT, 0),
-                                    getFirst(bottomIMT, 0),
-                                    (1/frameRate) * curFrame);
-                    log.add(data);
+                    QPoint offset(std::max(0, roi.x()), std::max(0, roi.y()));
+                    log.add(MDataEntry(
+                                curFrame + 1,
+                                getFirst(outerLumenDiameter, 0),
+                                getFirst(topIMT, 0),
+                                getFirst(bottomIMT, 0),
+                                (1/frameRate) * curFrame,
+                                convertMWArray(matlabArrays[TOP_STRONG_LINE], offset),
+                                convertMWArray(matlabArrays[TOP_WEAK_LINE], offset),
+                                convertMWArray(matlabArrays[BOTTOM_STRONG_LINE], offset),
+                                convertMWArray(matlabArrays[BOTTOM_WEAK_LINE], offset)));
                 } catch (const mwException& e) {
                     std::cerr << "exception caught: " << e.what() << std::endl;
                 }
 
-                QPoint offset(std::max(0, roi.x()), std::max(0, roi.y()));
-                cv::Scalar strongColor(0, 0, 250);  // b,g,r
-                cv::Scalar weakColor(0, 250, 0);    // b,g,r
-                drawLine(tempMat, matlabArrays[TOP_STRONG_LINE], strongColor, offset);
-                drawLine(tempMat, matlabArrays[TOP_WEAK_LINE], weakColor, offset);
-                drawLine(tempMat, matlabArrays[BOTTOM_STRONG_LINE], strongColor, offset);
-                drawLine(tempMat, matlabArrays[BOTTOM_WEAK_LINE], weakColor, offset);
-                cachedFrameIsDirty = true; // now that we have drawn on this frame, force re-load cache next time
-
-                if (outputVideo.isOpened()) {
-                    outputVideo << tempMat;
-                }
+//                if (outputVideo.isOpened()) {
+//                    outputVideo << tempMat;
+//                }
             }
 
+            drawOverlay(curFrame + 1, tempMat);
             cv::cvtColor(tempMat,screenImage,cv::COLOR_RGB2RGBA);
         }
 
@@ -334,19 +359,11 @@ cv::Rect CameraTask::getCVROI()
     return cv::Rect(roiX, roiY, roiW, roiH);
 }
 
-void CameraTask::drawLine(cv::Mat &dest, mwArray &points, cv::Scalar color, QPoint offset)
+void CameraTask::drawLine(cv::Mat &dest, const std::vector<cv::Point>& points, cv::Scalar color)
 {
-    size_t numElements = points.NumberOfElements();
-    if (numElements > 0 && numElements % 2 == 0) {  // Assuming two dimensions
-        size_t numPoints = numElements/2;
-        mxInt32 *data = new mxInt32[numElements];
-        points.GetData(data, numElements);
-        for (int i = 0; i < numPoints - 1; ++i) {
-            cv::Point p1(data[i] + offset.x(), data[numPoints + i] + offset.y());
-            cv::Point p2(data[i+1] + offset.x(), data[numPoints + i + 1] + offset.y());
-            cv::line(dest, p1, p2, color, 1, CV_AA); // antialised line of thickness 1
-        }
-        delete [] data;
+    int numPoints = points.size();
+    for (int i = 0; i < numPoints - 1; ++i) {
+        cv::line(dest, points[i], points[i+1], color, 1, CV_AA); // antialised line of thickness 1
     }
 }
 

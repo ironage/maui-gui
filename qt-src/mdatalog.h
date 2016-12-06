@@ -1,6 +1,7 @@
 #ifndef MDATALOG_H
 #define MDATALOG_H
 
+#include <opencv2/video/video.hpp>
 #include <QString>
 
 #include <map>
@@ -10,7 +11,11 @@
 class MDataEntry
 {
 public:
-    MDataEntry(int frame, double old, double topIMT, double bottomIMT, double time);
+    MDataEntry(int frame, double old, double topIMT, double bottomIMT, double time,
+               std::vector<cv::Point>&& topStrong,
+               std::vector<cv::Point>&& topWeak,
+               std::vector<cv::Point>&& bottomStrong,
+               std::vector<cv::Point>&& bottomWeak);
     MDataEntry();
 
     int getFrameNumber() const { return frameNumber; }
@@ -18,6 +23,10 @@ public:
     static QString getHeader(QString units);
     static QString getEmptyEntry();
     template<typename T> static QString getString(T value);
+    const std::vector<cv::Point>& getTopStrongLine() const { return topStrongLine; }
+    const std::vector<cv::Point>& getTopWeakLine() const { return topWeakLine; }
+    const std::vector<cv::Point>& getBottomStrongLine() const { return bottomStrongLine; }
+    const std::vector<cv::Point>& getBottomWeakLine() const { return bottomWeakLine; }
 private:
     QString getILTPixels(); // intima-intima, computed
     QString getILTUnits(double conversion);
@@ -26,6 +35,10 @@ private:
     double topIMTPixels;    // top intima-media
     double bottomIMTPixels; // bottom intima-media
     double timeSeconds;
+    std::vector<cv::Point> topStrongLine;
+    std::vector<cv::Point> topWeakLine;
+    std::vector<cv::Point> bottomStrongLine;
+    std::vector<cv::Point> bottomWeakLine;
 };
 
 class MDataLog
@@ -33,10 +46,11 @@ class MDataLog
 public:
     MDataLog();
     void initialize(MLogMetaData data);
-    void add(MDataEntry entry);
+    void add(MDataEntry &&entry);
     void write(QString fileName);
     void clear();
     MLogMetaData getMetaData() { return metaData; }
+    const MDataEntry* get(int frame) const;
 private:
     std::map<int, MDataEntry> entries;
     MLogMetaData metaData;

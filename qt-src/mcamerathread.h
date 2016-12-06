@@ -103,12 +103,13 @@ signals:
 protected:
     void notifyInitPoints(mwArray topWall, mwArray bottomWall, QPoint offset);
     cv::Rect getCVROI();
-    void drawLine(cv::Mat& dest, mwArray& points, cv::Scalar color, QPoint offset);
+    void drawLine(cv::Mat &dest, const std::vector<cv::Point>& points, cv::Scalar color);
     void initializeOutputVideo();
     double getFirst(mwArray& data, double defaultValue);
     void writeResults();
     bool autoInitializeOnROI(mwArray* matlabROI);
     bool getNextFrameData();
+    void drawOverlay(int frame, cv::Mat &mat);
 };
 
 class MCameraThread : public QObject{

@@ -65,6 +65,7 @@ private:
     QString outputFileName;
     unsigned char* cameraFrame;
     bool cachedFrameIsDirty;
+    bool doProcessOutputVideo;
     void convertUVsp2UVp(unsigned char* __restrict srcptr, unsigned char* __restrict dstptr, int stride);
 
     enum MatlabArrays {
@@ -95,10 +96,13 @@ public slots:
     void setROI(QRect newROI);
     void setRecomputeROIMode(bool mode);
     void setLogMetaData(MLogMetaData data);
+    void setProcessOutputVideo(bool doProcess);
+    bool getDoProcessOutputVideo() { return doProcessOutputVideo; }
 signals:
     void imageReady(int);
     void initPointsDetected(QList<MPoint>, QList<MPoint>);
     void videoFinished(CameraTask::ProcessingState state);
+    void outputProgress(int);
 protected:
     void notifyInitPoints(mwArray topWall, mwArray bottomWall, QPoint offset);
     cv::Rect getCVROI();
@@ -129,6 +133,8 @@ public:
     void doSetROI(QRect roi);
     void doSetRecomputeROIMode(bool mode);
     void doSetLogMetaData(MLogMetaData m);
+    void doSetProcessOutputVideo(bool process);
+    bool doGetProcessOutputVideo();
 private:
     QThread workerThread;
     CameraTask* task = NULL;
@@ -144,7 +150,9 @@ signals:
     void setROI(QRect roi);
     void setRecomputeROIMode(bool mode);
     void setLogMetaData(MLogMetaData d);
+    void setProcessOutputVideo(bool process);
     void initPointsDetected(QList<MPoint>, QList<MPoint>);
+    void outputProgress(int);
 };
 
 Q_DECLARE_METATYPE(CameraTask::ProcessingState)

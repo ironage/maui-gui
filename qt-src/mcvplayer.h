@@ -42,6 +42,7 @@ class MCVPlayer : public QObject
     Q_PROPERTY(QQmlListProperty<MPoint> initTopPoints READ getTopPoints NOTIFY initPointsChanged)
     Q_PROPERTY(QQmlListProperty<MPoint> initBottomPoints READ getBottomPoints NOTIFY initPointsChanged)
     Q_PROPERTY(MLogMetaData* logInfo MEMBER logMetaData NOTIFY logDataChanged)
+    Q_PROPERTY(bool doProcessOutputVideo READ getProcessOutputVideo WRITE setProcessOutputVideo NOTIFY processOutputVideoChanged)
 public:
     MCVPlayer();
     ~MCVPlayer();
@@ -74,6 +75,8 @@ public slots:
     void setEndFrame(int frame);
     void setStartFrame(int frame);
     void matlabInitFinished(MInitTask::InitStats status);
+    bool getProcessOutputVideo();
+    void setProcessOutputVideo(bool process);
     //FIXME: proper list access
     //QQmlListProperty::QQmlListProperty(QObject *object, void *data, AppendFunction append, CountFunction count, AtFunction at, ClearFunction clear)
     QQmlListProperty<MPoint> getTopPoints() { return QQmlListProperty<MPoint>(this, topPoints); }
@@ -84,6 +87,7 @@ signals:
     void videoPropertiesChanged();
     void curFrameChanged();
     void videoFinished(CameraTask::ProcessingState state);
+    void outputProgress(int progress);
     void playbackStateChanged();
     void sourceChanged();
     void roiChanged();
@@ -91,6 +95,7 @@ signals:
     void initPointsChanged();
     void logDataChanged();
     void sourceUpdated();
+    void processOutputVideoChanged();
 private:
 
 #ifdef ANDROID

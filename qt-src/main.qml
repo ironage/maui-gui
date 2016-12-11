@@ -64,10 +64,22 @@ ApplicationWindow {
             }
         }
     }
+    MFinishWindow {
+        id: videoOutputProgress
+        onCanceled: {
+            m_video.doProcessOutputVideo = false
+        }
+    }
     MMessageWindow {
         id: videoFinishedSuccess
         title: "Video Processing Finished!"
         text: "The video has been processed successfully!"
+        onVisibleChanged: {
+            if (visible) {
+                videoOutputProgress.close()
+            }
+        }
+
         onAccepted: {
             validationTimer.stop()
             remoteInterface.finishSession();
@@ -222,6 +234,7 @@ ApplicationWindow {
                 onPlayClicked: {
                     remoteInterface.doneInitialVerify = false
                     remoteInterface.validateWithExistingCredentials()
+                    m_video.doProcessOutputVideo = import_video.doProcessOutputVideo
                 }
                 onContinueClicked: {
                     if (remoteInterface.requiresVerifyOnContinue) {
@@ -258,6 +271,10 @@ ApplicationWindow {
                         title: "Step 1: Select Input"
                         property string outputName: loader_item.outputName
                         property string defaultOutputName: "output name"
+                        property bool doProcessOutputVideo: loader_item.doProcessOutputVideo
+                        onDoProcessOutputVideoChanged: {
+                            m_video.doProcessOutputVideo = doProcessOutputVideo
+                        }
                         onDefaultOutputNameChanged: {
                             loader_item.defaultName = defaultOutputName
                             loader_item.outputName = defaultOutputName
@@ -273,6 +290,7 @@ ApplicationWindow {
                             height: childrenRect.height
                             property alias outputName: outputTextInput.text
                             property string defaultName: "output name"
+                            property alias doProcessOutputVideo: processVideoCheckBox.checked
                             ColumnLayout {
                                 Item {
                                     width: parent.width
@@ -303,6 +321,11 @@ ApplicationWindow {
                                     placeholderText: defaultName
                                     borderColor: Style.ui_component_highlight
                                     horizontalAlignment: TextInput.AlignHCenter
+                                }
+                                CheckBox {
+                                    id: processVideoCheckBox
+                                    checked: true
+                                    text: "Output video results"
                                 }
                                 Item {
                                     width: parent.width
@@ -465,6 +488,12 @@ ApplicationWindow {
                     } else {
                         summaryPane.setStartState("ready")
                         console.log("unhandled state when video finished: " + state)
+                    }
+                }
+                onOutputProgress: {
+                    videoOutputProgress.progress = progress
+                    if (videoOutputProgress.visible == false) {
+                        videoOutputProgress.show()
                     }
                 }
                 onTopPointsChanged: {

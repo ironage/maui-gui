@@ -158,9 +158,10 @@ void MCVPlayer::update()
             connect(thread,SIGNAL(imageReady(int)), this, SLOT(imageReceived(int)));
             connect(thread, SIGNAL(initPointsDetected(QList<MPoint>,QList<MPoint>)), this, SLOT(initPointsReceived(QList<MPoint>,QList<MPoint>)));
             connect(thread, SIGNAL(videoFinished(CameraTask::ProcessingState)), this, SIGNAL(videoFinished(CameraTask::ProcessingState)));
+            connect(thread, SIGNAL(outputProgress(int)), this, SIGNAL(outputProgress(int)));
             thread->doSetEndFrame(numFrames);
             thread->doSetStartFrame(0);
-            if(m_surface){
+            if(m_surface) {
                 if(m_surface->isActive())
                     m_surface->stop();
                 if(!m_surface->start(QVideoSurfaceFormat(size,VIDEO_OUTPUT_FORMAT)))
@@ -333,6 +334,21 @@ void MCVPlayer::setStartFrame(int frame)
 void MCVPlayer::matlabInitFinished(MInitTask::InitStats status)
 {
     qDebug() << "init status recieved: " << status;
+}
+
+bool MCVPlayer::getProcessOutputVideo()
+{
+    if (thread) {
+        return thread->doGetProcessOutputVideo();
+    }
+    return true;
+}
+
+void MCVPlayer::setProcessOutputVideo(bool process)
+{
+    if (thread) {
+        thread->doSetProcessOutputVideo(process);
+    }
 }
 
 //void MCVPlayer::setTopPoints(QList<MPoint> points)

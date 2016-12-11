@@ -22,8 +22,10 @@ Item {
     property alias bottomPoints: cv_player.initBottomPoints
     property alias logData: cv_player.logInfo
     property alias videoRect: output.sourceRect
+    property alias doProcessOutputVideo: cv_player.doProcessOutputVideo
 
     signal videoFinished(int state)
+    signal outputProgress(int progress)
 
     function viewPointToVideoPoint(viewPoint) {
         return output.mapPointToSource(viewPoint)
@@ -68,6 +70,7 @@ Item {
             }
         }
         onVideoFinished: m_root.videoFinished(state)
+        onOutputProgress: m_root.outputProgress(progress)
     }
 
     VideoOutput {

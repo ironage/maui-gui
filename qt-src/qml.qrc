@@ -21,5 +21,6 @@
         <file>MMessageWindow.qml</file>
         <file>MLoginWindow.qml</file>
         <file>hh.ico</file>
+        <file>MFinishWindow.qml</file>
     </qresource>
 </RCC>

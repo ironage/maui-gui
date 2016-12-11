@@ -6,17 +6,14 @@
 
 
 - write log files to disk
-- checkbox choose output video
-- progress dialog on video write
-
 
 ...
 
 Changes in the next release: v3.2
-- preview lines from past processing when going back to old frames
-- Fixed video output issue (always appended frames even if they were reprocessed)
-- output video at end store ovrlay in memory
-
+- preview results of past processing when going back to old frames
+- fixed video output issue (always appended frames even if they were reprocessed)
+- checkbox for making video output optional
+- cancelable dialog shows video output progress
 
 Changes in the next release: v3.1
 - Change window title to "Measurements from Arterial Ultrasound Imaging (MAUI)"

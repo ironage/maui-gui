@@ -24,7 +24,7 @@ CameraTask::CameraTask(MVideoCapture* camera, QVideoFrame* videoFrame,
     : running(true), camera(camera), videoFrame(videoFrame),cvImageBuf(cvImageBuf),
     width(width), height(height), curPlayState(Paused), curFrame(-1), frameToSeekTo(-1),
     startFrame(0), endFrame(0), autoRecomputeROI(false), doneInit(false),
-    cameraFrame(nullptr), cachedFrameIsDirty(true)
+    cameraFrame(nullptr), cachedFrameIsDirty(true), doProcessOutputVideo(true)
 {
     qRegisterMetaType<CameraTask::ProcessingState>();
     matlabArrays = new mwArray[ARRAY_COUNT];
@@ -211,10 +211,6 @@ void CameraTask::doWork()
                 } catch (const mwException& e) {
                     std::cerr << "exception caught: " << e.what() << std::endl;
                 }
-
-//                if (outputVideo.isOpened()) {
-//                    outputVideo << tempMat;
-//                }
             }
 
             drawOverlay(curFrame + 1, tempMat);
@@ -309,6 +305,11 @@ void CameraTask::setLogMetaData(MLogMetaData data)
     log.initialize(data);
 }
 
+void CameraTask::setProcessOutputVideo(bool doProcess)
+{
+    doProcessOutputVideo = doProcess;
+}
+
 void CameraTask::notifyInitPoints(mwArray topWall, mwArray bottomWall, QPoint offset)
 {
     topPoints.clear();
@@ -393,7 +394,7 @@ void CameraTask::processOutputVideo() {
     initializeOutputVideo(outputVideo);
 
     //Assuming desktop, RGB camera image and RGBA QVideoFrame
-    while(running && camera != NULL) {
+    while(running && camera != NULL && doProcessOutputVideo) {
         curFrame = camera->getProperty(CV_CAP_PROP_POS_FRAMES); // opencv frame is 0 indexed
 
         if (!camera->grabFrame()) {
@@ -407,9 +408,16 @@ void CameraTask::processOutputVideo() {
         if (outputVideo.isOpened()) {
             outputVideo << tempMat;
         }
+        if (endFrame - startFrame > 0) {
+            int progress = ((curFrame - startFrame) * 100) / (endFrame - startFrame);
+            emit outputProgress(progress);
+        } else {
+            qDebug() << "End frame is zero, not showing progress.";
+        }
         if (curFrame >= endFrame) {
             break;
         }
+        QCoreApplication::processEvents(); // check for incoming signals about canceling output video write
     }
     if (outputVideo.isOpened()) {
         outputVideo.release(); // flush file and reset
@@ -428,7 +436,9 @@ double CameraTask::getFirst(mwArray &data, double defaultValue)
 void CameraTask::writeResults()
 {
     log.write(outputFileName + "_data");
-    processOutputVideo();
+    if (doProcessOutputVideo) {
+        processOutputVideo();
+    }
     log.clear();
     emit videoFinished(CameraTask::ProcessingState::SUCCESS);
 }
@@ -488,6 +498,7 @@ MCameraThread::MCameraThread(MVideoCapture* camera, QVideoFrame* videoFrame, uns
     connect(task, SIGNAL(imageReady(int)), this, SIGNAL(imageReady(int)));
     connect(task, SIGNAL(initPointsDetected(QList<MPoint>,QList<MPoint>)), this, SIGNAL(initPointsDetected(QList<MPoint>,QList<MPoint>)));
     connect(task, SIGNAL(videoFinished(CameraTask::ProcessingState)), this, SIGNAL(videoFinished(CameraTask::ProcessingState)));
+    connect(task, SIGNAL(outputProgress(int)), this, SIGNAL(outputProgress(int)));
     connect(this, SIGNAL(play()), task, SLOT(play()), Qt::QueuedConnection);
     connect(this, SIGNAL(pause()), task, SLOT(pause()), Qt::QueuedConnection);
     connect(this, SIGNAL(seek(int)), task, SLOT(seek(int)), Qt::QueuedConnection);
@@ -497,6 +508,7 @@ MCameraThread::MCameraThread(MVideoCapture* camera, QVideoFrame* videoFrame, uns
     connect(this, SIGNAL(setRecomputeROIMode(bool)), task, SLOT(setRecomputeROIMode(bool)), Qt::QueuedConnection);
     connect(this, SIGNAL(setLogMetaData(MLogMetaData)), task, SLOT(setLogMetaData(MLogMetaData)), Qt::QueuedConnection);
     connect(this, SIGNAL(continueProcessing()), task, SLOT(continueProcessing()), Qt::QueuedConnection);
+    connect(this, SIGNAL(setProcessOutputVideo(bool)), task, SLOT(setProcessOutputVideo(bool)), Qt::QueuedConnection);
 }
 
 MCameraThread::~MCameraThread()
@@ -562,4 +574,14 @@ void MCameraThread::doSetRecomputeROIMode(bool mode)
 void MCameraThread::doSetLogMetaData(MLogMetaData m)
 {
     emit setLogMetaData(m);
+}
+
+void MCameraThread::doSetProcessOutputVideo(bool process)
+{
+    emit setProcessOutputVideo(process);
+}
+
+bool MCameraThread::doGetProcessOutputVideo()
+{
+    return task->getDoProcessOutputVideo();
 }

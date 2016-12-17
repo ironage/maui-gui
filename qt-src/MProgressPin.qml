@@ -1,7 +1,7 @@
 import QtQuick 2.0
 import "."
 
-Rectangle {
+MProgressHandle {
     id: grip
     property real value: 0.5
 
@@ -13,13 +13,28 @@ Rectangle {
     property string description: ""
     property alias minimumX: dragArea.minimumX
     property alias maximumX: dragArea.maximumX
+    property alias color: grip.curColor
+    property alias dragActive: dragArea.active
+    property double padOffset: 0.0
+    property bool externalActive: false
 
-    x: (value * parent.width) - width/2
-    anchors.bottom: parent.top
-    width: 18
-    height: width
-    radius: width/2
-    color: enabled ? (dragArea.active ? selected_color : idle_color) : disabled_color
+    function activate() {
+        externalActive = true
+    }
+    function deactivate() {
+        externalActive = false
+    }
+    function signalUpdate() {
+        mouseArea.updatePosition()
+    }
+    signal requestNewValue(double newValue);
+
+    x: (value * parent.width) - width/2 + padOffset
+    anchors.top: parent.bottom
+    width: triangle_width
+    height: triangle_height
+    color: enabled ? ((dragArea.active || externalActive) ? selected_color : idle_color) : disabled_color
+    alpha: 1
 
     MouseArea {
         id: mouseArea
@@ -33,7 +48,7 @@ Rectangle {
             maximumX: width_bound - parent.width/2
             threshold: Style.drag_threshold
         }
-        onPositionChanged:  {
+        onPositionChanged: {
             if (drag.active)
                 updatePosition()
         }
@@ -41,24 +56,16 @@ Rectangle {
             updatePosition()
         }
         function updatePosition() {
-            grip.value = (grip.x + grip.width/2) / width_bound
+            var newValue = (grip.x + grip.width/2 - padOffset) / width_bound
+            requestNewValue(newValue)
         }
     }
     Rectangle {
         id: m_vbar
-        width: 3
+        width: 2
         height: grip.parent.height
         color: parent.color
-        anchors.top: grip.bottom
+        anchors.bottom: grip.top
         anchors.horizontalCenter: parent.horizontalCenter
-    }
-    MText {
-        text: grip.description
-        anchors.horizontalCenter: m_vbar.horizontalCenter
-        y: m_vbar.y + m_vbar.height + 5
-        font.pixelSize: 13
-        color: grip.color
-        styleColor: "white"
-        visible: parent.enabled
     }
 }

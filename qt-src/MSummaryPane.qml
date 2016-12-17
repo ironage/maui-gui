@@ -20,6 +20,7 @@ Rectangle {
     property double scaleComputedValue: scalePixelValue / scaleDistanceValue
     property string scaleUnitString: "cm"
     property int leftMarginPadding: Style.h_padding
+    property bool isPlaying: start.state === "playing"
 
     signal playClicked()
     signal continueClicked()

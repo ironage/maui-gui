@@ -82,7 +82,7 @@ Canvas {
             ctx.stroke();
         ctx.restore();
     }
-    MouseArea{
+    MouseArea {
         id: ma1
         anchors.fill: parent
         hoverEnabled: true

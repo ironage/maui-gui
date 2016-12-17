@@ -454,6 +454,11 @@ ApplicationWindow {
                 roi: Qt.rect(roi.mappedXY.x, roi.mappedXY.y, roi.mappedWH.x, roi.mappedWH.y)
                 recomputeROIMode: roi.visible
                 logData: logMetaData
+                onProgressChanged: {
+                    if (summaryPane.isPlaying) {
+                        m_video_control.moveTo(progress)
+                    }
+                }
                 onWidthChanged: {
                     roi.parentLayoutChanged()
                     scale.parentLayoutChanged()
@@ -611,7 +616,6 @@ ApplicationWindow {
             RowLayout {
                 MVideoControl {
                     id: m_video_control
-                    progress: m_video.progress
                     totalFrames: m_video.duration > 0 ? m_video.duration - 1 : 0
                     onSetProgress: m_video.seek(percent * m_video.duration)
                     Layout.fillWidth: true
@@ -619,6 +623,7 @@ ApplicationWindow {
                     Layout.rightMargin: (2 * Style.h_padding)
                     Layout.leftMargin: (2 * Style.h_padding)
                     Layout.topMargin: Style.v_padding * 2
+                    enabled: summaryPane.isPlaying === false
                 }
             }
         }

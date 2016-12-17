@@ -22,5 +22,7 @@
         <file>MLoginWindow.qml</file>
         <file>hh.ico</file>
         <file>MFinishWindow.qml</file>
+        <file>MProgressPin.qml</file>
+        <file>MProgressHandle.qml</file>
     </qresource>
 </RCC>

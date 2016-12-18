@@ -192,7 +192,7 @@ ApplicationWindow {
         repeat: false
         running: false
         onTriggered: {
-            if (summaryPane.isPlaying()) {
+            if (summaryPane.isPlaying) {
                 remoteInterface.validateWithExistingCredentials()
             } else {
                 validationTimer.restart()
@@ -250,7 +250,7 @@ ApplicationWindow {
                     import_video.enable()
                     wall_detection.enable()
                     roi.visible = false
-
+                    wall_detection.open()
                     m_video.pause()
                 }
             }

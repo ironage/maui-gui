@@ -226,6 +226,7 @@ void CameraTask::doWork()
 
         if (curPlayState == PlayState::Playing && curFrame >= endFrame) {
             curPlayState = PlayState::Paused;
+            camera->setProperty(CV_CAP_PROP_POS_FRAMES, endFrame);
             writeResults();
         }
 
@@ -419,6 +420,9 @@ void CameraTask::processOutputVideo() {
         }
         QCoreApplication::processEvents(); // check for incoming signals about canceling output video write
     }
+    if (camera) {
+        camera->setProperty(CV_CAP_PROP_POS_FRAMES, endFrame);
+    }
     if (outputVideo.isOpened()) {
         outputVideo.release(); // flush file and reset
     }
@@ -470,6 +474,7 @@ bool CameraTask::getNextFrameData()
 {
     if (!camera->grabFrame()) {
         if (curPlayState == PlayState::Playing) {
+            camera->setProperty(CV_CAP_PROP_POS_FRAMES, endFrame);
             writeResults();
             qDebug() << "Could not grab next video frame";
         } else {

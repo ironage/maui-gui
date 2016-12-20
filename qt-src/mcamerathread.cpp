@@ -370,22 +370,14 @@ void CameraTask::drawLine(cv::Mat &dest, const std::vector<cv::Point>& points, c
     }
 }
 
-void CameraTask::initializeOutputVideo(cv::VideoWriter& outputVideo)
+void CameraTask::initializeOutput()
 {
-    cv::Size videoSize(width, height);
     MLogMetaData metaData = log.getMetaData();
     std::string outputDirName(metaData.getOutputDir().isEmpty() ? metaData.getFilePath().toStdString() : metaData.getOutputDir().toStdString());
     if (!QDir(outputDirName.c_str()).exists()) {
         QDir().mkdir(outputDirName.c_str());
     }
-    // the following line didn't work correctly for some videos
-    //int ex = static_cast<int>(camera->getProperty(CV_CAP_PROP_FOURCC));     // Get Codec Type- Int form
-    int ex = CV_FOURCC('M', 'J', 'P', 'G');
-    int fps = camera->getProperty(CV_CAP_PROP_FPS);
     outputFileName = QString::fromStdString(outputDirName) + "/" + (metaData.getOutputName());
-    std::string outputName = outputFileName.toStdString() + "_tracking.avi";
-    bool success = outputVideo.open(outputName, ex, fps, videoSize, true);
-    qDebug() << "opening output video: " << QString::fromStdString(outputName) << " success ? " << success << " (ex: " << ex << ")";
 }
 
 void CameraTask::processOutputVideo() {
@@ -395,8 +387,14 @@ void CameraTask::processOutputVideo() {
         if (frameRate == 0) frameRate = 1;
         camera->setProperty(CV_CAP_PROP_POS_FRAMES, startFrame);
     }
+    cv::Size videoSize(width, height);
+    // the following line didn't work correctly for some videos
+    //int ex = static_cast<int>(camera->getProperty(CV_CAP_PROP_FOURCC));     // Get Codec Type- Int form
+    int ex = CV_FOURCC('M', 'J', 'P', 'G');
+    std::string outputName = outputFileName.toStdString() + "_tracking.avi";
     cv::VideoWriter outputVideo;
-    initializeOutputVideo(outputVideo);
+    bool success = outputVideo.open(outputName, ex, frameRate, videoSize, true);
+    qDebug() << "opening output video: " << QString::fromStdString(outputName) << " success ? " << success << " (ex: " << ex << ")";
 
     //Assuming desktop, RGB camera image and RGBA QVideoFrame
     while(running && camera != NULL && doProcessOutputVideo) {
@@ -443,6 +441,7 @@ double CameraTask::getFirst(mwArray &data, double defaultValue)
 
 void CameraTask::writeResults()
 {
+    initializeOutput();
     log.write(outputFileName + "_data");
     if (doProcessOutputVideo) {
         processOutputVideo();

@@ -107,7 +107,7 @@ protected:
     void notifyInitPoints(mwArray topWall, mwArray bottomWall, QPoint offset);
     cv::Rect getCVROI();
     void drawLine(cv::Mat &dest, const std::vector<cv::Point>& points, cv::Scalar color);
-    void initializeOutputVideo(cv::VideoWriter &outputVideo);
+    void initializeOutput();
     double getFirst(mwArray& data, double defaultValue);
     void writeResults();
     bool autoInitializeOnROI(mwArray* matlabROI);

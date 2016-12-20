@@ -3,17 +3,20 @@
 -checkmark icons for settings progress
 -settings, color chooser
 -help / about
-
-
 - write log files to disk
 
-...
+
 
 Changes in the next release: v3.2
-- preview results of past processing when going back to old frames
-- fixed video output issue (always appended frames even if they were reprocessed)
+- preview results of past processing when seeking back to old frames (on pause and after finished)
+- fixed video output issue (it was always appending frames even if they were reprocessed)
 - checkbox for making video output optional
 - cancelable dialog shows video output progress
+- disabled bottom video controls while processing
+- triangle handle for seeking video control
+- allow mouse scroll on video control bar for seeking
+- open roi adjustment panel automatically on pause
+- fixed frame advancing by one after pause and finish
 
 Changes in the next release: v3.1
 - Change window title to "Measurements from Arterial Ultrasound Imaging (MAUI)"

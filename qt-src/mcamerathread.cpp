@@ -245,6 +245,7 @@ void CameraTask::doWork()
 void CameraTask::play()
 {
     if (curPlayState != PlayState::Playing) {
+        log.clear();
         curPlayState = PlayState::Playing;
         doneInit = false;
         if (camera) {
@@ -262,6 +263,9 @@ void CameraTask::continueProcessing() {
 void CameraTask::pause()
 {
     curPlayState = PlayState::Paused;
+    if (camera) {
+        camera->setProperty(CV_CAP_PROP_POS_FRAMES, curFrame); // review frame
+    }
 }
 
 void CameraTask::seek(int frameNumber)
@@ -443,7 +447,6 @@ void CameraTask::writeResults()
     if (doProcessOutputVideo) {
         processOutputVideo();
     }
-    log.clear();
     emit videoFinished(CameraTask::ProcessingState::SUCCESS);
 }
 

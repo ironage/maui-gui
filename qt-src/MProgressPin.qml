@@ -29,7 +29,7 @@ MProgressHandle {
     }
     signal requestNewValue(double newValue);
 
-    x: (value * parent.width) - width/2 + padOffset
+    x: (value * parent.width) - width/2
     anchors.top: parent.bottom
     width: triangle_width
     height: triangle_height
@@ -56,7 +56,8 @@ MProgressHandle {
             updatePosition()
         }
         function updatePosition() {
-            var newValue = (grip.x + grip.width/2 - padOffset) / width_bound
+            //var newValue = (grip.x + grip.width/2 - padOffset) / width_bound
+            var newValue = (grip.x + grip.width/2) / width_bound
             requestNewValue(newValue)
         }
     }

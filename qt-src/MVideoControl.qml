@@ -17,17 +17,6 @@ Item {
         progress = newProgress
     }
 
-    onProgressChanged: {
-//        if (movable) {
-//            if (progress - progress_pin.localPercentOffset < start_percent) {
-//                start_percent = progress - progress_pin.localPercentOffset
-//            }
-//            if (progress + progress_pin.localPercentOffset > end_percent) {
-//                end_percent = progress + progress_pin.localPercentOffset
-//            }
-//        }
-    }
-
     Rectangle {
         width: m_root.width
         height: m_root.height
@@ -82,15 +71,15 @@ Item {
             id: progress_pin
             property int localOffset: totalFrames > 0 ? (m_root.width / totalFrames) : 0
             padOffset: localOffset
-            triangle_width: 20
-            triangle_height: 20
+            triangle_width: 22
+            triangle_height: 22
             yOffset: -2
             value: 0.0
             enabled: parent.enabled
             onRequestNewValue: scrollTo(newValue)
             function scrollTo(newValue) {
-                if (newValue >= 1) {
-                    newValue = 1
+                if (newValue >= 0.999) {
+                    newValue = 0.999
                 } else if (newValue <= 0) {
                     newValue = 0
                 }
@@ -104,6 +93,9 @@ Item {
             description: totalFrames === 0 ? "" : ~~(value * totalFrames) + 1
             maximumX: m_end_pin.x - 3
             enabled: parent.enabled
+            onValueChanged: {
+                progress_pin.value = value
+            }
         }
         MPin {
             id: m_end_pin
@@ -111,6 +103,9 @@ Item {
             description: totalFrames === 0 ? "" : ~~(value * totalFrames) + 1
             minimumX: m_start_pin.x + 3
             enabled: parent.enabled
+            onValueChanged: {
+                progress_pin.value = value
+            }
         }
     }
 }

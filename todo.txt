@@ -6,6 +6,30 @@
 - write log files to disk
 
 
+Velocity Items TODO:
+- Data to Process pane:
+	-Plus to add button
+	-list items can be reordered
+	-scroll after ~5 items
+	-color on proceess (orange to green - current progress?)
+	-ignore frame clipping on multiple videos
+	-pixel calibration and ROI are same for multiple videos
+	-subtract sub button to remove a video (right)
+- Output pane: (check mac for notes on this)
+	- Choose output directory
+	- Process output video option
+- Wall Detection:
+	- Checkmark can turn on and off roi/scale
+	- adjustable number of ROI points, (try wide transparency region, larger dots)
+- Velocity Detection:
+	- Checkmark can turn on and off roi/scale
+	- blue velocity scale and roi
+- Please reference MAUI... with Icon
+- Integrate MATLAB via API with Ahmed for processing steps
+- Bump to v4, separate installer for trials
+
+
+
 
 Changes in the next release: v3.2
 - preview results of past processing when seeking back to old frames (on pause and after finished)

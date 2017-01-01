@@ -209,6 +209,14 @@ ApplicationWindow {
             Layout.leftMargin: Style.h_padding
             spacing: Style.v_padding * 4
 
+            MPaneInput {
+                id: inputPane
+                Layout.leftMargin: Style.h_padding
+                Layout.bottomMargin: Style.v_padding * 2
+                width: leftPanel.header_width
+                height: 100
+            }
+
             MSummaryPane {
                 id: summaryPane
                 Layout.leftMargin: Style.h_padding

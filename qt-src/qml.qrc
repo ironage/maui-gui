@@ -24,5 +24,6 @@
         <file>MFinishWindow.qml</file>
         <file>MProgressPin.qml</file>
         <file>MProgressHandle.qml</file>
+        <file>MPaneInput.qml</file>
     </qresource>
 </RCC>

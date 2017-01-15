@@ -20,50 +20,6 @@ ApplicationWindow {
     minimumHeight: 300
     title: "Measurements from Arterial Ultrasound Imaging (MAUI)"
 
-    FileDialog {
-        id: videoSelectDialog
-        title: "Select an input video"
-        onAccepted: {
-            m_video.source = fileUrl
-            remoteInterface.setLocalSetting("directory_in", folder)
-
-            var fullName = m_video.readSrcName + "." + m_video.readSrcExtension
-            summaryPane.fileName = fullName
-            import_video.defaultOutputName = m_video.readSrcName
-            logMetaData.inputFileName = fullName
-            logMetaData.inputFilePath = m_video.readSrcDir
-            videoOutputDialog.folder = folder
-        }
-        onVisibleChanged: {
-            if (visible) {
-                var previousFolder = remoteInterface.getLocalSetting("directory_in")
-                folder = previousFolder
-            }
-        }
-    }
-
-    FileDialog {
-        id: videoOutputDialog
-        property string outputDirectory: ""
-        selectFolder: true
-        title: "Select an output directory"
-        onAccepted: {
-            remoteInterface.setLocalSetting("directory_out", folder)
-            var simpleName = fileUrl.toString();
-            // unescape html codes like '%23' for '#'
-            simpleName = decodeURIComponent(simpleName);
-            var searchExpression = new RegExp("^((file:\\/{3})|(qrc:\\/{2})|(http:\\/{2}))(.*)", "g")
-            var match = searchExpression.exec(simpleName)
-            var directoryPath = match[5]
-            outputDirectory = directoryPath
-        }
-        onVisibleChanged: {
-            if (visible) {
-                var previousFolder = remoteInterface.getLocalSetting("directory_out")
-                folder = previousFolder
-            }
-        }
-    }
     MFinishWindow {
         id: videoOutputProgress
         onCanceled: {
@@ -103,7 +59,7 @@ ApplicationWindow {
         conversionUnits: calibration.units
         conversionPixels: m_video.video_height <= 0 ? 1 : (scale.mappedBottomValue - scale.mappedTopValue) / calibration.scale
         outputName: import_video.outputName === "" ? import_video.defaultOutputName : import_video.outputName
-        outputDir: videoOutputDialog.outputDirectory
+        outputDir: outputPane.outputDirectory
     }
 
     MLoginWindow {
@@ -217,6 +173,14 @@ ApplicationWindow {
                 height: 100
             }
 
+            MPaneOutput {
+                id: outputPane
+                Layout.leftMargin: Style.h_padding
+                Layout.bottomMargin: Style.v_padding * 2
+                width: leftPanel.header_width
+                height: 100
+            }
+
             MSummaryPane {
                 id: summaryPane
                 Layout.leftMargin: Style.h_padding
@@ -308,13 +272,13 @@ ApplicationWindow {
                                     id: open_video
                                     text: "Input Video"
                                     Layout.alignment: Qt.AlignCenter
-                                    onClicked: videoSelectDialog.open()
+                                    //onClicked: videoSelectDialog.open()
                                 }
                                 MButton {
                                     id: save_video
                                     text: "Output Directory"
                                     Layout.alignment: Qt.AlignCenter
-                                    onClicked: videoOutputDialog.open()
+                                    //onClicked: videoOutputDialog.open()
                                 }
                                 MText {
                                     text: "Output Title:"

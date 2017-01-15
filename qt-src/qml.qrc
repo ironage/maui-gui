@@ -25,5 +25,7 @@
         <file>MProgressPin.qml</file>
         <file>MProgressHandle.qml</file>
         <file>MPaneInput.qml</file>
+        <file>MPaneOutput.qml</file>
+        <file>MCheckbox.qml</file>
     </qresource>
 </RCC>

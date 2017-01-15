@@ -1,5 +1,6 @@
 import QtQuick 2.2
 import QtQuick.Layouts 1.1
+import QtQuick.Dialogs 1.2
 import "." // Custom Style
 
 Item {
@@ -74,6 +75,31 @@ Item {
             h_padding: 5
             v_padding: 0
             text: "+"
+            onClicked: {
+                videoSelectDialog.open()
+            }
+        }
+    }
+
+    FileDialog {
+        id: videoSelectDialog
+        title: "Select an input video"
+        onAccepted: {
+//            m_video.source = fileUrl
+//            remoteInterface.setLocalSetting("directory_in", folder)
+
+//            var fullName = m_video.readSrcName + "." + m_video.readSrcExtension
+//            summaryPane.fileName = fullName
+//            import_video.defaultOutputName = m_video.readSrcName
+//            logMetaData.inputFileName = fullName
+//            logMetaData.inputFilePath = m_video.readSrcDir
+//            videoOutputDialog.folder = folder
+        }
+        onVisibleChanged: {
+//            if (visible) {
+//                var previousFolder = remoteInterface.getLocalSetting("directory_in")
+//                folder = previousFolder
+//            }
         }
     }
 }

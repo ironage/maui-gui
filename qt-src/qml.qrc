@@ -27,5 +27,7 @@
         <file>MPaneInput.qml</file>
         <file>MPaneOutput.qml</file>
         <file>MCheckbox.qml</file>
+        <file>MPaneWallDetect.qml</file>
+        <file>MPaneVelocityDetect.qml</file>
     </qresource>
 </RCC>

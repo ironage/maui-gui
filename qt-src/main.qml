@@ -163,7 +163,7 @@ ApplicationWindow {
             Layout.alignment: Qt.AlignTop
             Layout.topMargin: Style.h_padding
             Layout.leftMargin: Style.h_padding
-            spacing: Style.v_padding * 4
+            spacing: Style.v_padding * 2
 
             MPaneInput {
                 id: inputPane
@@ -180,12 +180,27 @@ ApplicationWindow {
                 width: leftPanel.header_width
             }
 
+            MPaneWallDetect {
+                id: wallDetectionPane
+                Layout.leftMargin: Style.h_padding
+                Layout.bottomMargin: Style.v_padding * 2
+                width: leftPanel.header_width
+            }
+
+            MPaneVelocityDetect {
+                id: velocityDetectionPane
+                Layout.leftMargin: Style.h_padding
+                Layout.bottomMargin: Style.v_padding * 2
+                width: leftPanel.header_width
+            }
+
             MSummaryPane {
                 id: summaryPane
                 Layout.leftMargin: Style.h_padding
                 Layout.bottomMargin: Style.v_padding * 2
 
                 width: leftPanel.header_width
+                height: 35
                 startFrame: m_video_control.totalFrames === 0 ? "" : "" + (~~(m_video_control.start_percent * m_video_control.totalFrames) + 1)
                 endFrame: m_video_control.totalFrames === 0 ? "" : "" + (~~(m_video_control.end_percent * m_video_control.totalFrames) + 1)
                 scalePixelValue: m_video.video_height <= 0 ? "" : (scale.mappedBottomValue - scale.mappedTopValue)

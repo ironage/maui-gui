@@ -2,14 +2,8 @@ import QtQuick 2.0
 import QtQuick.Layouts 1.1
 import "."
 
-Rectangle {
+Item {
     id: m_root
-    border.width: Style.border_width
-    border.color: Style.ui_border_color
-    color: Style.ui_form_bg2
-
-    // ColumnLayout doesn't work with dynamic eliding text
-    height: childrenRect.height + 2 * Style.v_padding
 
     property string fileName: ""
     property string startFrame: ""
@@ -25,10 +19,6 @@ Rectangle {
     signal playClicked()
     signal continueClicked()
     signal pauseClicked()
-
-    onFileNameChanged: {
-        height: childrenRect.height
-    }
 
     function pauseIfPlaying() {
         if (start.state === "playing") {
@@ -47,57 +37,10 @@ Rectangle {
         }
     }
 
-    MText {
-        id: nameText
-        x: leftMarginPadding
-        y: Style.v_padding
-        width: m_root.width - 2 * leftMarginPadding
-        text: "File: " + fileName
-        elide: Text.ElideRight
-        wrapMode: Text.WrapAnywhere
-        maximumLineCount: 6
-        style: Text.Normal
-        color: Style.ui_color_dark_dblue
-    }
-
-    MText {
-        id: startFrameText
-        text: "Start Frame: " + startFrame
-        Layout.leftMargin: leftMarginPadding
-        style: Text.Normal
-        color: Style.ui_color_dark_dblue
-        anchors.top: nameText.bottom
-        anchors.topMargin: Style.v_padding
-        anchors.left: nameText.left
-    }
-    MText {
-        id: endFrameText
-        text: "End Frame: " + endFrame
-        style: Text.Normal
-        color: Style.ui_color_dark_dblue
-        anchors.top: startFrameText.bottom
-        anchors.topMargin: Style.v_padding
-        anchors.left: startFrameText.left
-    }
-    MText {
-        id: scaleText
-        text: scalePixelValue === 0 ? "Scale: " : "Scale: " + getDouble(scaleComputedValue) + " pixels/" + scaleUnitString
-        style: Text.Normal
-        color: Style.ui_color_dark_dblue
-        anchors.top: endFrameText.bottom
-        anchors.topMargin: Style.v_padding
-        anchors.left: endFrameText.left
-        function getDouble(x){
-          return x.toFixed(2).replace(/\.?0*$/,'');
-        }
-    }
-
     MButton {
         id: start
         text: "Start"
-        anchors.top: scaleText.bottom
-        anchors.topMargin: Style.v_padding
-        anchors.horizontalCenter: m_root.horizontalCenter
+        anchors.fill: parent
         state: "not_ready"
         onClicked: {
             if (state === "ready") {

@@ -178,7 +178,6 @@ ApplicationWindow {
                 Layout.leftMargin: Style.h_padding
                 Layout.bottomMargin: Style.v_padding * 2
                 width: leftPanel.header_width
-                height: 100
             }
 
             MSummaryPane {

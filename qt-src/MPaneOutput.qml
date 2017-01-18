@@ -46,6 +46,13 @@ Item {
             text: "Data To Save"
         }
     }
+    Rectangle {
+        id: enabledCover
+        anchors.fill: parent
+        color: Style.ui_color_light_grey
+        opacity: 0.8
+        visible: !parent.enabled
+    }
 
     FileDialog {
         id: videoOutputDialog

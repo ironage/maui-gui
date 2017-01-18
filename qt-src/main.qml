@@ -10,6 +10,7 @@ import "."
 import com.maui.custom 1.0  // MPoint, MRemoteInterface
 
 ApplicationWindow {
+    id: window
     visible: true
     //visibility: "FullScreen"
     color: Style.ui_form_bg
@@ -19,6 +20,7 @@ ApplicationWindow {
     minimumWidth: 400
     minimumHeight: 300
     title: "Measurements from Arterial Ultrasound Imaging (MAUI)"
+    property bool controlsEnabled: true
 
     MFinishWindow {
         id: videoOutputProgress
@@ -105,9 +107,7 @@ ApplicationWindow {
         }
         onMultipleSessionsDetected: {
             summaryPane.pauseIfPlaying()
-            calibration.enable()
-            import_video.enable()
-            wall_detection.enable()
+            window.controlsEnabled = true
             requiresVerifyOnContinue = true
 
             loginWindow.preset("", "")
@@ -118,9 +118,7 @@ ApplicationWindow {
             if (!doneInitialVerify) {
                 doneInitialVerify = true
 
-                calibration.disable()
-                import_video.disable()
-                wall_detection.disable()
+                window.controlsEnabled = false
                 roi.visible = true
                 roi.adjustable = false
 
@@ -139,6 +137,10 @@ ApplicationWindow {
         onValidationNewVersionAvailable: {
             newVersionMessage.show()
             summaryPane.setStartState("ready")
+        }
+        Component.onCompleted: {
+            var previousFolder = remoteInterface.getLocalSetting("directory_in")
+            inputPane.setFolder(previousFolder)
         }
     }
     Timer {
@@ -171,6 +173,17 @@ ApplicationWindow {
                 Layout.bottomMargin: Style.v_padding * 2
                 width: leftPanel.header_width
                 height: 100
+                enabled: window.controlsEnabled
+                onVideoSelected: {
+                    m_video.source = path
+                    remoteInterface.setLocalSetting("directory_in", folder)
+
+                    var fullName = m_video.readSrcName + "." + m_video.readSrcExtension
+                    summaryPane.fileName = fullName
+                    logMetaData.inputFileName = fullName
+                    logMetaData.inputFilePath = m_video.readSrcDir
+                    addFile(path, folder, fullName)
+                }
             }
 
             MPaneOutput {
@@ -178,6 +191,7 @@ ApplicationWindow {
                 Layout.leftMargin: Style.h_padding
                 Layout.bottomMargin: Style.v_padding * 2
                 width: leftPanel.header_width
+                enabled: window.controlsEnabled
             }
 
             MPaneWallDetect {
@@ -185,6 +199,7 @@ ApplicationWindow {
                 Layout.leftMargin: Style.h_padding
                 Layout.bottomMargin: Style.v_padding * 2
                 width: leftPanel.header_width
+                enabled: window.controlsEnabled
             }
 
             MPaneVelocityDetect {
@@ -192,6 +207,7 @@ ApplicationWindow {
                 Layout.leftMargin: Style.h_padding
                 Layout.bottomMargin: Style.v_padding * 2
                 width: leftPanel.header_width
+                enabled: window.controlsEnabled
             }
 
             MSummaryPane {
@@ -208,9 +224,7 @@ ApplicationWindow {
                 scaleUnitString: calibration.units
 
                 function doContinue() {
-                    calibration.disable()
-                    import_video.disable()
-                    wall_detection.disable()
+                    window.controlsEnabled = false
                     roi.visible = true
                     roi.adjustable = false
 
@@ -232,9 +246,7 @@ ApplicationWindow {
                     }
                 }
                 onPauseClicked: {
-                    calibration.enable()
-                    import_video.enable()
-                    wall_detection.enable()
+                    window.controlsEnabled = true
                     roi.visible = false
                     wall_detection.open()
                     m_video.pause()
@@ -464,9 +476,7 @@ ApplicationWindow {
                 }
 
                 onVideoFinished: {
-                    calibration.enable()
-                    import_video.enable()
-                    wall_detection.enable()
+                    window.controlsEnabled = true
                     if (state === 0) { // MCVPlayer.SUCCESS
                         summaryPane.setStartState("ready")
                         videoFinishedSuccess.show()

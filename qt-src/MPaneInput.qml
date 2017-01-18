@@ -7,15 +7,18 @@ Item {
     id: root
     ListModel {
         id: contacts
-        ListElement {
-            name: "name1.avi"
-            path: "path/to/video/"
-        }
-        ListElement {
-            name: "name2.avi"
-            path: "path/to/video2/"
-        }
     }
+
+    signal videoSelected(string path, string folder);
+
+    function addFile(fullUrl, folder, displayName) {
+        contacts.append({"name": displayName, "path": fullUrl, "folder": folder})
+        videoSelectDialog.folder = folder
+    }
+    function setFolder(folder) {
+        videoSelectDialog.folder = folder
+    }
+
     Rectangle {
         id: background
         border.width: Style.border_width
@@ -80,26 +83,19 @@ Item {
             }
         }
     }
+    Rectangle {
+        id: enabledCover
+        anchors.fill: parent
+        color: Style.ui_color_light_grey
+        opacity: 0.8
+        visible: !parent.enabled
+    }
 
     FileDialog {
         id: videoSelectDialog
         title: "Select an input video"
         onAccepted: {
-//            m_video.source = fileUrl
-//            remoteInterface.setLocalSetting("directory_in", folder)
-
-//            var fullName = m_video.readSrcName + "." + m_video.readSrcExtension
-//            summaryPane.fileName = fullName
-//            import_video.defaultOutputName = m_video.readSrcName
-//            logMetaData.inputFileName = fullName
-//            logMetaData.inputFilePath = m_video.readSrcDir
-//            videoOutputDialog.folder = folder
-        }
-        onVisibleChanged: {
-//            if (visible) {
-//                var previousFolder = remoteInterface.getLocalSetting("directory_in")
-//                folder = previousFolder
-//            }
+            videoSelected(fileUrl, folder)
         }
     }
 }

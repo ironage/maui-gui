@@ -6,13 +6,6 @@ Item {
     id: m_root
 
     property string fileName: ""
-    property string startFrame: ""
-    property string endFrame: ""
-    property string scaleString: ""
-    property int scalePixelValue: 0
-    property double scaleDistanceValue: 1
-    property double scaleComputedValue: scalePixelValue / scaleDistanceValue
-    property string scaleUnitString: "cm"
     property int leftMarginPadding: Style.h_padding
     property bool isPlaying: start.state === "playing"
 

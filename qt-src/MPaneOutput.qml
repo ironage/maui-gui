@@ -8,6 +8,7 @@ Item {
     id: root
     height: outputVideoCheckbox.height + saveVideo.height + header.height + (3 * Style.v_padding)
     property alias outputDirectory: videoOutputDialog.outputDirectory
+    property alias processOutputVideo: outputVideoCheckbox.checked
     Rectangle {
         id: background
         border.width: Style.border_width

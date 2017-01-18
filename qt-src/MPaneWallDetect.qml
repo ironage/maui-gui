@@ -6,6 +6,10 @@ import "." // Custom Style
 Item {
     id: root
     height: scaleInput.height + header.height + (2 * Style.v_padding)
+    property alias conversionUnits: scaleUnits.currentText
+    property string scale: scaleInput.acceptableInput ? scaleInput.text : 1
+    property alias checked: enabledCheckbox.checked
+
     Rectangle {
         id: background
         border.width: Style.border_width
@@ -57,7 +61,7 @@ Item {
             text: "Wall Detection"
         }
         MCheckbox {
-            id: velocityEnabledCheckbox
+            id: enabledCheckbox
             text: ""
             checkboxWidth: header.height - (2 * Style.border_width)
             checkboxHeight: checkboxWidth

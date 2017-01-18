@@ -58,9 +58,9 @@ ApplicationWindow {
 
     MLogMetaData {
         id: logMetaData
-        conversionUnits: calibration.units
-        conversionPixels: m_video.video_height <= 0 ? 1 : (scale.mappedBottomValue - scale.mappedTopValue) / calibration.scale
-        outputName: import_video.outputName === "" ? import_video.defaultOutputName : import_video.outputName
+        conversionUnits: wallDetectionPane.conversionUnits
+        conversionPixels: m_video.video_height <= 0 ? 1 : (scale.mappedBottomValue - scale.mappedTopValue) / wallDetectionPane.scale
+        //outputName: import_video.outputName === "" ? import_video.defaultOutputName : import_video.outputName
         outputDir: outputPane.outputDirectory
     }
 
@@ -119,8 +119,6 @@ ApplicationWindow {
                 doneInitialVerify = true
 
                 window.controlsEnabled = false
-                roi.visible = true
-                roi.adjustable = false
 
                 m_video.play()
                 summaryPane.setStartState("playing")
@@ -162,6 +160,8 @@ ApplicationWindow {
         anchors.fill: parent
         spacing: 1
         Column {
+            id: leftPanel
+            property int headerWidth: 220
             Layout.alignment: Qt.AlignTop
             Layout.topMargin: Style.h_padding
             Layout.leftMargin: Style.h_padding
@@ -171,7 +171,7 @@ ApplicationWindow {
                 id: inputPane
                 Layout.leftMargin: Style.h_padding
                 Layout.bottomMargin: Style.v_padding * 2
-                width: leftPanel.header_width
+                width: leftPanel.headerWidth
                 height: 100
                 enabled: window.controlsEnabled
                 onVideoSelected: {
@@ -190,7 +190,7 @@ ApplicationWindow {
                 id: outputPane
                 Layout.leftMargin: Style.h_padding
                 Layout.bottomMargin: Style.v_padding * 2
-                width: leftPanel.header_width
+                width: leftPanel.headerWidth
                 enabled: window.controlsEnabled
             }
 
@@ -198,7 +198,7 @@ ApplicationWindow {
                 id: wallDetectionPane
                 Layout.leftMargin: Style.h_padding
                 Layout.bottomMargin: Style.v_padding * 2
-                width: leftPanel.header_width
+                width: leftPanel.headerWidth
                 enabled: window.controlsEnabled
             }
 
@@ -206,7 +206,7 @@ ApplicationWindow {
                 id: velocityDetectionPane
                 Layout.leftMargin: Style.h_padding
                 Layout.bottomMargin: Style.v_padding * 2
-                width: leftPanel.header_width
+                width: leftPanel.headerWidth
                 enabled: window.controlsEnabled
             }
 
@@ -215,18 +215,11 @@ ApplicationWindow {
                 Layout.leftMargin: Style.h_padding
                 Layout.bottomMargin: Style.v_padding * 2
 
-                width: leftPanel.header_width
+                width: leftPanel.headerWidth
                 height: 35
-                startFrame: m_video_control.totalFrames === 0 ? "" : "" + (~~(m_video_control.start_percent * m_video_control.totalFrames) + 1)
-                endFrame: m_video_control.totalFrames === 0 ? "" : "" + (~~(m_video_control.end_percent * m_video_control.totalFrames) + 1)
-                scalePixelValue: m_video.video_height <= 0 ? "" : (scale.mappedBottomValue - scale.mappedTopValue)
-                scaleDistanceValue: calibration.scale
-                scaleUnitString: calibration.units
 
                 function doContinue() {
                     window.controlsEnabled = false
-                    roi.visible = true
-                    roi.adjustable = false
 
                     m_video.continueProcessing();
                 }
@@ -234,7 +227,7 @@ ApplicationWindow {
                 onPlayClicked: {
                     remoteInterface.doneInitialVerify = false
                     remoteInterface.validateWithExistingCredentials()
-                    m_video.doProcessOutputVideo = import_video.doProcessOutputVideo
+                    m_video.doProcessOutputVideo = outputPane.processOutputVideo
                 }
                 onContinueClicked: {
                     if (remoteInterface.requiresVerifyOnContinue) {
@@ -247,196 +240,7 @@ ApplicationWindow {
                 }
                 onPauseClicked: {
                     window.controlsEnabled = true
-                    roi.visible = false
-                    wall_detection.open()
                     m_video.pause()
-                }
-            }
-            Rectangle {
-                id: leftPanel
-                property int body_v_padding: Style.v_padding
-                property int header_width: 220
-
-                height: childrenRect.height
-                width: header_width
-                color: Style.ui_form_bg
-                Layout.minimumWidth: header_width
-                Layout.leftMargin: Style.h_padding
-                //anchors.verticalCenter: parent.verticalCenter
-                ColumnLayout {
-                    MExpander {
-                        id: import_video
-                        title: "Step 1: Select Input"
-                        property string outputName: loader_item.outputName
-                        property string defaultOutputName: "output name"
-                        property bool doProcessOutputVideo: loader_item.doProcessOutputVideo
-                        onDoProcessOutputVideoChanged: {
-                            m_video.doProcessOutputVideo = doProcessOutputVideo
-                        }
-                        onDefaultOutputNameChanged: {
-                            loader_item.defaultName = defaultOutputName
-                            loader_item.outputName = defaultOutputName
-                        }
-
-                        override_width: leftPanel.header_width
-                        onOpened: {
-                            calibration.close()
-                            wall_detection.close()
-                        }
-                        payload: Item {
-                            width: childrenRect.width
-                            height: childrenRect.height
-                            property alias outputName: outputTextInput.text
-                            property string defaultName: "output name"
-                            property alias doProcessOutputVideo: processVideoCheckBox.checked
-                            ColumnLayout {
-                                Item {
-                                    width: parent.width
-                                    height: leftPanel.body_v_padding
-                                }
-                                MButton {
-                                    id: open_video
-                                    text: "Input Video"
-                                    Layout.alignment: Qt.AlignCenter
-                                    //onClicked: videoSelectDialog.open()
-                                }
-                                MButton {
-                                    id: save_video
-                                    text: "Output Directory"
-                                    Layout.alignment: Qt.AlignCenter
-                                    //onClicked: videoOutputDialog.open()
-                                }
-                                MText {
-                                    text: "Output Title:"
-                                    style: Text.Normal
-                                    color: Style.ui_color_dark_dblue
-                                    Layout.alignment: Qt.AlignCenter
-                                }
-                                MTextInput {
-                                    id: outputTextInput
-                                    text: ""
-                                    width: 168
-                                    placeholderText: defaultName
-                                    borderColor: Style.ui_component_highlight
-                                    horizontalAlignment: TextInput.AlignHCenter
-                                }
-                                CheckBox {
-                                    id: processVideoCheckBox
-                                    checked: true
-                                    text: "Output video results"
-                                }
-                                Item {
-                                    width: parent.width
-                                    height: leftPanel.body_v_padding
-                                }
-                            }
-                        }
-                    }
-                    MExpander {
-                        id: calibration
-                        title: "Step 2: Calibration"
-                        override_width: leftPanel.header_width
-                        anchors.top: import_video.bottom
-                        property string scale: loader_item.scale
-                        property string units: loader_item.units
-                        onOpened: {
-                            wall_detection.close()
-                            import_video.close()
-                            scale.visible = true
-                        }
-                        onClosed: {
-                            scale.visible = false
-                        }
-                        MouseArea { anchors.fill: parent; onClicked: { loader_item.focused = false } }
-
-                        payload: Item {
-                            width: childrenRect.width
-                            height: childrenRect.height
-                            property string scale: scale_input.acceptableInput ? scale_input.text : 1
-                            property alias units: scale_units.currentText
-
-                            ColumnLayout {
-                                Item {
-                                    width: parent.width
-                                    height: leftPanel.body_v_padding
-                                }
-                                MTextInput {
-                                    id: scale_input
-                                    text: "1"
-                                    width: 128
-                                    placeholderText: "Scale"
-                                    borderColor: acceptableInput ? Style.ui_component_highlight : Style.ui_color_light_red
-                                    validator: DoubleValidator{bottom: 0.0001; top: 999.0; decimals: 4; notation: DoubleValidator.StandardNotation}
-                                    horizontalAlignment: TextInput.AlignHCenter
-                                }
-                                MCombobox {
-                                    id: scale_units
-                                    width: 50
-                                    model: ListModel {
-                                        id: cbItems
-                                        ListElement { text: "cm"; }
-                                        ListElement { text: "mm"; }
-                                        ListElement { text: "in"; }
-                                    }
-                                }
-                                Item {
-                                    width: parent.width
-                                    height: leftPanel.body_v_padding
-                                }
-                            }
-                        }
-                    }
-                    MExpander {
-                        id: wall_detection
-                        title: "Step 3: Wall Detection"
-                        override_width: leftPanel.header_width
-                        anchors.top: calibration.bottom
-                        onOpened: {
-                            calibration.close()
-                            import_video.close()
-                            roi.updateLines()
-                            roi.visible = true
-                            roi.adjustable = true
-                        }
-                        onClosed: {
-                            roi.visible = false
-                        }
-
-                        payload: Item {
-                            width: childrenRect.width
-                            height: childrenRect.height
-                            ColumnLayout {
-                                Item {
-                                    width: parent.width
-                                    height: leftPanel.body_v_padding
-                                }
-                                MText {
-                                    text: "ROI x: " + Math.round(roi.mappedXY.x)
-                                    style: Text.Normal
-                                    color: Style.ui_color_dark_dblue
-                                }
-                                MText {
-                                    text: "ROI y: " + Math.round(roi.mappedXY.y)
-                                    style: Text.Normal
-                                    color: Style.ui_color_dark_dblue
-                                }
-                                MText {
-                                    text: "ROI width: " + Math.round(roi.mappedWH.x)
-                                    style: Text.Normal
-                                    color: Style.ui_color_dark_dblue
-                                }
-                                MText {
-                                    text: "ROI height: " + Math.round(roi.mappedWH.y)
-                                    style: Text.Normal
-                                    color: Style.ui_color_dark_dblue
-                                }
-                                Item {
-                                    width: parent.width
-                                    height: leftPanel.body_v_padding
-                                }
-                            }
-                        }
-                    }
                 }
             }
         }
@@ -485,7 +289,6 @@ ApplicationWindow {
                         videoFinishedError.text = "Could not find initial points on the start frame!"
                         videoFinishedError.informativeText = "Try adjusting the region of interest."
                         videoFinishedError.show()
-                        wall_detection.open()
                     } else {
                         summaryPane.setStartState("ready")
                         console.log("unhandled state when video finished: " + state)
@@ -513,7 +316,8 @@ ApplicationWindow {
                 }
                 MROI {
                     id: roi
-                    visible: false
+                    visible: wallDetectionPane.checked && (m_video.source !== "")
+                    adjustable: !summaryPane.isPlaying
                     // Note: ROI will be reinitialzed to center when parent
                     // changes size, not sure if this is desirable or not
                     property int initialSize: 200
@@ -584,8 +388,8 @@ ApplicationWindow {
 
                 MScaleAdjuster {
                     id: scale
-                    visible: false
-                    text: calibration.scale + " " + calibration.units
+                    visible: wallDetectionPane.checked && (m_video.source !== "")
+                    text: wallDetectionPane.scale + " " + wallDetectionPane.conversionUnits
                     Timer {
                         // This is because the hValue of each component in the scale
                         // depends on each other and by the time the window maximizes to the

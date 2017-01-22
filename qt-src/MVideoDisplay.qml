@@ -47,6 +47,9 @@ Item {
     function pause() {
         cv_player.pause()
     }
+    function forceROIRefresh() {
+        cv_player.forceROIRefresh()
+    }
 
     onProgress_minChanged: {
         cv_player.setStartFrame(progress_min * (cv_player.duration - 1));

@@ -172,11 +172,14 @@ ApplicationWindow {
                 Layout.leftMargin: Style.h_padding
                 Layout.bottomMargin: Style.v_padding * 2
                 width: leftPanel.headerWidth
-                height: 100
+                height: 150
                 enabled: window.controlsEnabled
                 onVideoSelected: {
                     m_video.source = path
                     remoteInterface.setLocalSetting("directory_in", folder)
+                }
+                onDisplayVideo: {
+                    m_video.source = path
                 }
             }
 
@@ -253,6 +256,7 @@ ApplicationWindow {
                 onProgressChanged: {
                     if (summaryPane.isPlaying) {
                         m_video_control.moveTo(progress)
+                        inputPane.setCurrentProgress(progress)
                     }
                 }
                 onWidthChanged: {
@@ -263,11 +267,15 @@ ApplicationWindow {
                     roi.parentLayoutChanged()
                     scale.parentLayoutChanged()
                 }
+                property bool firstLoad: true
                 onSourceChanged: {
                     summaryPane.setStartState("ready")
                     m_video_control.end_percent = 1
                     m_video_control.start_percent = 0 // do this last so cur frame is start
-                    roi.reInitToCenter()
+                    if (firstLoad) {
+                        roi.reInitToCenter()
+                    }
+                    firstLoad = false
                 }
                 onVideoRectChanged: {
                     scale.initializeMappedPoints(m_video.width, m_video.height)
@@ -280,8 +288,10 @@ ApplicationWindow {
                         logMetaData.inputFilePath = dir
                         inputPane.addFile(success, fullName, dir, readableName)
                     }
+                    roi.recomputeMappedPoints()
+                    roi.parentLayoutChanged()
+                    //forceROIRefresh()
                 }
-
                 onVideoFinished: {
                     window.controlsEnabled = true
                     if (state === 0) { // MCVPlayer.SUCCESS
@@ -321,8 +331,6 @@ ApplicationWindow {
                     id: roi
                     visible: wallDetectionPane.checked && (m_video.source !== "")
                     adjustable: !summaryPane.isPlaying
-                    // Note: ROI will be reinitialzed to center when parent
-                    // changes size, not sure if this is desirable or not
                     property int initialSize: 200
                     roiX: ~~(parent.width/2) - (initialSize/2)
                     roiY: ~~(parent.height/2) - (initialSize/2)
@@ -388,7 +396,6 @@ ApplicationWindow {
                     id: line2
                     visible: roi.visible && roi.adjustable
                 }
-
                 MScaleAdjuster {
                     id: scale
                     visible: wallDetectionPane.checked && (m_video.source !== "")

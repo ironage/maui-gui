@@ -153,7 +153,7 @@ void CameraTask::doWork()
         //Assuming desktop, RGB camera image and RGBA QVideoFrame
         if(videoFrame) {
             cv::Mat tempMat(height, width, CV_8UC3, cameraFrame);
-            cv::Mat roiSection = tempMat(getCVROI());  // TODO: check if leaked
+            cv::Mat roiSection = tempMat(getCVROI());
             cv::cvtColor(roiSection, roiSection, CV_BGR2GRAY);
             std::unique_ptr<mwArray> matlabROI(opencvConvertToMX(roiSection));
 
@@ -300,6 +300,13 @@ void CameraTask::setROI(QRect newROI)
     }
 }
 
+void CameraTask::refreshROIOnCurFrame()
+{
+    if (curPlayState == PlayState::Paused) {
+        curPlayState = PlayState::AutoInitCurFrame;
+    }
+}
+
 void CameraTask::setRecomputeROIMode(bool mode)
 {
     autoRecomputeROI = mode;
@@ -340,10 +347,10 @@ void CameraTask::notifyInitPoints(mwArray topWall, mwArray bottomWall, QPoint of
         delete [] bottomData;
     }
 
-//    qDebug() << "top wall: " << topWall.ToString();
-//    qDebug() << "bottom wall: " << bottomWall.ToString();
-//    qDebug() << "converted top: " << topPoints;
-//    qDebug() << "converted bottom: " << bottomPoints;
+    qDebug() << "top wall: " << topWall.ToString();
+    qDebug() << "bottom wall: " << bottomWall.ToString();
+    qDebug() << "converted top: " << topPoints;
+    qDebug() << "converted bottom: " << bottomPoints;
     emit initPointsDetected(topPoints, bottomPoints);
 }
 
@@ -512,6 +519,7 @@ MCameraThread::MCameraThread(MVideoCapture* camera, QVideoFrame* videoFrame, uns
     connect(this, SIGNAL(setStartFrame(int)), task, SLOT(setStartFrame(int)), Qt::QueuedConnection);
     connect(this, SIGNAL(setEndFrame(int)), task, SLOT(setEndFrame(int)), Qt::QueuedConnection);
     connect(this, SIGNAL(setROI(QRect)), task, SLOT(setROI(QRect)), Qt::QueuedConnection);
+    connect(this, SIGNAL(forceROIRefresh()), task, SLOT(refreshROIOnCurFrame()), Qt::QueuedConnection);
     connect(this, SIGNAL(setRecomputeROIMode(bool)), task, SLOT(setRecomputeROIMode(bool)), Qt::QueuedConnection);
     connect(this, SIGNAL(setLogMetaData(MLogMetaData)), task, SLOT(setLogMetaData(MLogMetaData)), Qt::QueuedConnection);
     connect(this, SIGNAL(continueProcessing()), task, SLOT(continueProcessing()), Qt::QueuedConnection);
@@ -571,6 +579,11 @@ void MCameraThread::doSetEndFrame(int frameNumber)
 void MCameraThread::doSetROI(QRect roi)
 {
     emit setROI(roi);
+}
+
+void MCameraThread::doForceROIRefresh()
+{
+    emit forceROIRefresh();
 }
 
 void MCameraThread::doSetRecomputeROIMode(bool mode)

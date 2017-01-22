@@ -5,23 +5,32 @@ import "." // Custom Style
 
 Item {
     id: root
+    clip: true
     property bool isLoadingNewVideos: false
     ListModel {
-        id: contacts
+        id: listModel
     }
     property var errorFiles: []
 
     signal videoSelected(string path, string folder);
+    signal displayVideo(string path)
 
     function addFile(success, fullUrl, folder, displayName) {
         if (success) {
-            contacts.append({"name": displayName, "path": fullUrl, "folder": folder})
+            listModel.append({"name": displayName, "path": fullUrl, "folder": folder, "percentComplete": 0.0})
+            listView.currentIndex = listModel.count - 1
         } else {
             errorFiles.push(displayName)
         }
     }
     function setFolder(folder) {
         videoSelectDialog.folder = folder
+    }
+    function setCurrentProgress(progress) {
+        if (listView.currentIndex < listModel.count) {
+            listModel.get(listView.currentIndex).percentComplete = progress
+            console.log("setting progress: " + progress + " new percent: " + listModel.get(listView.currentIndex).percentComplete)
+        }
     }
 
     Rectangle {
@@ -31,31 +40,56 @@ Item {
         color: Style.ui_form_bg2
         anchors.fill: parent
         ListView {
+            id: listView
             anchors.top: header.bottom
             anchors.left: header.left
             anchors.right: header.right
             anchors.bottom: add.top
             anchors.leftMargin: Style.border_width
             anchors.rightMargin: Style.border_width
+            spacing: 2
             Component {
                 id: contactsDelegate
                 Rectangle {
                     id: wrapper
                     anchors.left: parent.left
                     anchors.right: parent.right
-                    height: contactInfo.height
-                    border.width: Style.border_width
-                    border.color: Style.ui_border_color
-                    color: Style.ui_color_light_grey
-                    //color: ListView.isCurrentItem ? "black" : "red"
+                    height: contactInfo.height + Style.v_padding
+                    color: Style.ui_color_silver
+                    clip: true
+                    border.width: ListView.isCurrentItem ? Style.border_width : 0
+                    border.color: Style.ui_color_dark_green
+
+                    Rectangle {
+                        id: progress
+                        anchors.left: wrapper.left
+                        anchors.top: wrapper.top
+                        anchors.bottom: wrapper.bottom
+                        color: Style.ui_color_dark_green
+                        width: percentComplete * wrapper.width
+                    }
                     MText {
                         id: contactInfo
                         text: name
-                        //color: wrapper.ListView.isCurrentItem ? "red" : "black"
+                        style: Text.Normal
+                        color: Style.ui_color_dark_dblue
+                        anchors.left: wrapper.left
+                        anchors.leftMargin: Style.h_padding
+                        anchors.verticalCenter: wrapper.verticalCenter
+                    }
+                    MouseArea {
+                        anchors.fill: parent
+                        onClicked: {
+                            if (listView.currentIndex !== index) {
+                                listView.currentIndex = index
+                                console.log("clicked item: " + path)
+                                root.displayVideo(path)
+                            }
+                        }
                     }
                 }
             }
-            model: contacts
+            model: listModel
             delegate: contactsDelegate
             focus: true
         }
@@ -104,10 +138,10 @@ Item {
             root.isLoadingNewVideos = true
             for (var i = 0; i < fileUrls.length; i++) {
                 var found = false
-                for (var c = 0; c < contacts.count; c++) {
+                for (var c = 0; c < listModel.count; c++) {
                     // use indexOf to find duplicate entries since the
                     // "file://" prefix has been removed from loaded files
-                    if (fileUrls[i].toString().indexOf(contacts.get(c).path) !== -1) {
+                    if (fileUrls[i].toString().indexOf(listModel.get(c).path) !== -1) {
                         found = true
                         console.log("found duplicate entry at position " + c + " name: " + fileUrls[i])
                         break;

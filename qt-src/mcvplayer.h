@@ -29,6 +29,7 @@ class MCVPlayer : public QObject
 {
     Q_OBJECT
     Q_PROPERTY(QString sourceFile READ getSourceFile WRITE setSourceFile NOTIFY sourceChanged)
+    Q_PROPERTY(QUrl sourceUrl READ getSourceUrl NOTIFY sourceUpdated)
     Q_PROPERTY(QString sourceDir READ getSourceDir NOTIFY sourceUpdated)
     Q_PROPERTY(QString sourceName READ getSourceName NOTIFY sourceUpdated)
     Q_PROPERTY(QString sourceExtension READ getSourceExtension NOTIFY sourceUpdated)
@@ -53,6 +54,7 @@ public:
 public slots:
     void onNewVideoContentReceived(const QVideoFrame &frame);
     QString getSourceFile() { return sourceFile; }
+    QUrl getSourceUrl() { return sourceUrl; }
     void setSourceFile(QString file);
     QString getSourceDir() { return QFileInfo(sourceUrl.toLocalFile()).dir().absolutePath(); }
     QString getSourceExtension() { return QFileInfo(sourceUrl.fileName()).suffix(); }
@@ -63,6 +65,7 @@ public slots:
     int getCurFrame() { return curFrame; }
     QRect getROI() { return roi; }
     void setROI(const QRect& newROI);
+    void forceROIRefresh();
     bool getRecomputeROIMode() { return recomputeROIMode; }
     void setRecomputeROIMode(bool mode);
     void setCurFrame(int newFrame);
@@ -96,7 +99,7 @@ signals:
     void logDataChanged();
     void sourceUpdated();
     void processOutputVideoChanged();
-    void videoLoaded(bool success, QString fullName, QString name, QString extension, QString dir);
+    void videoLoaded(bool success, QUrl fullName, QString name, QString extension, QString dir);
 private:
 
 #ifdef ANDROID

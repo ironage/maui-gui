@@ -70,6 +70,14 @@ void MCVPlayer::setROI(const QRect &newROI)
     }
 }
 
+void MCVPlayer::forceROIRefresh()
+{
+    QMutexLocker locker(&lock);
+    if (thread) {
+        thread->doForceROIRefresh();
+    }
+}
+
 void MCVPlayer::setRecomputeROIMode(bool mode)
 {
     if (recomputeROIMode != mode) {
@@ -175,10 +183,10 @@ void MCVPlayer::update()
             emit sourceUpdated();
             seek(0);
             qDebug() << "Opened file: " << sourceFile;
-            emit videoLoaded(true, sourceFile, getSourceName(), getSourceExtension(), getSourceDir());
+            emit videoLoaded(true, sourceUrl, getSourceName(), getSourceExtension(), getSourceDir());
         } else {
             qDebug() << "Could not open video file: " << sourceFile;
-            emit videoLoaded(false, sourceFile, getSourceName(), getSourceExtension(), getSourceDir());
+            emit videoLoaded(false, sourceUrl, getSourceName(), getSourceExtension(), getSourceDir());
         }
     }
     catch(int e) {

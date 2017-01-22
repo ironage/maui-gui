@@ -94,6 +94,7 @@ public slots:
     void setStartFrame(int frameNumber);
     void setEndFrame(int frameNumber);
     void setROI(QRect newROI);
+    void refreshROIOnCurFrame();
     void setRecomputeROIMode(bool mode);
     void setLogMetaData(MLogMetaData data);
     void setProcessOutputVideo(bool doProcess);
@@ -131,6 +132,7 @@ public:
     void doSetStartFrame(int frameNumber);
     void doSetEndFrame(int frameNumber);
     void doSetROI(QRect roi);
+    void doForceROIRefresh();
     void doSetRecomputeROIMode(bool mode);
     void doSetLogMetaData(MLogMetaData m);
     void doSetProcessOutputVideo(bool process);
@@ -148,6 +150,7 @@ signals:
     void setStartFrame(int frameNumber);
     void setEndFrame(int frameNumber);
     void setROI(QRect roi);
+    void forceROIRefresh();
     void setRecomputeROIMode(bool mode);
     void setLogMetaData(MLogMetaData d);
     void setProcessOutputVideo(bool process);

@@ -96,6 +96,7 @@ signals:
     void logDataChanged();
     void sourceUpdated();
     void processOutputVideoChanged();
+    void videoLoaded(bool success, QString fullName, QString name, QString extension, QString dir);
 private:
 
 #ifdef ANDROID

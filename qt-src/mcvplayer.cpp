@@ -135,7 +135,9 @@ void MCVPlayer::update()
     QMutexLocker locker(&lock);
     //Destroy old thread, camera accessor and buffers
     delete thread;
+    thread = NULL;
     delete camera;
+    camera = NULL;
     if(videoFrame && videoFrame->isMapped())
         videoFrame->unmap();
     delete videoFrame;
@@ -173,11 +175,13 @@ void MCVPlayer::update()
             emit sourceUpdated();
             seek(0);
             qDebug() << "Opened file: " << sourceFile;
-        }
-        else
+            emit videoLoaded(true, sourceFile, getSourceName(), getSourceExtension(), getSourceDir());
+        } else {
             qDebug() << "Could not open video file: " << sourceFile;
+            emit videoLoaded(false, sourceFile, getSourceName(), getSourceExtension(), getSourceDir());
+        }
     }
-    catch(int e){
+    catch(int e) {
         qDebug() << "Exception" << e;
     }
 }

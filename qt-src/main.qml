@@ -177,12 +177,6 @@ ApplicationWindow {
                 onVideoSelected: {
                     m_video.source = path
                     remoteInterface.setLocalSetting("directory_in", folder)
-
-                    var fullName = m_video.readSrcName + "." + m_video.readSrcExtension
-                    summaryPane.fileName = fullName
-                    logMetaData.inputFileName = fullName
-                    logMetaData.inputFilePath = m_video.readSrcDir
-                    addFile(path, folder, fullName)
                 }
             }
 
@@ -277,6 +271,15 @@ ApplicationWindow {
                 }
                 onVideoRectChanged: {
                     scale.initializeMappedPoints(m_video.width, m_video.height)
+                }
+                onVideoLoaded: {
+                    if (inputPane.isLoadingNewVideos) {
+                        var readableName = name + "." + extension
+                        summaryPane.fileName = readableName
+                        logMetaData.inputFileName = fullName
+                        logMetaData.inputFilePath = dir
+                        inputPane.addFile(success, fullName, dir, readableName)
+                    }
                 }
 
                 onVideoFinished: {

@@ -26,6 +26,7 @@ Item {
 
     signal videoFinished(int state)
     signal outputProgress(int progress)
+    signal videoLoaded(bool success, string fullName, string name, string extension, string dir)
 
     function viewPointToVideoPoint(viewPoint) {
         return output.mapPointToSource(viewPoint)
@@ -71,6 +72,7 @@ Item {
         }
         onVideoFinished: m_root.videoFinished(state)
         onOutputProgress: m_root.outputProgress(progress)
+        onVideoLoaded: m_root.videoLoaded(success, fullName, name, extension, dir)
     }
 
     VideoOutput {

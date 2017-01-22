@@ -5,15 +5,20 @@ import "." // Custom Style
 
 Item {
     id: root
+    property bool isLoadingNewVideos: false
     ListModel {
         id: contacts
     }
+    property var errorFiles: []
 
     signal videoSelected(string path, string folder);
 
-    function addFile(fullUrl, folder, displayName) {
-        contacts.append({"name": displayName, "path": fullUrl, "folder": folder})
-        videoSelectDialog.folder = folder
+    function addFile(success, fullUrl, folder, displayName) {
+        if (success) {
+            contacts.append({"name": displayName, "path": fullUrl, "folder": folder})
+        } else {
+            errorFiles.push(displayName)
+        }
     }
     function setFolder(folder) {
         videoSelectDialog.folder = folder
@@ -94,8 +99,43 @@ Item {
     FileDialog {
         id: videoSelectDialog
         title: "Select an input video"
+        selectMultiple: true
         onAccepted: {
-            videoSelected(fileUrl, folder)
+            root.isLoadingNewVideos = true
+            for (var i = 0; i < fileUrls.length; i++) {
+                var found = false
+                for (var c = 0; c < contacts.count; c++) {
+                    // use indexOf to find duplicate entries since the
+                    // "file://" prefix has been removed from loaded files
+                    if (fileUrls[i].toString().indexOf(contacts.get(c).path) !== -1) {
+                        found = true
+                        console.log("found duplicate entry at position " + c + " name: " + fileUrls[i])
+                        break;
+                    }
+                }
+                if (!found) {
+                    videoSelected(fileUrls[i], folder)
+                }
+            }
+            root.isLoadingNewVideos = false
+
+            if (errorFiles.length > 0) {
+                if (errorFiles.length == 1) {
+                    loadErrorWindow.text = "Unable to load the following video:"
+                } else {
+                    loadErrorWindow.text = "Unable to load the following " + errorFiles.length + " videos:"
+                }
+                loadErrorWindow.informativeText = ""
+                for (var v = 0; v < errorFiles.length; v++) {
+                    loadErrorWindow.informativeText += errorFiles[v] + "\n";
+                }
+                loadErrorWindow.show()
+            }
+            errorFiles = []
         }
+    }
+    MMessageWindow {
+        id: loadErrorWindow
+        title: "Error Loading Videos"
     }
 }

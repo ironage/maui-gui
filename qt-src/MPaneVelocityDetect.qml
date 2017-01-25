@@ -43,6 +43,17 @@ Item {
                 }
             }
         }
+        Rectangle {
+            id: checkCover
+            anchors.fill: parent
+            opacity: 0.8
+            color: Style.ui_color_light_grey
+            visible: !enabledCover.visible && !enabledCheckbox.checked
+            MouseArea {
+                anchors.fill: parent
+                enabled: parent.visible
+            }
+        }
         MButton {
             id: header
             border.width: Style.border_width

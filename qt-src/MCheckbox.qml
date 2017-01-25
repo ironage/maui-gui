@@ -135,6 +135,7 @@ Item {
         onClicked: {
             parent.clicked()
             root.checked = !root.checked
+            root.focus = true
         }
     }
 }

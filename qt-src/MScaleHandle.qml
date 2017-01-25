@@ -29,6 +29,7 @@ Rectangle {
         grip.y = newVPos - (grip.height / 2)
     }
     signal doneDrag()
+    signal dragUpdate()
 
     width: grip.width
     height: grip.height
@@ -67,6 +68,9 @@ Rectangle {
                 minimumY: -(grip.height/2)
                 maximumY: m_root.bound_height - (grip.height/2)
                 threshold: Style.drag_threshold
+            }
+            onPositionChanged: {
+                dragUpdate()
             }
             onReleased: {
                 doneDrag()

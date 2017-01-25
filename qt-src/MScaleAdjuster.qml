@@ -54,6 +54,9 @@ Rectangle {
             line.x = hPos
             slider2.updateHPos(hPos)
         }
+        onDragUpdate: {
+            viewPointsChanged(hPos, slider.vPos, slider2.vPos)
+        }
         onDoneDrag: {
             viewPointsChanged(hPos, slider.vPos, slider2.vPos)
         }
@@ -112,6 +115,9 @@ Rectangle {
         onHPosChanged: {
             slider.updateHPos(hPos)
             line.x = hPos
+        }
+        onDragUpdate: {
+            viewPointsChanged(hPos, slider.vPos, slider2.vPos)
         }
         onDoneDrag: {
             viewPointsChanged(hPos, slider.vPos, slider2.vPos)

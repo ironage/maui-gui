@@ -399,7 +399,7 @@ ApplicationWindow {
                 MScaleAdjuster {
                     id: scale
                     visible: wallDetectionPane.checked && (m_video.source !== "")
-                    text: wallDetectionPane.scale + " " + wallDetectionPane.conversionUnits
+                    text: "" + (m_video.video_height <= 0 ? "" : (scale.mappedBottomValue - scale.mappedTopValue) + " pixels = ") + wallDetectionPane.scale + " " + wallDetectionPane.conversionUnits
                     Timer {
                         // This is because the hValue of each component in the scale
                         // depends on each other and by the time the window maximizes to the

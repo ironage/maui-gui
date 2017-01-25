@@ -347,10 +347,10 @@ void CameraTask::notifyInitPoints(mwArray topWall, mwArray bottomWall, QPoint of
         delete [] bottomData;
     }
 
-    qDebug() << "top wall: " << topWall.ToString();
-    qDebug() << "bottom wall: " << bottomWall.ToString();
-    qDebug() << "converted top: " << topPoints;
-    qDebug() << "converted bottom: " << bottomPoints;
+//    qDebug() << "top wall: " << topWall.ToString();
+//    qDebug() << "bottom wall: " << bottomWall.ToString();
+//    qDebug() << "converted top: " << topPoints;
+//    qDebug() << "converted bottom: " << bottomPoints;
     emit initPointsDetected(topPoints, bottomPoints);
 }
 

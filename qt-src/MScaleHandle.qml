@@ -1,10 +1,8 @@
 import QtQuick 2.4
 import "."
 
-Rectangle {
+Item {
     id: m_root
-    color: "transparent"
-    radius: 5
     property int startY: 10
     property int startX: 10
     property alias hPos: grip.x
@@ -21,6 +19,7 @@ Rectangle {
     property alias alpha: grip.alpha
     property int end_mark_width: 10
     property alias drag_specs: mouse_area.drag
+    property int rotationAngle: 0
 
     function updateHPos(newHPos) {
         grip.x = newHPos
@@ -42,7 +41,10 @@ Rectangle {
         color: stroke_color
         opacity: grip.alpha
         height: 1
-        transform: Rotation { origin.x: 0; origin.y: 0; angle: 180 }
+        transform: [
+            Rotation { origin.x: 0; origin.y: 0; angle: 180 },
+            Rotation { origin.x: 0; origin.y: 0; angle: rotationAngle }
+        ]
     }
     MTriangle {
         id: grip
@@ -55,6 +57,11 @@ Rectangle {
         fill_color: m_root.fill_color
         stroke_color_highlight: m_root.stroke_color_highlight
         fill_color_highlight: m_root.fill_color_highlight
+        transform: Rotation {
+            origin.x: 0
+            origin.y: (height / 2);
+            angle: rotationAngle
+        }
 
         MouseArea {
             id: mouse_area
@@ -100,5 +107,4 @@ Rectangle {
             PropertyAnimation { target: end_line; property: "width"; duration: 400; easing.type: Easing.OutCubic }
         }
     ]
-
 }

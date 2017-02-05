@@ -440,8 +440,8 @@ ApplicationWindow {
                     id: velocityVerticalScale
                     visible: velocityDetectionPane.checked && (m_video.source !== "")
                     text: "" + (m_video.video_height <= 0 ? "" : (velocityVerticalScale.mappedBottomValue - velocityVerticalScale.mappedTopValue) + " pixels = ") + velocityDetectionPane.scale + " " + velocityDetectionPane.conversionUnits
-                    scaleColor: Style.ui_color_light_lblue
-                    scaleHighlightColor: Style.ui_color_dark_lblue
+                    scaleColor: Style.ui_color_dark_lblue
+                    scaleHighlightColor: Style.ui_color_light_lblue
                     Timer {
                         // This is because the hValue of each component in the scale
                         // depends on each other and by the time the window maximizes to the
@@ -462,6 +462,34 @@ ApplicationWindow {
                         var newTop = m_video.videoPointToViewPoint(Qt.point(velocityVerticalScale.mappedHValue, velocityVerticalScale.mappedTopValue))
                         var newBottom = m_video.videoPointToViewPoint(Qt.point(velocityVerticalScale.mappedHValue, velocityVerticalScale.mappedBottomValue))
                         velocityVerticalScale.updateViewPoints(newTop.x, newTop.y, newBottom.y)
+                    }
+                }
+                MScaleAdjusterHorizontal {
+                    id: velocityHorizontalScale
+                    visible: velocityDetectionPane.checked && (m_video.source !== "")
+                    text: "" + (m_video.video_height <= 0 ? "" : (velocityHorizontalScale.mappedBottomValue - velocityHorizontalScale.mappedTopValue) + " pixels = ") + velocityDetectionPane.scale + " " + velocityDetectionPane.conversionUnits
+                    scaleColor: Style.ui_color_dark_lblue
+                    scaleHighlightColor: Style.ui_color_light_lblue
+                    Timer {
+                        // This is because the hValue of each component in the scale
+                        // depends on each other and by the time the window maximizes to the
+                        // final height, the qml property binding has already been broken.
+                        interval: 700
+                        running: true
+                        repeat: false
+                        onTriggered: {
+                            velocityHorizontalScale.updateViewPoints(0.7 * m_video.height, 0.4 * m_video.width, 0.6 * m_video.width)
+                        }
+                    }
+                    onViewPointsChanged: {
+                        var scaleTop = m_video.viewPointToVideoPoint(Qt.point(hValue, topValue))
+                        var scaleBottom = m_video.viewPointToVideoPoint(Qt.point(hValue, bottomValue))
+                        //velocityHorizontalScale.changeMappedPoints(scaleTop.x, scaleTop.y, scaleBottom.y)
+                    }
+                    function parentLayoutChanged() {
+                        var newTop = m_video.videoPointToViewPoint(Qt.point(velocityHorizontalScale.mappedHValue, velocityHorizontalScale.mappedTopValue))
+                        var newBottom = m_video.videoPointToViewPoint(Qt.point(velocityHorizontalScale.mappedHValue, velocityHorizontalScale.mappedBottomValue))
+                        //velocityHorizontalScale.updateViewPoints(newTop.x, newTop.y, newBottom.y)
                     }
                 }
             }

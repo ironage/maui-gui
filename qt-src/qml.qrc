@@ -30,5 +30,6 @@
         <file>MPaneWallDetect.qml</file>
         <file>MPaneVelocityDetect.qml</file>
         <file>MExitButton.qml</file>
+        <file>MScaleAdjusterHorizontal.qml</file>
     </qresource>
 </RCC>

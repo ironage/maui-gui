@@ -12,8 +12,10 @@ Item {
     }
     property var errorFiles: []
 
-    signal videoSelected(string path, string folder);
+    signal videoSelected(string path, string folder)
+    signal videoRemoved(string path)
     signal displayVideo(string path)
+    signal clearVideo()
 
     function addFile(success, fullUrl, folder, displayName) {
         if (success) {
@@ -30,6 +32,32 @@ Item {
         if (listView.currentIndex < listModel.count) {
             listModel.get(listView.currentIndex).percentComplete = progress
             console.log("setting progress: " + progress + " new percent: " + listModel.get(listView.currentIndex).percentComplete)
+        }
+    }
+
+    function removeFromList(index) {
+        if (index < listModel.count) {
+            if (listModel.count == 1) {
+                listModel.remove(index)
+                clearVideo()
+            } else {
+                var oldPath = listModel.get(listView.currentIndex).path
+                var newSelection = listView.currentIndex
+                if (listView.currentIndex > index) {
+                    newSelection = listView.currentIndex - 1
+                }
+                if (newSelection >= listModel.count - 1) {  // can happen when last == selected and remove last
+                    newSelection = newSelection - 1
+                }
+                listModel.remove(index)
+                listView.currentIndex = newSelection
+                console.log("trying to check: " + listModel.get(listView.currentIndex))
+                if (oldPath !== listModel.get(listView.currentIndex).path) {
+                    displayVideo(listModel.get(listView.currentIndex).path)
+                }
+            }
+        } else {
+            console.log("removing invalid index: " + index + " from list of size " + listModel.count)
         }
     }
 
@@ -78,13 +106,26 @@ Item {
                         anchors.verticalCenter: wrapper.verticalCenter
                     }
                     MouseArea {
+                        id: itemArea
                         anchors.fill: parent
+                        hoverEnabled: true
                         onClicked: {
                             if (listView.currentIndex !== index) {
                                 listView.currentIndex = index
                                 console.log("clicked item: " + path)
                                 root.displayVideo(path)
                             }
+                        }
+                    }
+                    MExitButton {
+                        id: remove
+                        height: parent.height
+                        width: parent.height
+                        anchors.right: parent.right
+                        anchors.top: parent.top
+                        presentable: itemArea.containsMouse
+                        onClicked: {
+                            removeFromList(index)
                         }
                     }
                 }

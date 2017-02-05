@@ -181,6 +181,9 @@ ApplicationWindow {
                 onDisplayVideo: {
                     m_video.source = path
                 }
+                onClearVideo: {
+                    m_video.source = ""
+                }
             }
 
             MPaneOutput {
@@ -438,6 +441,21 @@ ApplicationWindow {
             }
         }
     }
+    MText {
+        id: disclaimer
+        width: 200
+        height: 80
+        anchors.left: versionString.right
+        anchors.leftMargin: Style.h_padding
+        anchors.bottom: parent.bottom
+        anchors.bottomMargin: Style.v_padding
+        text: "Please reference the Measurements from Arterial Ultrasound Imaging (MAUI) software from Hedgehog Medical Inc. in your publications."
+        style: Text.Normal
+        color: Style.ui_color_dark_dblue
+        font.pixelSize: 12
+        wrapMode: Text.WordWrap
+    }
+
     MText {
         id: versionString
         text: " v" + remoteInterface.getDisplayVersion() + "  "

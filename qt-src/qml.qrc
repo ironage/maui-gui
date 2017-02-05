@@ -29,5 +29,6 @@
         <file>MCheckbox.qml</file>
         <file>MPaneWallDetect.qml</file>
         <file>MPaneVelocityDetect.qml</file>
+        <file>MExitButton.qml</file>
     </qresource>
 </RCC>

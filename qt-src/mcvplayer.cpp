@@ -138,7 +138,10 @@ void MCVPlayer::updateVideoSettings() {
 
 void MCVPlayer::update()
 {
-    if (sourceFile.isEmpty()) return;
+    if (sourceFile.isEmpty()) {
+        emit sourceChanged();
+        return;
+    }
     qDebug() << "cleaning up the previous video";
     QMutexLocker locker(&lock);
     //Destroy old thread, camera accessor and buffers

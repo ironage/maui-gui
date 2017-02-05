@@ -51,7 +51,6 @@ Item {
                 }
                 listModel.remove(index)
                 listView.currentIndex = newSelection
-                console.log("trying to check: " + listModel.get(listView.currentIndex))
                 if (oldPath !== listModel.get(listView.currentIndex).path) {
                     displayVideo(listModel.get(listView.currentIndex).path)
                 }

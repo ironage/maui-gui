@@ -81,6 +81,7 @@ Item {
     VideoOutput {
         id: output
         anchors.fill: parent
+        visible: cv_player.sourceFile !== ""
         source: cv_player
         onWidthChanged: {
             setSize()

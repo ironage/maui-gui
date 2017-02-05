@@ -14,6 +14,8 @@ Rectangle {
     property int mappedHValue: 20
     property int mappedTopValue: 20
     property int mappedBottomValue: 40
+    property color scaleColor: Style.ui_color_dark_red
+    property color scaleHighlightColor: Style.ui_color_light_red
 
     function changeMappedPoints(hValue, topValue, bottomValue) {
         mappedHValue = hValue
@@ -35,7 +37,7 @@ Rectangle {
     MText {
         id: m_text
         text: "10 cm"
-        x: line.x + slider.width
+        x: line.x + slider.width + (slider.width * 0.6)
         y: line.y + (line.height/2) - (width/2)
         transform: Rotation { origin.x: 0; origin.y: 0; angle: 90}
     }
@@ -45,10 +47,10 @@ Rectangle {
         gripSize: 20 // keep this even, else off by one from rounding errors happen
         alpha: m_root.alpha
         startY: 0.25 * m_root.height
-        fill_color_highlight: Style.ui_color_light_red
-        stroke_color_highlight: Style.ui_color_light_red
-        fill_color: Style.ui_color_dark_red
-        stroke_color: Style.ui_color_dark_red
+        fill_color_highlight: scaleHighlightColor
+        stroke_color_highlight: scaleHighlightColor
+        fill_color: scaleColor
+        stroke_color: scaleColor
         drag_specs.maximumY: slider2.vPos - min_line_height - (height / 2)
         onHPosChanged: {
             line.x = hPos

@@ -7,6 +7,8 @@ Item {
     id: root
     height: scaleInput.height + time.height + header.height + (3 * Style.v_padding)
     property alias checked: enabledCheckbox.checked
+    property alias conversionUnits: scaleUnits.currentText
+    property string scale: scaleInput.acceptableInput ? scaleInput.text : 1
 
     Rectangle {
         id: background

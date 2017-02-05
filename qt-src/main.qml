@@ -411,7 +411,7 @@ ApplicationWindow {
                         running: true
                         repeat: false
                         onTriggered: {
-                            scale.updateViewPoints(0.7 * m_video.width, 0.25 * m_video.height, 0.75 * m_video.height)
+                            scale.updateViewPoints(0.7 * m_video.width, 0.3 * m_video.height, 0.6 * m_video.height)
                         }
                     }
                     onViewPointsChanged: {
@@ -435,6 +435,34 @@ ApplicationWindow {
                     roiWidth: initialSize
                     roiHeight: initialSize
                     roiColor: Style.ui_color_light_lblue
+                }
+                MScaleAdjuster {
+                    id: velocityVerticalScale
+                    visible: velocityDetectionPane.checked && (m_video.source !== "")
+                    text: "" + (m_video.video_height <= 0 ? "" : (velocityVerticalScale.mappedBottomValue - velocityVerticalScale.mappedTopValue) + " pixels = ") + velocityDetectionPane.scale + " " + velocityDetectionPane.conversionUnits
+                    scaleColor: Style.ui_color_light_lblue
+                    scaleHighlightColor: Style.ui_color_dark_lblue
+                    Timer {
+                        // This is because the hValue of each component in the scale
+                        // depends on each other and by the time the window maximizes to the
+                        // final height, the qml property binding has already been broken.
+                        interval: 700
+                        running: true
+                        repeat: false
+                        onTriggered: {
+                            velocityVerticalScale.updateViewPoints(0.7 * m_video.width, 0.8 * m_video.height, 0.9 * m_video.height)
+                        }
+                    }
+                    onViewPointsChanged: {
+                        var scaleTop = m_video.viewPointToVideoPoint(Qt.point(hValue, topValue))
+                        var scaleBottom = m_video.viewPointToVideoPoint(Qt.point(hValue, bottomValue))
+                        velocityVerticalScale.changeMappedPoints(scaleTop.x, scaleTop.y, scaleBottom.y)
+                    }
+                    function parentLayoutChanged() {
+                        var newTop = m_video.videoPointToViewPoint(Qt.point(velocityVerticalScale.mappedHValue, velocityVerticalScale.mappedTopValue))
+                        var newBottom = m_video.videoPointToViewPoint(Qt.point(velocityVerticalScale.mappedHValue, velocityVerticalScale.mappedBottomValue))
+                        velocityVerticalScale.updateViewPoints(newTop.x, newTop.y, newBottom.y)
+                    }
                 }
             }
             RowLayout {

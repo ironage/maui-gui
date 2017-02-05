@@ -38,7 +38,7 @@ Item {
                     height: implicitHeight
                     placeholderText: "Scale"
                     borderColor: acceptableInput ? Style.ui_component_highlight : Style.ui_color_light_red
-                    validator: DoubleValidator{bottom: 0.0001; top: 999.0; decimals: 4; notation: DoubleValidator.StandardNotation}
+                    validator: DoubleValidator{bottom: 0.0001; top: 99999.0; decimals: 4; notation: DoubleValidator.StandardNotation}
                     horizontalAlignment: TextInput.AlignHCenter
                 }
                 MCombobox {
@@ -61,7 +61,7 @@ Item {
                     height: implicitHeight
                     placeholderText: "Time"
                     borderColor: acceptableInput ? Style.ui_component_highlight : Style.ui_color_light_red
-                    validator: DoubleValidator{bottom: 0.0001; top: 999.0; decimals: 4; notation: DoubleValidator.StandardNotation}
+                    validator: DoubleValidator{bottom: 0.0001; top: 99999.0; decimals: 4; notation: DoubleValidator.StandardNotation}
                     horizontalAlignment: TextInput.AlignHCenter
                 }
                 MText {

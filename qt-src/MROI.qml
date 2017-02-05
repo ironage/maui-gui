@@ -15,46 +15,8 @@ Rectangle {
     property bool adjustable: true
     property int cornerWidth: 16
     property int rectMin: 20
-    property bool backgroundActive: true
-    property color backgroundColor: Style.ui_color_dark_grey
-    property double backgroundAlpha: 0.40
+    property color roiColor: Style.ui_color_light_red
 
-    Rectangle {
-        visible: backgroundActive
-        x: 0
-        y: 0
-        width: m_root.width
-        height: roi.y
-        color: backgroundColor
-        opacity: backgroundAlpha
-    }
-    Rectangle {
-        visible: backgroundActive
-        x: 0
-        y: roi.y
-        width: roi.x
-        height: roi.height
-        color: backgroundColor
-        opacity: backgroundAlpha
-    }
-    Rectangle {
-        visible: backgroundActive
-        x: 0
-        y: roi.y + roi.height
-        width: m_root.width
-        height: m_root.height - (roi.y + roi.height)
-        color: backgroundColor
-        opacity: backgroundAlpha
-    }
-    Rectangle {
-        visible: backgroundActive
-        x: roi.x + roi.width
-        y: roi.y
-        width: m_root.width - (roi.x + roi.width)
-        height: roi.height
-        color: backgroundColor
-        opacity: backgroundAlpha
-    }
     Rectangle {
         id: roi
         x: 50
@@ -62,7 +24,7 @@ Rectangle {
         width: 100
         height: 100
         border.width: 3
-        border.color: Style.ui_color_light_red
+        border.color: roiColor
         opacity: alpha
         color: "transparent"
 

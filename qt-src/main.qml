@@ -425,6 +425,17 @@ ApplicationWindow {
                         scale.updateViewPoints(newTop.x, newTop.y, newBottom.y)
                     }
                 }
+                MROI {
+                    id: velocityROI
+                    visible: velocityDetectionPane.checked && (m_video.source !== "")
+                    adjustable: !summaryPane.isPlaying
+                    property int initialSize: 200
+                    roiX: ~~(parent.width/2) - (initialSize/2)
+                    roiY: ~~(parent.height/2) - (initialSize/2)
+                    roiWidth: initialSize
+                    roiHeight: initialSize
+                    roiColor: Style.ui_color_light_lblue
+                }
             }
             RowLayout {
                 MVideoControl {

@@ -6,6 +6,8 @@ import "." // Custom Style
 Item {
     id: root
     height: scaleInput.height + time.height + header.height + (3 * Style.v_padding)
+    property alias checked: enabledCheckbox.checked
+
     Rectangle {
         id: background
         border.width: Style.border_width

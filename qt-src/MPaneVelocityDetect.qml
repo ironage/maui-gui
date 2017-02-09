@@ -9,6 +9,7 @@ Item {
     property alias checked: enabledCheckbox.checked
     property alias conversionUnits: scaleUnits.currentText
     property string scale: scaleInput.acceptableInput ? scaleInput.text : 1
+    property string time: time.acceptableInput ? time.text : 1
 
     Rectangle {
         id: background

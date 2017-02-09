@@ -11,16 +11,17 @@ Rectangle {
     property int end_mark_width: 5
     property int min_line_height: 2
     property alias text: m_text.text
-    property int mappedHValue: 20
-    property int mappedTopValue: 20
-    property int mappedBottomValue: 40
+    property int mappedVValue: 20
+    property int mappedLeftValue: 20
+    property int mappedRightValue: 40
     property color scaleColor: Style.ui_color_dark_red
     property color scaleHighlightColor: Style.ui_color_light_red
+    property int vertical_line_offset: ((slider.gripSize / 2) + 2)
 
-    function changeMappedPoints(hValue, topValue, bottomValue) {
-        mappedHValue = hValue
-        mappedTopValue = topValue
-        mappedBottomValue = bottomValue
+    function changeMappedPoints(vValue, leftValue, rightValue) {
+        mappedVValue = vValue
+        mappedLeftValue = leftValue
+        mappedRightValue = rightValue
     }
     function updateViewPoints(vValue, leftValue, rightValue) {
         slider.updateVPos(vValue)
@@ -28,11 +29,11 @@ Rectangle {
         slider2.updateHPos(rightValue)
     }
     function initializeMappedPoints(newWidth, newHeight) {
-        updateViewPoints(0.7 * newWidth, 0.25 * newHeight, 0.75 * newHeight)
-        viewPointsChanged(0.7 * newWidth, 0.25 * newHeight, 0.75 * newHeight)
+        updateViewPoints(0.7 * newHeight, 0.25 * newWidth, 0.75 * newWidth)
+        viewPointsChanged(0.7 * newHeight, 0.25 * newWidth, 0.75 * newWidth)
     }
 
-    signal viewPointsChanged(int hValue, int topValue, int bottomValue)
+    signal viewPointsChanged(int vValue, int leftValue, int rightValue)
 
     MText {
         id: m_text
@@ -52,21 +53,22 @@ Rectangle {
         stroke_color_highlight: scaleHighlightColor
         fill_color: scaleColor
         stroke_color: scaleColor
-        //drag_specs.maximumY: slider2.vPos - min_line_height - (height / 2)
+        end_mark_max: vPos + vertical_line_offset
+        drag_specs.maximumX: slider2.hPos - min_line_height
         onVPosChanged: {
-            line.y = vPos
             slider2.updateVPos(vPos)
+            line.y = vPos + vertical_line_offset
         }
         onDragUpdate: {
-            //viewPointsChanged(hPos, slider.vPos, slider2.vPos)
+            viewPointsChanged(vPos, slider.hPos, slider2.hPos)
         }
         onDoneDrag: {
-            //viewPointsChanged(hPos, slider.vPos, slider2.vPos)
+            viewPointsChanged(vPos, slider.hPos, slider2.hPos)
         }
     }
     Rectangle {
         id: line
-        x: slider.hPos - 1
+        x: slider.hPos
         width: slider2.hPos - slider.hPos + 1
         property int saved_width: 10
         height: 5
@@ -96,11 +98,11 @@ Rectangle {
 
             onReleased: {
                 updatePosition()
-                //viewPointsChanged(slider.hPos, slider.vPos, slider2.vPos)
+                viewPointsChanged(slider.vPos, slider.hPos, slider2.hPos)
             }
             function updatePosition() {
-                slider.updateVPos(line.y)
-                slider2.updateVPos(line.y)
+                slider.updateVPos(line.y - vertical_line_offset)
+                slider2.updateVPos(line.y - vertical_line_offset)
             }
         }
     }
@@ -115,16 +117,17 @@ Rectangle {
         stroke_color_highlight: slider.stroke_color_highlight
         fill_color: slider.fill_color
         stroke_color: slider.stroke_color
-        drag_specs.minimumY: slider.vPos + min_line_height - (height / 2) + 1
+        drag_specs.minimumX: slider.hPos + min_line_height + 1
+        drag_specs.maximumX: parent.width
+        end_mark_max: vPos + vertical_line_offset
         onVPosChanged: {
-            line.y = vPos
             slider.updateVPos(vPos)
         }
         onDragUpdate: {
-            //viewPointsChanged(hPos, slider.vPos, slider2.vPos)
+            viewPointsChanged(vPos, slider.hPos, slider2.hPos)
         }
         onDoneDrag: {
-            //viewPointsChanged(hPos, slider.vPos, slider2.vPos)
+            viewPointsChanged(vPos, slider.hPos, slider2.hPos)
         }
     }
 }

@@ -51,7 +51,7 @@ Rectangle {
         stroke_color_highlight: scaleHighlightColor
         fill_color: scaleColor
         stroke_color: scaleColor
-        drag_specs.maximumY: slider2.vPos - min_line_height - (height / 2)
+        drag_specs.maximumY: slider2.vPos - min_line_height
         onHPosChanged: {
             line.x = hPos
             slider2.updateHPos(hPos)
@@ -65,7 +65,7 @@ Rectangle {
     }
     Rectangle {
         id: line
-        y: slider.vPos - 1
+        y: slider.vPos + (slider.gripSize / 2) + 2
         height: slider2.vPos - slider.vPos + 1
         property int saved_height: 10
         width: 5
@@ -113,7 +113,7 @@ Rectangle {
         stroke_color_highlight: slider.stroke_color_highlight
         fill_color: slider.fill_color
         stroke_color: slider.stroke_color
-        drag_specs.minimumY: slider.vPos + min_line_height - (height / 2) + 1
+        drag_specs.minimumY: slider.vPos + min_line_height + 1
         onHPosChanged: {
             slider.updateHPos(hPos)
             line.x = hPos

@@ -6,7 +6,7 @@ Item {
     property int startY: 10
     property int startX: 10
     property alias hPos: grip.x
-    property int vPos: grip.y + (grip.height / 2) + 0.5
+    property alias vPos: grip.y
     property color fill_color: Style.ui_color_dark_dblue
     property color stroke_color: Style.ui_color_dark_dblue
     property color fill_color_highlight: Style.ui_color_light_dblue
@@ -18,6 +18,7 @@ Item {
     property real bound_height: parent.height
     property alias alpha: grip.alpha
     property int end_mark_width: 10
+    property int end_mark_max: end_line.x
     property alias drag_specs: mouse_area.drag
     property int rotationAngle: 0
 
@@ -25,7 +26,7 @@ Item {
         grip.x = newHPos
     }
     function updateVPos(newVPos) {
-        grip.y = newVPos - (grip.height / 2)
+        grip.y = newVPos
     }
     signal doneDrag()
     signal dragUpdate()
@@ -37,7 +38,7 @@ Item {
         id: end_line
         x: grip.x
         width: end_mark_width
-        y: grip.y + (grip.height/2)
+        y: grip.y + (grip.height / 2)
         color: stroke_color
         opacity: grip.alpha
         height: 1
@@ -91,7 +92,7 @@ Item {
         },
         State {
             name: "expanded"
-            PropertyChanges { target: end_line; width: end_line.x }
+            PropertyChanges { target: end_line; width: end_mark_max }
             when: mouse_area.pressed
         }
     ]

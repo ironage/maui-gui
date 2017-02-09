@@ -156,6 +156,31 @@ ApplicationWindow {
         }
     }
 
+    MText {
+        id: disclaimer
+        width: leftPanel.headerWidth
+        height: 80
+        anchors.left: parent.left
+        anchors.leftMargin: Style.h_padding
+        anchors.bottom: parent.bottom
+        anchors.bottomMargin: Style.v_padding
+        text: "Please reference the Measurements from Arterial Ultrasound Imaging (MAUI) software from Hedgehog Medical Inc. in your publications."
+        style: Text.Normal
+        color: Style.ui_color_dark_dblue
+        font.pixelSize: 11
+        wrapMode: Text.WordWrap
+    }
+
+    MText {
+        id: versionString
+        text: " v" + remoteInterface.getDisplayVersion() + "  "
+        style: Text.Normal
+        color: Style.ui_color_dark_dblue
+        font.pixelSize: 12
+        anchors.bottom: parent.bottom
+        anchors.left: parent.left
+    }
+
     RowLayout {
         anchors.fill: parent
         spacing: 1
@@ -467,7 +492,7 @@ ApplicationWindow {
                 MScaleAdjusterHorizontal {
                     id: velocityHorizontalScale
                     visible: velocityDetectionPane.checked && (m_video.source !== "")
-                    text: "" + (m_video.video_height <= 0 ? "" : (velocityHorizontalScale.mappedBottomValue - velocityHorizontalScale.mappedTopValue) + " pixels = ") + velocityDetectionPane.scale + " " + velocityDetectionPane.conversionUnits
+                    text: "" + (m_video.video_height <= 0 ? "" : (velocityHorizontalScale.mappedRightValue - velocityHorizontalScale.mappedLeftValue) + " pixels = ") + velocityDetectionPane.time + (velocityDetectionPane.time === "1" ? " second" : " seconds")
                     scaleColor: Style.ui_color_dark_lblue
                     scaleHighlightColor: Style.ui_color_light_lblue
                     Timer {
@@ -482,14 +507,14 @@ ApplicationWindow {
                         }
                     }
                     onViewPointsChanged: {
-                        var scaleTop = m_video.viewPointToVideoPoint(Qt.point(hValue, topValue))
-                        var scaleBottom = m_video.viewPointToVideoPoint(Qt.point(hValue, bottomValue))
-                        //velocityHorizontalScale.changeMappedPoints(scaleTop.x, scaleTop.y, scaleBottom.y)
+                        var scaleLeft = m_video.viewPointToVideoPoint(Qt.point(leftValue, vValue))
+                        var scaleRight = m_video.viewPointToVideoPoint(Qt.point(rightValue, vValue))
+                        velocityHorizontalScale.changeMappedPoints(scaleLeft.y, scaleLeft.x, scaleRight.x)
                     }
                     function parentLayoutChanged() {
-                        var newTop = m_video.videoPointToViewPoint(Qt.point(velocityHorizontalScale.mappedHValue, velocityHorizontalScale.mappedTopValue))
-                        var newBottom = m_video.videoPointToViewPoint(Qt.point(velocityHorizontalScale.mappedHValue, velocityHorizontalScale.mappedBottomValue))
-                        //velocityHorizontalScale.updateViewPoints(newTop.x, newTop.y, newBottom.y)
+                        var newLeft = m_video.videoPointToViewPoint(Qt.point(velocityHorizontalScale.mappedLeftValue, velocityHorizontalScale.mappedVValue))
+                        var newRight = m_video.videoPointToViewPoint(Qt.point(velocityHorizontalScale.mappedRightValue, velocityHorizontalScale.mappedVValue))
+                        velocityHorizontalScale.updateViewPoints(newLeft.x, newLeft.y, newRight.y)
                     }
                 }
             }
@@ -507,29 +532,5 @@ ApplicationWindow {
                 }
             }
         }
-    }
-    MText {
-        id: disclaimer
-        width: 200
-        height: 80
-        anchors.left: versionString.right
-        anchors.leftMargin: Style.h_padding
-        anchors.bottom: parent.bottom
-        anchors.bottomMargin: Style.v_padding
-        text: "Please reference the Measurements from Arterial Ultrasound Imaging (MAUI) software from Hedgehog Medical Inc. in your publications."
-        style: Text.Normal
-        color: Style.ui_color_dark_dblue
-        font.pixelSize: 12
-        wrapMode: Text.WordWrap
-    }
-
-    MText {
-        id: versionString
-        text: " v" + remoteInterface.getDisplayVersion() + "  "
-        style: Text.Normal
-        color: Style.ui_color_dark_dblue
-        font.pixelSize: 12
-        anchors.bottom: parent.bottom
-        anchors.left: parent.left
     }
 }

@@ -295,19 +295,17 @@ ApplicationWindow {
                     roi.parentLayoutChanged()
                     scale.parentLayoutChanged()
                 }
-                property bool firstLoad: true
                 onSourceChanged: {
                     summaryPane.setStartState("ready")
                     m_video_control.end_percent = 1
                     m_video_control.start_percent = 0 // do this last so cur frame is start
-                    if (firstLoad) {
-                        roi.reInitToCenter()
-                    }
-                    firstLoad = false
                 }
                 onVideoRectChanged: {
-                    scale.initializeMappedPoints(m_video.width, m_video.height)
+                    scale.initializeMappedPoints(m_video.width, m_video.height, 0.75, 0.2, 0.6)
+                    //velocityVerticalScale.initializeMappedPoints(m_video.width, m_video.height, 0.75, 0.2, 0.6)
+                    console.log("source rect changed under ROI")
                 }
+                property bool firstLoad: true
                 onVideoLoaded: {
                     if (inputPane.isLoadingNewVideos) {
                         var readableName = name + "." + extension
@@ -316,6 +314,11 @@ ApplicationWindow {
                         logMetaData.inputFilePath = dir
                         inputPane.addFile(success, fullName, dir, readableName)
                     }
+                    if (firstLoad) {
+                        console.log("first load, init ROI")
+                        roi.reInitToCenter()
+                    }
+                    firstLoad = false
                     roi.recomputeMappedPoints()
                     roi.parentLayoutChanged()
                     //forceROIRefresh()
@@ -355,6 +358,7 @@ ApplicationWindow {
                         summaryPane.setStartState("ready")
                     }
                 }
+
                 MROI {
                     id: roi
                     visible: wallDetectionPane.checked && (m_video.source !== "")
@@ -366,9 +370,10 @@ ApplicationWindow {
                     roiHeight: initialSize
                     function reInitToCenter() {
                         roiX = ~~(parent.width/2) - (initialSize/2)
-                        roiY = ~~(parent.height/2) - (initialSize/2)
+                        roiY = ~~(parent.height*.4) - (initialSize/2)
                         roiWidth = initialSize
                         roiHeight = initialSize
+                        recomputeMappedPoints()
                     }
                     function parentLayoutChanged() {
                         var newXY = m_video.videoPointToViewPoint(mappedXY)
@@ -428,21 +433,13 @@ ApplicationWindow {
                     id: scale
                     visible: wallDetectionPane.checked && (m_video.source !== "")
                     text: "" + (m_video.video_height <= 0 ? "" : (scale.mappedBottomValue - scale.mappedTopValue) + " pixels = ") + wallDetectionPane.scale + " " + wallDetectionPane.conversionUnits
-                    Timer {
-                        // This is because the hValue of each component in the scale
-                        // depends on each other and by the time the window maximizes to the
-                        // final height, the qml property binding has already been broken.
-                        interval: 700
-                        running: true
-                        repeat: false
-                        onTriggered: {
-                            scale.updateViewPoints(0.7 * m_video.width, 0.3 * m_video.height, 0.6 * m_video.height)
-                        }
-                    }
                     onViewPointsChanged: {
                         var scaleTop = m_video.viewPointToVideoPoint(Qt.point(hValue, topValue))
                         var scaleBottom = m_video.viewPointToVideoPoint(Qt.point(hValue, bottomValue))
                         scale.changeMappedPoints(scaleTop.x, scaleTop.y, scaleBottom.y)
+                    }
+                    function initializeToParent() {
+                        scale.updateViewPoints(0.7 * m_video.width, 0.4 * m_video.height, 0.6 * m_video.height)
                     }
                     function parentLayoutChanged() {
                         var newTop = m_video.videoPointToViewPoint(Qt.point(scale.mappedHValue, scale.mappedTopValue))
@@ -454,11 +451,12 @@ ApplicationWindow {
                     id: velocityROI
                     visible: velocityDetectionPane.checked && (m_video.source !== "")
                     adjustable: !summaryPane.isPlaying
-                    property int initialSize: 200
-                    roiX: ~~(parent.width/2) - (initialSize/2)
-                    roiY: ~~(parent.height/2) - (initialSize/2)
-                    roiWidth: initialSize
-                    roiHeight: initialSize
+                    property int initialWidth: 400
+                    property int initialHeight: 100
+                    roiX: ~~(parent.width/2) - (initialWidth/2)
+                    roiY: ~~(parent.height * 0.7)
+                    roiWidth: initialWidth
+                    roiHeight: initialHeight
                     roiColor: Style.ui_color_light_lblue
                 }
                 MScaleAdjuster {
@@ -467,21 +465,13 @@ ApplicationWindow {
                     text: "" + (m_video.video_height <= 0 ? "" : (velocityVerticalScale.mappedBottomValue - velocityVerticalScale.mappedTopValue) + " pixels = ") + velocityDetectionPane.scale + " " + velocityDetectionPane.conversionUnits
                     scaleColor: Style.ui_color_dark_lblue
                     scaleHighlightColor: Style.ui_color_light_lblue
-                    Timer {
-                        // This is because the hValue of each component in the scale
-                        // depends on each other and by the time the window maximizes to the
-                        // final height, the qml property binding has already been broken.
-                        interval: 700
-                        running: true
-                        repeat: false
-                        onTriggered: {
-                            velocityVerticalScale.updateViewPoints(0.7 * m_video.width, 0.8 * m_video.height, 0.9 * m_video.height)
-                        }
-                    }
                     onViewPointsChanged: {
                         var scaleTop = m_video.viewPointToVideoPoint(Qt.point(hValue, topValue))
                         var scaleBottom = m_video.viewPointToVideoPoint(Qt.point(hValue, bottomValue))
                         velocityVerticalScale.changeMappedPoints(scaleTop.x, scaleTop.y, scaleBottom.y)
+                    }
+                    function initializeToParent() {
+                        velocityVerticalScale.updateViewPoints(velocityROI.roiX + velocityROI.roiWidth + 25, velocityROI.roiY + (velocityROI.roiHeight * 0.1) - (gripSize/2), velocityROI.roiY + velocityROI.roiHeight - (2 * velocityROI.roiHeight * 0.1) - (gripSize/2))
                     }
                     function parentLayoutChanged() {
                         var newTop = m_video.videoPointToViewPoint(Qt.point(velocityVerticalScale.mappedHValue, velocityVerticalScale.mappedTopValue))
@@ -495,17 +485,6 @@ ApplicationWindow {
                     text: "" + (m_video.video_height <= 0 ? "" : (velocityHorizontalScale.mappedRightValue - velocityHorizontalScale.mappedLeftValue) + " pixels = ") + velocityDetectionPane.time + (velocityDetectionPane.time === "1" ? " second" : " seconds")
                     scaleColor: Style.ui_color_dark_lblue
                     scaleHighlightColor: Style.ui_color_light_lblue
-                    Timer {
-                        // This is because the hValue of each component in the scale
-                        // depends on each other and by the time the window maximizes to the
-                        // final height, the qml property binding has already been broken.
-                        interval: 700
-                        running: true
-                        repeat: false
-                        onTriggered: {
-                            velocityHorizontalScale.updateViewPoints(0.7 * m_video.height, 0.4 * m_video.width, 0.6 * m_video.width)
-                        }
-                    }
                     onViewPointsChanged: {
                         var scaleLeft = m_video.viewPointToVideoPoint(Qt.point(leftValue, vValue))
                         var scaleRight = m_video.viewPointToVideoPoint(Qt.point(rightValue, vValue))
@@ -515,6 +494,22 @@ ApplicationWindow {
                         var newLeft = m_video.videoPointToViewPoint(Qt.point(velocityHorizontalScale.mappedLeftValue, velocityHorizontalScale.mappedVValue))
                         var newRight = m_video.videoPointToViewPoint(Qt.point(velocityHorizontalScale.mappedRightValue, velocityHorizontalScale.mappedVValue))
                         velocityHorizontalScale.updateViewPoints(newLeft.x, newLeft.y, newRight.y)
+                    }
+                    function initializeToParent() {
+                        velocityHorizontalScale.updateViewPoints(velocityROI.roiY + velocityROI.roiHeight + 20, velocityROI.roiX + (velocityROI.roiWidth * 0.1) - (gripSize/2), velocityROI.roiX + velocityROI.roiWidth - (velocityROI.roiWidth * 0.1) + (gripSize/2))
+                    }
+                }
+                Timer {
+                    // This is because the hValue of each component in the scale
+                    // depends on each other and by the time the window maximizes to the
+                    // final height, the qml property binding has already been broken.
+                    interval: 700
+                    running: true
+                    repeat: false
+                    onTriggered: {
+                        scale.initializeToParent()
+                        velocityHorizontalScale.initializeToParent()
+                        velocityVerticalScale.initializeToParent()
                     }
                 }
             }

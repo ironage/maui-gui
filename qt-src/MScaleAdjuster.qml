@@ -27,9 +27,9 @@ Rectangle {
         slider.updateVPos(topValue)
         slider2.updateVPos(bottomValue)
     }
-    function initializeMappedPoints(newWidth, newHeight) {
-        updateViewPoints(0.7 * newWidth, 0.25 * newHeight, 0.75 * newHeight)
-        viewPointsChanged(0.7 * newWidth, 0.25 * newHeight, 0.75 * newHeight)
+    function initializeMappedPoints(newWidth, newHeight, hPercent, topPercent, bottomPercent) {
+        updateViewPoints(hPercent * newWidth, topPercent * newHeight, bottomPercent * newHeight)
+        viewPointsChanged(hPercent * newWidth, topPercent * newHeight, bottomPercent * newHeight)
     }
 
     signal viewPointsChanged(int hValue, int topValue, int bottomValue)

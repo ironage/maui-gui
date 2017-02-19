@@ -329,6 +329,7 @@ ApplicationWindow {
                     if (firstLoad) {
                         console.log("first load, init ROI")
                         roi.reInitToCenter()
+                        velocityROI.reInitToCenter()
                     }
                     firstLoad = false
                     roi.recomputeMappedPoints()
@@ -476,6 +477,13 @@ ApplicationWindow {
                     property point mappedBR: Qt.point(1,1)
                     property point mappedWH: Qt.point(1,1)
 
+                    function reInitToCenter() {
+                        roiX = ~~(parent.width/2) - (initialWidth/2)
+                        roiY = ~~(parent.height * 0.7)
+                        roiWidth = initialWidth
+                        roiHeight = initialHeight
+                        recomputeMappedPoints()
+                    }
                     function parentLayoutChanged() {
                         var newXY = m_video.videoPointToViewPoint(mappedXY)
                         var newBR = m_video.videoPointToViewPoint(mappedBR)
@@ -484,6 +492,8 @@ ApplicationWindow {
                         roiWidth = newBR.x - newXY.x
                         roiHeight = newBR.y - newXY.y
                         recomputeMappedPoints()
+                        velocityHorizontalScale.initializeToParent()
+                        velocityVerticalScale.initializeToParent()
                     }
 
                     onRoiXChanged: recomputeMappedPoints()

@@ -39,6 +39,7 @@ class MCVPlayer : public QObject
     Q_PROPERTY(int position READ getCurFrame WRITE setCurFrame NOTIFY curFrameChanged)
     Q_PROPERTY(int playbackState READ getPlaybackState NOTIFY playbackStateChanged)
     Q_PROPERTY(QRect roi READ getROI WRITE setROI NOTIFY roiChanged)
+    Q_PROPERTY(QRect velocityROI READ getVelocityROI WRITE setVelocityROI NOTIFY velocityROIChanged)
     Q_PROPERTY(bool recomputeROIOnChange READ getRecomputeROIMode WRITE setRecomputeROIMode NOTIFY recomputeROIChanged)
     Q_PROPERTY(QQmlListProperty<MPoint> initTopPoints READ getTopPoints NOTIFY initPointsChanged)
     Q_PROPERTY(QQmlListProperty<MPoint> initBottomPoints READ getBottomPoints NOTIFY initPointsChanged)
@@ -61,12 +62,14 @@ public slots:
     QString getSourceName() { return QFileInfo(sourceUrl.fileName()).completeBaseName(); }
     QSize getSize() const;
     void setSize(QSize size);
-    int getNumFrames() { return numFrames; }
-    int getCurFrame() { return curFrame; }
-    QRect getROI() { return roi; }
+    int getNumFrames() const { return numFrames; }
+    int getCurFrame() const { return curFrame; }
+    QRect getROI() const { return roi; }
     void setROI(const QRect& newROI);
+    QRect getVelocityROI() const { return velocityROI; }
+    void setVelocityROI(const QRect& newROI);
     void forceROIRefresh();
-    bool getRecomputeROIMode() { return recomputeROIMode; }
+    bool getRecomputeROIMode() const { return recomputeROIMode; }
     void setRecomputeROIMode(bool mode);
     void setCurFrame(int newFrame);
     int getPlaybackState();
@@ -94,6 +97,7 @@ signals:
     void playbackStateChanged();
     void sourceChanged();
     void roiChanged();
+    void velocityROIChanged();
     void recomputeROIChanged();
     void initPointsChanged();
     void logDataChanged();
@@ -117,6 +121,7 @@ private:
     int curFrame;
     QSize size;
     QRect roi;
+    QRect velocityROI;
     bool recomputeROIMode;
     QList<MPoint*> topPoints;
     QList<MPoint*> bottomPoints;

@@ -70,6 +70,18 @@ void MCVPlayer::setROI(const QRect &newROI)
     }
 }
 
+void MCVPlayer::setVelocityROI(const QRect &newROI)
+{
+    if (velocityROI != newROI) {
+        velocityROI = newROI;
+        QMutexLocker locker(&lock);
+        if (thread) {
+            thread->doSetVelocityROI(velocityROI);
+        }
+        emit velocityROIChanged();
+    }
+}
+
 void MCVPlayer::forceROIRefresh()
 {
     QMutexLocker locker(&lock);

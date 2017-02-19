@@ -300,6 +300,17 @@ void CameraTask::setROI(QRect newROI)
     }
 }
 
+void CameraTask::setVelocityROI(QRect newROI)
+{
+    if (velocityROI != newROI) {
+        velocityROI = newROI;
+        qDebug() << "Setting velocityROI: " << velocityROI;
+        if (curPlayState == PlayState::Paused) {
+            //curPlayState = PlayState::AutoInitCurFrame;
+        }
+    }
+}
+
 void CameraTask::refreshROIOnCurFrame()
 {
     if (curPlayState == PlayState::Paused) {
@@ -519,6 +530,7 @@ MCameraThread::MCameraThread(MVideoCapture* camera, QVideoFrame* videoFrame, uns
     connect(this, SIGNAL(setStartFrame(int)), task, SLOT(setStartFrame(int)), Qt::QueuedConnection);
     connect(this, SIGNAL(setEndFrame(int)), task, SLOT(setEndFrame(int)), Qt::QueuedConnection);
     connect(this, SIGNAL(setROI(QRect)), task, SLOT(setROI(QRect)), Qt::QueuedConnection);
+    connect(this, SIGNAL(setVelocityROI(QRect)), task, SLOT(setVelocityROI(QRect)), Qt::QueuedConnection);
     connect(this, SIGNAL(forceROIRefresh()), task, SLOT(refreshROIOnCurFrame()), Qt::QueuedConnection);
     connect(this, SIGNAL(setRecomputeROIMode(bool)), task, SLOT(setRecomputeROIMode(bool)), Qt::QueuedConnection);
     connect(this, SIGNAL(setLogMetaData(MLogMetaData)), task, SLOT(setLogMetaData(MLogMetaData)), Qt::QueuedConnection);
@@ -579,6 +591,11 @@ void MCameraThread::doSetEndFrame(int frameNumber)
 void MCameraThread::doSetROI(QRect roi)
 {
     emit setROI(roi);
+}
+
+void MCameraThread::doSetVelocityROI(QRect roi)
+{
+    emit setVelocityROI(roi);
 }
 
 void MCameraThread::doForceROIRefresh()

@@ -57,6 +57,7 @@ private:
     int startFrame;
     int endFrame;
     QRect roi;
+    QRect velocityROI;
     bool autoRecomputeROI;
     bool doneInit;
     QList<MPoint> topPoints, bottomPoints;
@@ -94,6 +95,7 @@ public slots:
     void setStartFrame(int frameNumber);
     void setEndFrame(int frameNumber);
     void setROI(QRect newROI);
+    void setVelocityROI(QRect newROI);
     void refreshROIOnCurFrame();
     void setRecomputeROIMode(bool mode);
     void setLogMetaData(MLogMetaData data);
@@ -132,6 +134,7 @@ public:
     void doSetStartFrame(int frameNumber);
     void doSetEndFrame(int frameNumber);
     void doSetROI(QRect roi);
+    void doSetVelocityROI(QRect roi);
     void doForceROIRefresh();
     void doSetRecomputeROIMode(bool mode);
     void doSetLogMetaData(MLogMetaData m);
@@ -150,6 +153,7 @@ signals:
     void setStartFrame(int frameNumber);
     void setEndFrame(int frameNumber);
     void setROI(QRect roi);
+    void setVelocityROI(QRect roi);
     void forceROIRefresh();
     void setRecomputeROIMode(bool mode);
     void setLogMetaData(MLogMetaData d);

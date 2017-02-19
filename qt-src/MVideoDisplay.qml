@@ -17,6 +17,7 @@ Item {
     property alias video_width: cv_player.size.width
     property alias video_height: cv_player.size.height
     property alias roi: cv_player.roi
+    property alias velocityROI: cv_player.velocityROI
     property alias recomputeROIMode: cv_player.recomputeROIOnChange
     property alias topPoints: cv_player.initTopPoints
     property alias bottomPoints: cv_player.initBottomPoints

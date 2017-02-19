@@ -288,6 +288,7 @@ ApplicationWindow {
                 progress_min: m_video_control.start_percent
                 progress_max: m_video_control.end_percent
                 roi: Qt.rect(roi.mappedXY.x, roi.mappedXY.y, roi.mappedWH.x, roi.mappedWH.y)
+                velocityROI: Qt.rect(velocityROI.mappedXY.x, velocityROI.mappedXY.y, velocityROI.mappedWH.x, velocityROI.mappedWH.y)
                 recomputeROIMode: roi.visible
                 logData: logMetaData
                 onProgressChanged: {
@@ -467,6 +468,31 @@ ApplicationWindow {
                     roiWidth: initialWidth
                     roiHeight: initialHeight
                     roiColor: Style.ui_color_light_lblue
+
+                    property point mappedXY: Qt.point(1,1)
+                    property point mappedBR: Qt.point(1,1)
+                    property point mappedWH: Qt.point(1,1)
+
+                    function parentLayoutChanged() {
+                        var newXY = m_video.videoPointToViewPoint(mappedXY)
+                        var newBR = m_video.videoPointToViewPoint(mappedBR)
+                        roiX = newXY.x
+                        roiY = newXY.y
+                        roiWidth = newBR.x - newXY.x
+                        roiHeight = newBR.y - newXY.y
+                        recomputeMappedPoints()
+                    }
+
+                    onRoiXChanged: recomputeMappedPoints()
+                    onRoiYChanged: recomputeMappedPoints()
+                    onRoiWidthChanged: recomputeMappedPoints()
+                    onRoiHeightChanged: recomputeMappedPoints()
+
+                    function recomputeMappedPoints() {
+                        mappedXY = m_video.viewPointToVideoPoint(Qt.point(velocityROI.roiX,velocityROI.roiY))
+                        mappedBR = m_video.viewPointToVideoPoint(Qt.point(velocityROI.roiX + velocityROI.roiWidth,velocityROI.roiY + velocityROI.roiHeight))
+                        mappedWH = Qt.point(mappedBR.x - mappedXY.x, mappedBR.y - mappedXY.y)
+                    }
                 }
                 MScaleAdjuster {
                     id: velocityVerticalScale

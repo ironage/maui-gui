@@ -299,10 +299,12 @@ ApplicationWindow {
                 }
                 onWidthChanged: {
                     roi.parentLayoutChanged()
+                    velocityROI.parentLayoutChanged()
                     scale.parentLayoutChanged()
                 }
                 onHeightChanged: {
                     roi.parentLayoutChanged()
+                    velocityROI.parentLayoutChanged()
                     scale.parentLayoutChanged()
                 }
                 onSourceChanged: {
@@ -331,6 +333,7 @@ ApplicationWindow {
                     firstLoad = false
                     roi.recomputeMappedPoints()
                     roi.parentLayoutChanged()
+                    velocityROI.parentLayoutChanged()
                     //forceROIRefresh()
                 }
                 onVideoFinished: {

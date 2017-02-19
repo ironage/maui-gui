@@ -32,6 +32,12 @@ public:
         SUCCESS,
         AUTO_INIT_FAILED
     };
+    enum SetupState {
+        NONE,
+        NORMAL_ROI,
+        VELOCITY_ROI,
+        ALL
+    };
 
 private:
     enum PlayState {
@@ -46,6 +52,7 @@ private:
     const int CAM_FPS_PRINT_PERIOD = 500;       ///< Period of printing the FPS estimate, in milliseconds
 #endif
     PlayState curPlayState;
+    SetupState curSetupState;
     int width;                                  ///< Width of the camera image
     int height;                                 ///< Height of the camera image
     MVideoCapture* camera;                      ///< The camera to get data from
@@ -101,6 +108,7 @@ public slots:
     void setLogMetaData(MLogMetaData data);
     void setProcessOutputVideo(bool doProcess);
     bool getDoProcessOutputVideo() { return doProcessOutputVideo; }
+    void setSetupState(CameraTask::SetupState state);
 signals:
     void imageReady(int);
     void initPointsDetected(QList<MPoint>, QList<MPoint>);
@@ -140,6 +148,7 @@ public:
     void doSetLogMetaData(MLogMetaData m);
     void doSetProcessOutputVideo(bool process);
     bool doGetProcessOutputVideo();
+    void doSetSetupState(CameraTask::SetupState state);
 private:
     QThread workerThread;
     CameraTask* task = NULL;
@@ -160,9 +169,11 @@ signals:
     void setProcessOutputVideo(bool process);
     void initPointsDetected(QList<MPoint>, QList<MPoint>);
     void outputProgress(int);
+    void setSetupState(CameraTask::SetupState state);
 };
 
 Q_DECLARE_METATYPE(CameraTask::ProcessingState)
+Q_DECLARE_METATYPE(CameraTask::SetupState)
 
 
 #endif /* CAMERATHREAD_H */

@@ -234,6 +234,7 @@ ApplicationWindow {
                 Layout.bottomMargin: Style.v_padding * 2
                 width: leftPanel.headerWidth
                 enabled: window.controlsEnabled
+                onCheckedChanged: m_video.configureComputationState()
             }
 
             MPaneVelocityDetect {
@@ -242,6 +243,7 @@ ApplicationWindow {
                 Layout.bottomMargin: Style.v_padding * 2
                 width: leftPanel.headerWidth
                 enabled: window.controlsEnabled
+                onCheckedChanged: m_video.configureComputationState()
             }
 
             MSummaryPane {
@@ -335,6 +337,7 @@ ApplicationWindow {
                     roi.recomputeMappedPoints()
                     roi.parentLayoutChanged()
                     velocityROI.parentLayoutChanged()
+                    configureComputationState()
                     //forceROIRefresh()
                 }
                 onVideoFinished: {
@@ -363,6 +366,11 @@ ApplicationWindow {
                 }
                 onBottomPointsChanged: {
                     roi.updateLines()   //FIXME: split to not recompute both each time
+                }
+                function configureComputationState() {
+                    var state = 0 // CameraTask::SetupState::NONE
+                    state = (wallDetectionPane.checked ? 1 : 0) * 1 + (velocityDetectionPane.checked ? 1 : 0) * 2
+                    m_video.setSetupState(state)
                 }
 
                 //onVideoRectChanged: roi.recomputeMappedPoints()

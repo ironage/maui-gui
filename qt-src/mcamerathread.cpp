@@ -22,11 +22,12 @@
 CameraTask::CameraTask(MVideoCapture* camera, QVideoFrame* videoFrame,
                        unsigned char* cvImageBuf, int width, int height)
     : running(true), camera(camera), videoFrame(videoFrame),cvImageBuf(cvImageBuf),
-    width(width), height(height), curPlayState(Paused), curFrame(-1), frameToSeekTo(-1),
-    startFrame(0), endFrame(0), autoRecomputeROI(false), doneInit(false),
-    cameraFrame(nullptr), cachedFrameIsDirty(true), doProcessOutputVideo(true)
+    width(width), height(height), curPlayState(Paused), curSetupState(NORMAL_ROI),
+    curFrame(-1), frameToSeekTo(-1), startFrame(0), endFrame(0), autoRecomputeROI(false),
+    doneInit(false), cameraFrame(nullptr), cachedFrameIsDirty(true), doProcessOutputVideo(true)
 {
     qRegisterMetaType<CameraTask::ProcessingState>();
+    qRegisterMetaType<CameraTask::SetupState>();
     matlabArrays = new mwArray[ARRAY_COUNT];
 }
 
@@ -43,17 +44,17 @@ void CameraTask::stop()
 }
 
 mwArray* opencvConvertToMX(cv::Mat& m) {
-    int rows=m.rows;
-    int cols=m.cols;
+    int rows = m.rows;
+    int cols = m.cols;
     mwArray *T = new mwArray(rows, cols, mxDOUBLE_CLASS);
-    mxDouble *dataBuffer = new mxDouble[cols*rows]; // TODO: allocation on size change only
-    for(int i=0; i<rows; i++){
-        for(int j=0; j<cols; j++){
+    mxDouble *dataBuffer = new mxDouble[cols * rows]; // TODO: allocation on size change only
+    for (int i = 0; i < rows; i++) {
+        for (int j = 0; j < cols; j++) {
             //        [i*cols+j]  row vs col order is reversed from cv::Mat to mwArray
-            dataBuffer[j*rows+i] = m.at<uchar>(i,j);
+            dataBuffer[j * rows + i] = m.at<uchar>(i, j);
         }
     }
-    T->SetData(dataBuffer, cols*rows);
+    T->SetData(dataBuffer, cols * rows);
     delete [] dataBuffer;
     return T;
 }
@@ -304,7 +305,7 @@ void CameraTask::setVelocityROI(QRect newROI)
 {
     if (velocityROI != newROI) {
         velocityROI = newROI;
-        qDebug() << "Setting velocityROI: " << velocityROI;
+        //qDebug() << "Setting velocityROI: " << velocityROI;
         if (curPlayState == PlayState::Paused) {
             //curPlayState = PlayState::AutoInitCurFrame;
         }
@@ -331,6 +332,11 @@ void CameraTask::setLogMetaData(MLogMetaData data)
 void CameraTask::setProcessOutputVideo(bool doProcess)
 {
     doProcessOutputVideo = doProcess;
+}
+
+void CameraTask::setSetupState(CameraTask::SetupState state)
+{
+    curSetupState = state;
 }
 
 void CameraTask::notifyInitPoints(mwArray topWall, mwArray bottomWall, QPoint offset)
@@ -536,6 +542,7 @@ MCameraThread::MCameraThread(MVideoCapture* camera, QVideoFrame* videoFrame, uns
     connect(this, SIGNAL(setLogMetaData(MLogMetaData)), task, SLOT(setLogMetaData(MLogMetaData)), Qt::QueuedConnection);
     connect(this, SIGNAL(continueProcessing()), task, SLOT(continueProcessing()), Qt::QueuedConnection);
     connect(this, SIGNAL(setProcessOutputVideo(bool)), task, SLOT(setProcessOutputVideo(bool)), Qt::QueuedConnection);
+    connect(this, SIGNAL(setSetupState(CameraTask::SetupState)), task, SLOT(setSetupState(CameraTask::SetupState)), Qt::QueuedConnection);
 }
 
 MCameraThread::~MCameraThread()
@@ -621,4 +628,9 @@ void MCameraThread::doSetProcessOutputVideo(bool process)
 bool MCameraThread::doGetProcessOutputVideo()
 {
     return task->getDoProcessOutputVideo();
+}
+
+void MCameraThread::doSetSetupState(CameraTask::SetupState state)
+{
+    emit setSetupState(state);
 }

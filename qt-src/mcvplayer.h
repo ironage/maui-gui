@@ -50,6 +50,7 @@ public:
     ~MCVPlayer();
     QAbstractVideoSurface* videoSurface() const { return m_surface; }
     Q_ENUM(CameraTask::ProcessingState)
+    Q_ENUM(CameraTask::SetupState)
 
     void setVideoSurface(QAbstractVideoSurface *surface);
 public slots:
@@ -73,6 +74,7 @@ public slots:
     void setRecomputeROIMode(bool mode);
     void setCurFrame(int newFrame);
     int getPlaybackState();
+    void setSetupState(CameraTask::SetupState state);
     void play();
     void continueProcessing();
     void stop();

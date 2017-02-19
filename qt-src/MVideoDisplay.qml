@@ -51,6 +51,9 @@ Item {
     function forceROIRefresh() {
         cv_player.forceROIRefresh()
     }
+    function setSetupState(state) {
+        cv_player.setSetupState(state)
+    }
 
     onProgress_minChanged: {
         cv_player.setStartFrame(progress_min * (cv_player.duration - 1));

@@ -334,6 +334,14 @@ int MCVPlayer::getPlaybackState()
     return QMediaPlayer::PausedState;
 }
 
+void MCVPlayer::setSetupState(CameraTask::SetupState state)
+{
+    QMutexLocker locker(&lock);
+    if (thread) {
+        thread->doSetSetupState(state);
+    }
+}
+
 void MCVPlayer::seek(int frame)
 {
     QMutexLocker locker(&lock);

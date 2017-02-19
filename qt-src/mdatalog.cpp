@@ -81,8 +81,9 @@ void MDataLog::add(MDataEntry &&entry)
 
 void MDataLog::write(QString fileName)
 {
-    QFile file(fileName + ".csv");
-    if (file.exists()) {
+    metaData.touchWriteTime();
+    QFile file(fileName + metaData.getWriteTime() + ".csv");
+    if (file.exists()) { // With dates on each file, this shouldn't happen!
         qDebug() << "File exsists already! Adding date to avoid conflict " << fileName;
         file.setFileName(fileName + QDateTime::currentDateTime().toString("yyyy-MM-dd_hh-mm-ss") + ".csv");
     }

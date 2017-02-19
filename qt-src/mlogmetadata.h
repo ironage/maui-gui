@@ -11,7 +11,6 @@ class MLogMetaData : public QObject
     Q_OBJECT
     Q_PROPERTY(QString inputFileName MEMBER fileName NOTIFY propertiesChanged)
     Q_PROPERTY(QString inputFilePath MEMBER filePath NOTIFY propertiesChanged)
-    Q_PROPERTY(QString outputName MEMBER outputFileName NOTIFY propertiesChanged)
     Q_PROPERTY(QString outputDir MEMBER outputDirectory NOTIFY propertiesChanged)
     Q_PROPERTY(QString conversionUnits MEMBER units NOTIFY propertiesChanged)
     Q_PROPERTY(double conversionPixels MEMBER pixels NOTIFY propertiesChanged)
@@ -24,12 +23,13 @@ public:
     QString getTimestamp() const;
     double getPixels() const { return pixels; }
     QString getUnits() const { return units; }
-    QString getOutputName() const { return outputFileName; }
     QString getOutputDir() const { return outputDirectory; }
     void setFileName(QString name) { fileName = name; }
     void setFilePath(QString path) { filePath = path; }
     void setPixels(int numPixels) { pixels = numPixels; }
     void setUnits(QString newUnits) { units = newUnits; }
+    void touchWriteTime();
+    QString getWriteTime() { return uniqueness; }
     std::vector<QString> getHeader() const;
     void operator=(const MLogMetaData& other);
 signals:
@@ -39,10 +39,10 @@ public slots:
 private:
     QString fileName;
     QString filePath;
-    QString outputFileName;
     QString outputDirectory;
     double pixels;
     QString units;
+    QString uniqueness;
 };
 
 bool operator!=(const MLogMetaData& lhs, const MLogMetaData& rhs);

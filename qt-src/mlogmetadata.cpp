@@ -5,18 +5,24 @@
 
 MLogMetaData::MLogMetaData(QObject *parent) : QObject(parent), pixels(1), units("undefined")
 {
+    uniqueness = QDateTime::currentDateTime().toString("yyyy-MM-dd_hh-mm-ss");
 }
 
 MLogMetaData::MLogMetaData(const MLogMetaData &other)
     : fileName(other.fileName), filePath(other.filePath),
-      outputFileName(other.outputFileName), outputDirectory(other.outputDirectory),
-      pixels(other.pixels), units(other.units)
+      outputDirectory(other.outputDirectory),
+      pixels(other.pixels), units(other.units), uniqueness(other.uniqueness)
 {
 }
 
 QString MLogMetaData::getTimestamp() const
 {
     return QDateTime::currentDateTime().toString("yyyy/MM/dd hh:mm:ss");
+}
+
+void MLogMetaData::touchWriteTime()
+{
+    uniqueness = QDateTime::currentDateTime().toString("yyyy-MM-dd_hh-mm-ss");
 }
 
 std::vector<QString> MLogMetaData::getHeader() const
@@ -32,8 +38,8 @@ void MLogMetaData::operator=(const MLogMetaData &other)
     filePath = other.filePath;
     pixels = other.pixels;
     units = other.units;
-    outputFileName = other.outputFileName;
     outputDirectory = other.outputDirectory;
+    uniqueness = other.uniqueness;
 }
 
 bool operator!=(const MLogMetaData& lhs, const MLogMetaData& rhs) {
@@ -41,7 +47,7 @@ bool operator!=(const MLogMetaData& lhs, const MLogMetaData& rhs) {
             || lhs.getFilePath() != rhs.getFilePath()
             || lhs.getPixels() != rhs.getPixels()
             || lhs.getUnits() != rhs.getUnits()
-            || lhs.getOutputDir() != rhs.getOutputDir()
-            || lhs.getOutputName() != rhs.getOutputName();
+            || lhs.getOutputDir() != rhs.getOutputDir();
+    // uniqueness not necessary here because it may change in the future.
 }
 

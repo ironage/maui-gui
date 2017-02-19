@@ -217,6 +217,13 @@ ApplicationWindow {
                 Layout.bottomMargin: Style.v_padding * 2
                 width: leftPanel.headerWidth
                 enabled: window.controlsEnabled
+                onTriggerSetInitialDirectory: {
+                    var previousFolder = remoteInterface.getLocalSetting("directory_out")
+                    setInitialDirectory(previousFolder)
+                }
+                onTriggerUpdateInitialDirectory: {
+                    remoteInterface.setLocalSetting("directory_out", folder)
+                }
             }
 
             MPaneWallDetect {

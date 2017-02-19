@@ -384,7 +384,7 @@ void CameraTask::initializeOutput()
     if (!QDir(outputDirName.c_str()).exists()) {
         QDir().mkdir(outputDirName.c_str());
     }
-    outputFileName = QString::fromStdString(outputDirName) + "/" + (metaData.getOutputName());
+    outputFileName = QString::fromStdString(outputDirName) + "/" + (QFileInfo(metaData.getFileName()).completeBaseName());
 }
 
 void CameraTask::processOutputVideo() {
@@ -398,7 +398,7 @@ void CameraTask::processOutputVideo() {
     // the following line didn't work correctly for some videos
     //int ex = static_cast<int>(camera->getProperty(CV_CAP_PROP_FOURCC));     // Get Codec Type- Int form
     int ex = CV_FOURCC('M', 'J', 'P', 'G');
-    std::string outputName = outputFileName.toStdString() + "_tracking.avi";
+    std::string outputName = outputFileName.toStdString() + "_tracking" + log.getMetaData().getWriteTime().toStdString() + ".avi";
     cv::VideoWriter outputVideo;
     bool success = outputVideo.open(outputName, ex, frameRate, videoSize, true);
     qDebug() << "opening output video: " << QString::fromStdString(outputName) << " success ? " << success << " (ex: " << ex << ")";

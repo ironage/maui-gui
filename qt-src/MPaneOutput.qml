@@ -9,6 +9,13 @@ Item {
     height: outputVideoCheckbox.height + saveVideo.height + header.height + (3 * Style.v_padding)
     property alias outputDirectory: videoOutputDialog.outputDirectory
     property alias processOutputVideo: outputVideoCheckbox.checked
+
+    signal triggerUpdateInitialDirectory(string folder)
+    signal triggerSetInitialDirectory()
+    function setInitialDirectory(folder) {
+        videoOutputDialog.folder = folder
+    }
+
     Rectangle {
         id: background
         border.width: Style.border_width
@@ -61,19 +68,19 @@ Item {
         selectFolder: true
         title: "Select an output directory"
         onAccepted: {
-//            remoteInterface.setLocalSetting("directory_out", folder)
-//            var simpleName = fileUrl.toString();
-//            // unescape html codes like '%23' for '#'
-//            simpleName = decodeURIComponent(simpleName);
-//            var searchExpression = new RegExp("^((file:\\/{3})|(qrc:\\/{2})|(http:\\/{2}))(.*)", "g")
-//            var match = searchExpression.exec(simpleName)
-//            var directoryPath = match[5]
-//            outputDirectory = directoryPath
+            triggerUpdateInitialDirectory(folder)
+            // FIXME: the following regex breaks on remote mounted server locations starting with "//"
+            var simpleName = fileUrl.toString();
+            // unescape html codes like '%23' for '#'
+            simpleName = decodeURIComponent(simpleName);
+            var searchExpression = new RegExp("^((file:\\/{3})|(qrc:\\/{2})|(http:\\/{2}))(.*)", "g")
+            var match = searchExpression.exec(simpleName)
+            var directoryPath = match[5]
+            outputDirectory = directoryPath
         }
         onVisibleChanged: {
             if (visible) {
-//                var previousFolder = remoteInterface.getLocalSetting("directory_out")
-//                folder = previousFolder
+                triggerSetInitialDirectory()
             }
         }
     }

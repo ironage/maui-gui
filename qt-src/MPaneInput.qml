@@ -85,7 +85,7 @@ Item {
                     color: Style.ui_color_silver
                     clip: true
                     border.width: ListView.isCurrentItem ? Style.border_width : 0
-                    border.color: Style.ui_color_dark_green
+                    border.color: Style.ui_border_color
 
                     Rectangle {
                         id: progress

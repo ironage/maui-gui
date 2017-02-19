@@ -14,6 +14,9 @@ class MLogMetaData : public QObject
     Q_PROPERTY(QString outputDir MEMBER outputDirectory NOTIFY propertiesChanged)
     Q_PROPERTY(QString conversionUnits MEMBER units NOTIFY propertiesChanged)
     Q_PROPERTY(double conversionPixels MEMBER pixels NOTIFY propertiesChanged)
+    Q_PROPERTY(QString velocityConversionUnits MEMBER velocityUnits NOTIFY propertiesChanged)
+    Q_PROPERTY(double velocityConversionPixels MEMBER velocityPixels NOTIFY propertiesChanged)
+    Q_PROPERTY(double velocityTime MEMBER velocityXSeconds NOTIFY propertiesChanged)
 public:
     explicit MLogMetaData(QObject *parent = 0);
     MLogMetaData(const MLogMetaData& other);
@@ -23,11 +26,17 @@ public:
     QString getTimestamp() const;
     double getPixels() const { return pixels; }
     QString getUnits() const { return units; }
+    QString getVelocityUnits() const { return velocityUnits; }
     QString getOutputDir() const { return outputDirectory; }
+    double getVelocityPixels() const { return velocityPixels; }
+    double getVelocityXSeconds() const { return velocityXSeconds; }
     void setFileName(QString name) { fileName = name; }
     void setFilePath(QString path) { filePath = path; }
-    void setPixels(int numPixels) { pixels = numPixels; }
+    void setPixels(double numPixels) { pixels = numPixels; }
     void setUnits(QString newUnits) { units = newUnits; }
+    void setVelocityUnits(QString newUnits) { velocityUnits = newUnits; }
+    void setVelocityPixels(double numPixels) { velocityPixels = numPixels; }
+    void setVelocityXSeconds(double numSeconds) { velocityXSeconds = numSeconds; }
     void touchWriteTime();
     QString getWriteTime() { return uniqueness; }
     std::vector<QString> getHeader() const;
@@ -43,6 +52,9 @@ private:
     double pixels;
     QString units;
     QString uniqueness;
+    QString velocityUnits;
+    double velocityPixels;
+    double velocityXSeconds;
 };
 
 bool operator!=(const MLogMetaData& lhs, const MLogMetaData& rhs);

@@ -60,8 +60,10 @@ ApplicationWindow {
         id: logMetaData
         conversionUnits: wallDetectionPane.conversionUnits
         conversionPixels: m_video.video_height <= 0 ? 1 : (scale.mappedBottomValue - scale.mappedTopValue) / wallDetectionPane.scale
-        //outputName: import_video.outputName === "" ? import_video.defaultOutputName : import_video.outputName
         outputDir: outputPane.outputDirectory
+        velocityConversionUnits: velocityDetectionPane.conversionUnits
+        velocityConversionPixels: m_video.video_height <= 0 ? 1 : (velocityVerticalScale.mappedBottomValue - velocityVerticalScale.mappedTopValue) / velocityDetectionPane.scale
+        velocityTime: velocityDetectionPane.time
     }
 
     MLoginWindow {

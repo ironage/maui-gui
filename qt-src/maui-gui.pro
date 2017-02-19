@@ -44,7 +44,7 @@ LIBS += -lopencv_core2413 -lopencv_highgui2413 -lopencv_imgproc2413 -lopencv_vid
 
 LIBS += -L"$$MATLAB_LIBS"
 LIBS += -L$$PWD/libs/
-LIBS += -l$$PWD/libs/libAutoMAUI -lmclmcrrt -lmclmcr
+LIBS += -l$$PWD/libs/MAUIVelocityDllWithAutoInit -lmclmcrrt -lmclmcr
 LIBS += -llibmat -llibmx -lmclbase -llibmwservices -lmclcommain  -lmclxlmain
 
 LIBS += -lkernel32 -luser32 -lgdi32 -lwinspool
@@ -60,8 +60,8 @@ HEADERS += \
     mdatalog.h \
     mlogmetadata.h \
     minitthread.h \
-    libAutoMAUI.h \
     mremoteinterface.h \
     msettings.h \
     qblowfish.h \
-    qblowfish_p.h
+    qblowfish_p.h \
+    MAUIVelocityDllWithAutoInit.h

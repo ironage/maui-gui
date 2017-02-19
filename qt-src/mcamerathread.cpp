@@ -15,7 +15,7 @@
 // studio on the matlab generated header files.
 #pragma warning(push)
 #pragma warning( disable : 4100 )
-#include "libAutoMAUI.h"   // custom generated header (with lib) from matlab code
+#include "MAUIVelocityDllWithAutoInit.h"   // custom generated header (with lib) from matlab code
 #pragma warning(pop)
 
 

@@ -154,7 +154,7 @@ void CameraTask::doWork()
         //Assuming desktop, RGB camera image and RGBA QVideoFrame
         if(videoFrame) {
             cv::Mat tempMat(height, width, CV_8UC3, cameraFrame);
-            cv::Mat roiSection = tempMat(getCVROI());
+            cv::Mat roiSection = tempMat(getCVROI(roi));
             cv::cvtColor(roiSection, roiSection, CV_BGR2GRAY);
             std::unique_ptr<mwArray> matlabROI(opencvConvertToMX(roiSection));
 
@@ -167,20 +167,41 @@ void CameraTask::doWork()
                 autoInitializeOnROI(matlabROI.get());
             } else if (curPlayState == PlayState::Playing) {
                 if (!doneInit) {
-                    bool autoInitSuccess = autoInitializeOnROI(matlabROI.get());
-                    if (!autoInitSuccess || topPoints.empty() || bottomPoints.empty()) {
-                        emit videoFinished(CameraTask::ProcessingState::AUTO_INIT_FAILED);
-                        curPlayState = PlayState::Paused;
-                        camera->setProperty(CV_CAP_PROP_POS_FRAMES, curFrame); // this frame needs reprocessing
-                        cachedFrameIsDirty = true;
-                        continue;
+                    if (curSetupState & SetupState::NORMAL_ROI) {
+                        bool autoInitSuccess = autoInitializeOnROI(matlabROI.get());
+                        if (!autoInitSuccess || topPoints.empty() || bottomPoints.empty()) {
+                            emit videoFinished(CameraTask::ProcessingState::AUTO_INIT_FAILED);
+                            curPlayState = PlayState::Paused;
+                            camera->setProperty(CV_CAP_PROP_POS_FRAMES, curFrame); // this frame needs reprocessing
+                            cachedFrameIsDirty = true;
+                            continue;
+                        }
+                        const int numReturnValues = 6;
+                        setup(numReturnValues,
+                              matlabArrays[SMOOTH_KERNEL], matlabArrays[DERIVATE_KERNEL],
+                              matlabArrays[TOP_STRONG_LINE], matlabArrays[BOTTOM_STRONG_LINE],
+                              matlabArrays[TOP_REF_WALL], matlabArrays[BOTTOM_REF_WALL],
+                              matlabArrays[TOP_STRONG_POINTS], matlabArrays[BOTTOM_STRONG_POINTS]);
                     }
-                    const int numReturnValues = 6;
-                    setup(numReturnValues,
-                          matlabArrays[SMOOTH_KERNEL], matlabArrays[DERIVATE_KERNEL],
-                          matlabArrays[TOP_STRONG_LINE], matlabArrays[BOTTOM_STRONG_LINE],
-                          matlabArrays[TOP_REF_WALL], matlabArrays[BOTTOM_REF_WALL],
-                          matlabArrays[TOP_STRONG_POINTS], matlabArrays[BOTTOM_STRONG_POINTS]);
+                    if (curSetupState & SetupState::VELOCITY_ROI) {
+                        int origFrame = curFrame; // + 1?
+                        cv::Mat velocityROISection = tempMat(getCVROI(velocityROI));
+                        cv::cvtColor(velocityROISection, velocityROISection, CV_BGR2GRAY);
+                        std::unique_ptr<mwArray> matlabVelocityROI(opencvConvertToMX(velocityROISection));
+
+                        if (!getNextFrameData()) continue; // FIXME: emit error
+                        camera->setProperty(CV_CAP_PROP_POS_FRAMES, curFrame); // AutoInit does not advance frames
+
+                        cv::Mat velocityROISection2 = tempMat(getCVROI(velocityROI));
+                        cv::cvtColor(velocityROISection2, velocityROISection2, CV_BGR2GRAY);
+                        std::unique_ptr<mwArray> matlabVelocityROI2(opencvConvertToMX(velocityROISection2));
+
+                        imwrite("velocityPrevious.jpg", velocityROISection);
+                        imwrite("velocityCurrent.jpg", velocityROISection2);
+
+                        autoInitializeVelocityROI(matlabVelocityROI2.get(), matlabVelocityROI.get());
+
+                    }
                     doneInit = true;
                 }
 
@@ -371,17 +392,17 @@ void CameraTask::notifyInitPoints(mwArray topWall, mwArray bottomWall, QPoint of
     emit initPointsDetected(topPoints, bottomPoints);
 }
 
-cv::Rect CameraTask::getCVROI()
+cv::Rect CameraTask::getCVROI(QRect rect)
 {
     // Trying to crop an image outside of bounds will crash, bound check here
-    int roiX = std::max(0, roi.x());
+    int roiX = std::max(0, rect.x());
     if (roiX >= width) roiX = width - 1;
-    int roiY = std::max(0, roi.y());
+    int roiY = std::max(0, rect.y());
     if (roiY >= height) roiY = height - 1;
 
-    int roiW = std::min(width - roiX - 1, roi.width());
+    int roiW = std::min(width - roiX - 1, rect.width());
     if (roiW < 0) roiW = 0;
-    int roiH = std::min(height - roiY - 1, roi.height());
+    int roiH = std::min(height - roiY - 1, rect.height());
     if (roiH < 0) roiH = 0;
     return cv::Rect(roiX, roiY, roiW, roiH);
 }
@@ -481,13 +502,34 @@ bool CameraTask::autoInitializeOnROI(mwArray *matlabROI)
         numPoints.SetData(numPointsData, 1);
         mwArray kerUpHeight, kerBotHeight;
 
-
         const int numReturnValues = 4;
         autoInitializer(numReturnValues, matlabArrays[TOP_STRONG_POINTS],
                         matlabArrays[BOTTOM_STRONG_POINTS], kerUpHeight, kerBotHeight, *matlabROI, numPoints);
 
         notifyInitPoints(matlabArrays[TOP_STRONG_POINTS], matlabArrays[BOTTOM_STRONG_POINTS],
                          QPoint(roi.x(), roi.y()));
+        doneInit = false;
+    } catch (const mwException& e) {
+        std::cerr << "exception caught: " << e.what() << std::endl;
+        return false;
+    }
+    return true;
+}
+
+bool CameraTask::autoInitializeVelocityROI(mwArray *velocityCurrentROI, mwArray *velocityPreviousROI)
+{
+    try {
+        mwArray numPoints(1, 1, mxINT32_CLASS);
+        int numPointsData [] = { 5 };
+        numPoints.SetData(numPointsData, 1);
+        const int numReturnValues = 2;
+
+        mwArray velocityXLocation, videoType;
+        setup4Velocity(numReturnValues, velocityXLocation,
+                        videoType, *velocityCurrentROI, *velocityPreviousROI);
+
+        qDebug() << "velocityXLocation: " << getFirst(velocityXLocation, -1) << " videoType " << getFirst(videoType, -1);
+
         doneInit = false;
     } catch (const mwException& e) {
         std::cerr << "exception caught: " << e.what() << std::endl;

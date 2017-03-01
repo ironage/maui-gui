@@ -32,7 +32,7 @@ public:
         SUCCESS,
         AUTO_INIT_FAILED
     };
-    enum SetupState {
+    enum SetupState { // mutually exclusive bits for & checks
         NONE,
         NORMAL_ROI,
         VELOCITY_ROI,
@@ -116,12 +116,13 @@ signals:
     void outputProgress(int);
 protected:
     void notifyInitPoints(mwArray topWall, mwArray bottomWall, QPoint offset);
-    cv::Rect getCVROI();
+    cv::Rect getCVROI(QRect rect);
     void drawLine(cv::Mat &dest, const std::vector<cv::Point>& points, cv::Scalar color);
     void initializeOutput();
     double getFirst(mwArray& data, double defaultValue);
     void writeResults();
     bool autoInitializeOnROI(mwArray* matlabROI);
+    bool autoInitializeVelocityROI(mwArray* velocityCurrentROI, mwArray* velocityPreviousROI);
     bool getNextFrameData();
     void drawOverlay(int frame, cv::Mat &mat);
     void processOutputVideo();

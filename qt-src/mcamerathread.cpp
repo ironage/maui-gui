@@ -199,37 +199,38 @@ void CameraTask::doWork()
                         imwrite("velocityPrevious.jpg", velocityROISection);
                         imwrite("velocityCurrent.jpg", velocityROISection2);
 
-                        autoInitializeVelocityROI(matlabVelocityROI2.get(), matlabVelocityROI.get());
-
+                        initializeVelocityROI(matlabVelocityROI2.get(), matlabVelocityROI.get());
                     }
                     doneInit = true;
                 }
 
                 try {
-                    mwArray outerLumenDiameter, topIMT, bottomIMT;
-                    const int numReturnValues = 9;
+                    if (curSetupState & SetupState::NORMAL_ROI) {
+                        mwArray outerLumenDiameter, topIMT, bottomIMT;
+                        const int numReturnValues = 9;
 
-                    update(numReturnValues,
-                           matlabArrays[TOP_STRONG_LINE], matlabArrays[BOTTOM_STRONG_LINE],
-                           outerLumenDiameter,  matlabArrays[TOP_WEAK_LINE],
-                           topIMT, matlabArrays[BOTTOM_WEAK_LINE],
-                           bottomIMT, matlabArrays[TOP_REF_WALL], matlabArrays[BOTTOM_REF_WALL],
-                           *matlabROI, matlabArrays[SMOOTH_KERNEL], matlabArrays[DERIVATE_KERNEL],
-                           matlabArrays[TOP_STRONG_LINE], matlabArrays[BOTTOM_STRONG_LINE],
-                           matlabArrays[TOP_STRONG_POINTS], matlabArrays[BOTTOM_STRONG_POINTS],
-                           matlabArrays[TOP_REF_WALL], matlabArrays[BOTTOM_REF_WALL]);
+                        update(numReturnValues,
+                               matlabArrays[TOP_STRONG_LINE], matlabArrays[BOTTOM_STRONG_LINE],
+                               outerLumenDiameter,  matlabArrays[TOP_WEAK_LINE],
+                               topIMT, matlabArrays[BOTTOM_WEAK_LINE],
+                               bottomIMT, matlabArrays[TOP_REF_WALL], matlabArrays[BOTTOM_REF_WALL],
+                               *matlabROI, matlabArrays[SMOOTH_KERNEL], matlabArrays[DERIVATE_KERNEL],
+                               matlabArrays[TOP_STRONG_LINE], matlabArrays[BOTTOM_STRONG_LINE],
+                               matlabArrays[TOP_STRONG_POINTS], matlabArrays[BOTTOM_STRONG_POINTS],
+                               matlabArrays[TOP_REF_WALL], matlabArrays[BOTTOM_REF_WALL]);
 
-                    QPoint offset(std::max(0, roi.x()), std::max(0, roi.y()));
-                    log.add(MDataEntry(
-                                curFrame + 1,
-                                getFirst(outerLumenDiameter, 0),
-                                getFirst(topIMT, 0),
-                                getFirst(bottomIMT, 0),
-                                (1/frameRate) * curFrame,
-                                convertMWArray(matlabArrays[TOP_STRONG_LINE], offset),
-                                convertMWArray(matlabArrays[TOP_WEAK_LINE], offset),
-                                convertMWArray(matlabArrays[BOTTOM_STRONG_LINE], offset),
-                                convertMWArray(matlabArrays[BOTTOM_WEAK_LINE], offset)));
+                        QPoint offset(std::max(0, roi.x()), std::max(0, roi.y()));
+                        log.add(MDataEntry(
+                                    curFrame + 1,
+                                    getFirst(outerLumenDiameter, 0),
+                                    getFirst(topIMT, 0),
+                                    getFirst(bottomIMT, 0),
+                                    (1/frameRate) * curFrame,
+                                    convertMWArray(matlabArrays[TOP_STRONG_LINE], offset),
+                                    convertMWArray(matlabArrays[TOP_WEAK_LINE], offset),
+                                    convertMWArray(matlabArrays[BOTTOM_STRONG_LINE], offset),
+                                    convertMWArray(matlabArrays[BOTTOM_WEAK_LINE], offset)));
+                    }
                 } catch (const mwException& e) {
                     std::cerr << "exception caught: " << e.what() << std::endl;
                 }
@@ -518,7 +519,7 @@ bool CameraTask::autoInitializeOnROI(mwArray *matlabROI)
     return true;
 }
 
-bool CameraTask::autoInitializeVelocityROI(mwArray *velocityCurrentROI, mwArray *velocityPreviousROI)
+bool CameraTask::initializeVelocityROI(mwArray *velocityCurrentROI, mwArray *velocityPreviousROI)
 {
     try {
         mwArray numPoints(1, 1, mxINT32_CLASS);
@@ -526,11 +527,21 @@ bool CameraTask::autoInitializeVelocityROI(mwArray *velocityCurrentROI, mwArray 
         numPoints.SetData(numPointsData, 1);
         const int numReturnValues = 2;
 
-        mwArray velocityXLocation, videoType;
-        setup4Velocity(numReturnValues, velocityXLocation,
-                        videoType, *velocityCurrentROI, *velocityPreviousROI);
+        mwArray velocityXLocationMat, videoTypeMat;
+        setup4Velocity(numReturnValues, velocityXLocationMat,
+                        videoTypeMat, *velocityCurrentROI, *velocityPreviousROI);
 
-        qDebug() << "velocityXLocation: " << getFirst(velocityXLocation, -1) << " videoType " << getFirst(videoType, -1);
+        int velocityXLocation = getFirst(velocityXLocationMat, -1);
+        int videoType = getFirst(videoTypeMat, -1);
+        qDebug() << "velocityXLocation: " << velocityXLocation << " videoType " << videoType;
+
+        int indexOfFirstMovingFrame = 1; // for type 2 videos this is always 1
+        if (videoType == 1) {
+            indexOfFirstMovingFrame = getIndexOfFirstMovingFrame();
+            if (indexOfFirstMovingFrame < 0) {
+                qDebug() << "could not find starting point of velocity movement for video type 1";
+            }
+        }
 
         doneInit = false;
     } catch (const mwException& e) {
@@ -538,6 +549,50 @@ bool CameraTask::autoInitializeVelocityROI(mwArray *velocityCurrentROI, mwArray 
         return false;
     }
     return true;
+}
+
+int CameraTask::getIndexOfFirstMovingFrame()
+{
+    if (!camera || camera->getProperty(CV_CAP_PROP_FRAME_COUNT) < 2) {
+        qDebug() << "Error could not initialize type 1 video";
+        return -1;
+    }
+
+    int origFrame = curFrame; // + 1?
+
+    // advance to beginning
+    camera->setProperty(CV_CAP_PROP_POS_FRAMES, 0);
+    if (!getNextFrameData()) return -1;
+    cv::Mat tempMat(height, width, CV_8UC3, cameraFrame);
+
+    cv::Mat velocityROISection = tempMat(getCVROI(velocityROI));
+    cv::cvtColor(velocityROISection, velocityROISection, CV_BGR2GRAY);
+    std::unique_ptr<mwArray> matlabVelocityROI(opencvConvertToMX(velocityROISection));
+
+    int returnedIndex = -1;
+    mwArray returnedIndexMat;
+    mwArray curIndexMat(1, 1, mxINT32_CLASS);
+    int curVelocityInitFrame = 2; // current frame starts at 2 since previous frame starts at 1
+    int curIndexData [] = { curVelocityInitFrame };
+
+    while (returnedIndex < 0) {
+        if (!getNextFrameData()) break;
+        cv::Mat velocityROISection2 = tempMat(getCVROI(velocityROI));
+        cv::cvtColor(velocityROISection2, velocityROISection2, CV_BGR2GRAY);
+        std::unique_ptr<mwArray> matlabVelocityROI2(opencvConvertToMX(velocityROISection2));
+
+        curIndexData[0] = curVelocityInitFrame;
+        curIndexMat.SetData(curIndexData, 1);
+
+        check4FirstMovingFrame(1, returnedIndexMat, *(matlabVelocityROI2.get()), *(matlabVelocityROI.get()), curIndexMat);
+
+        returnedIndex = getFirst(returnedIndexMat, -1);
+        matlabVelocityROI.reset(matlabVelocityROI2.release());
+        ++curVelocityInitFrame;
+    }
+    camera->setProperty(CV_CAP_PROP_POS_FRAMES, origFrame); // do not advance frames
+    qDebug() << "velocity movement returning " << returnedIndex;
+    return returnedIndex;
 }
 
 bool CameraTask::getNextFrameData()

@@ -122,7 +122,8 @@ protected:
     double getFirst(mwArray& data, double defaultValue);
     void writeResults();
     bool autoInitializeOnROI(mwArray* matlabROI);
-    bool autoInitializeVelocityROI(mwArray* velocityCurrentROI, mwArray* velocityPreviousROI);
+    bool initializeVelocityROI(mwArray* velocityCurrentROI, mwArray* velocityPreviousROI);
+    int getIndexOfFirstMovingFrame();
     bool getNextFrameData();
     void drawOverlay(int frame, cv::Mat &mat);
     void processOutputVideo();

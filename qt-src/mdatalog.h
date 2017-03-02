@@ -2,21 +2,35 @@
 #define MDATALOG_H
 
 #include <opencv2/video/video.hpp>
+#include <QDebug>
 #include <QString>
 
 #include <map>
 
 #include "mlogmetadata.h"
+struct VelocityResults
+{
+    double maxPositive = NAN;
+    double avgPositive = NAN;
+    double maxNegative = NAN;
+    double avgNegative = NAN;
+    double xTrackingLocationIndividual = NAN;
+};
+
+QDebug operator<<(QDebug debug, const VelocityResults &r);
 
 class MDataEntry
 {
 public:
-    MDataEntry(int frame, double old, double topIMT, double bottomIMT, double time,
-               std::vector<cv::Point>&& topStrong,
-               std::vector<cv::Point>&& topWeak,
-               std::vector<cv::Point>&& bottomStrong,
-               std::vector<cv::Point>&& bottomWeak);
+    MDataEntry(int frame);
     MDataEntry();
+
+    void addWallPart(double old, double topIMT, double bottomIMT, double time,
+                std::vector<cv::Point> &&topStrong,
+                std::vector<cv::Point> &&topWeak,
+                std::vector<cv::Point> &&bottomStrong,
+                std::vector<cv::Point> &&bottomWeak);
+    void addVelocityPart(VelocityResults &&vResults);
 
     int getFrameNumber() const { return frameNumber; }
     QString getCSV(double conversion);
@@ -27,6 +41,7 @@ public:
     const std::vector<cv::Point>& getTopWeakLine() const { return topWeakLine; }
     const std::vector<cv::Point>& getBottomStrongLine() const { return bottomStrongLine; }
     const std::vector<cv::Point>& getBottomWeakLine() const { return bottomWeakLine; }
+    const VelocityResults getVelocity() const { return velocity; }
 private:
     QString getILTPixels(); // intima-intima, computed
     QString getILTUnits(double conversion);
@@ -39,6 +54,7 @@ private:
     std::vector<cv::Point> topWeakLine;
     std::vector<cv::Point> bottomStrongLine;
     std::vector<cv::Point> bottomWeakLine;
+    VelocityResults velocity;
 };
 
 class MDataLog

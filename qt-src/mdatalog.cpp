@@ -7,19 +7,48 @@
 #include <QFile>
 #include <QTextStream>
 
-MDataEntry::MDataEntry(int frame, double old, double topIMT, double bottomIMT, double time,
-                       std::vector<cv::Point>&& topStrong, std::vector<cv::Point>&& topWeak,
-                       std::vector<cv::Point>&& bottomStrong, std::vector<cv::Point>&& bottomWeak)
-    : frameNumber(frame), OLDPixels(old), topIMTPixels(topIMT), bottomIMTPixels(bottomIMT),
-      timeSeconds(time), topStrongLine(topStrong), topWeakLine(topWeak),
-      bottomStrongLine(bottomStrong), bottomWeakLine(bottomWeak)
+QDebug operator<<(QDebug debug, const VelocityResults &r)
 {
+    QDebugStateSaver saver(debug);
+    debug.nospace() << "VelocityResults(" << r.maxPositive << ", "
+                    << r.avgPositive << ", "
+                    << r.maxNegative << ", "
+                    << r.avgNegative << ", "
+                    << r.xTrackingLocationIndividual << ", "
+                    << ')';
+    return debug;
 }
 
 // This default ctr is just for iterator support via std::map
+MDataEntry::MDataEntry(int frame)
+    : frameNumber(frame), OLDPixels(-1), topIMTPixels(-1), bottomIMTPixels(-1), timeSeconds(-1)
+{
+}
+
 MDataEntry::MDataEntry()
     : frameNumber(-1), OLDPixels(-1), topIMTPixels(-1), bottomIMTPixels(-1), timeSeconds(-1)
 {
+}
+
+void MDataEntry::addWallPart(double old, double topIMT, double bottomIMT, double time,
+                        std::vector<cv::Point> &&topStrong,
+                        std::vector<cv::Point> &&topWeak,
+                        std::vector<cv::Point> &&bottomStrong,
+                        std::vector<cv::Point> &&bottomWeak)
+{
+    OLDPixels = old;
+    topIMTPixels = topIMT;
+    bottomIMTPixels = bottomIMT;
+    timeSeconds = time;
+    topStrongLine = std::move(topStrong);
+    topWeakLine = std::move(topWeak);
+    bottomStrongLine = std::move(bottomStrong);
+    bottomWeakLine = std::move(bottomWeak);
+}
+
+void MDataEntry::addVelocityPart(VelocityResults &&vResults)
+{
+    velocity = std::move(vResults);
 }
 
 QString MDataEntry::getCSV(double conversion)
@@ -76,7 +105,7 @@ QString MDataEntry::getString(T value)
 
 void MDataLog::add(MDataEntry &&entry)
 {
-    entries[entry.getFrameNumber()] = entry;    //FIXME: copying vectors could be expensive here
+    entries[entry.getFrameNumber()] = std::move(entry);
 }
 
 void MDataLog::write(QString fileName)

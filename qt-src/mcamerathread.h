@@ -46,6 +46,12 @@ private:
         Seeking,
         AutoInitCurFrame
     };
+    struct VelocityState {
+        int videoType = -1;
+        int firstMovingFrame = -1;
+        int xAxisLocation = -1;
+        int previousXTrackingLoc = -1;
+    };
 
 #if defined(SHOW_FRAMERATE) && !defined(ANDROID) //Android camera has its own FPS debug info
     const float CAM_FPS_RATE = 0.9f;            ///< Rate of using the older FPS estimates
@@ -65,6 +71,7 @@ private:
     int endFrame;
     QRect roi;
     QRect velocityROI;
+    VelocityState curVelocityState;
     bool autoRecomputeROI;
     bool doneInit;
     QList<MPoint> topPoints, bottomPoints;
@@ -123,6 +130,7 @@ protected:
     void writeResults();
     bool autoInitializeOnROI(mwArray* matlabROI);
     bool initializeVelocityROI(mwArray* velocityCurrentROI, mwArray* velocityPreviousROI);
+    VelocityResults getVelocityFromFrame(mwArray* velocityCurrentROI, int frame, VelocityState velocityState);
     int getIndexOfFirstMovingFrame();
     bool getNextFrameData();
     void drawOverlay(int frame, cv::Mat &mat);

@@ -184,7 +184,6 @@ void CameraTask::doWork()
                               matlabArrays[TOP_STRONG_POINTS], matlabArrays[BOTTOM_STRONG_POINTS]);
                     }
                     if (curSetupState & SetupState::VELOCITY_ROI) {
-                        int origFrame = curFrame; // + 1?
                         cv::Mat velocityROISection = tempMat(getCVROI(velocityROI));
                         cv::cvtColor(velocityROISection, velocityROISection, CV_BGR2GRAY);
                         std::unique_ptr<mwArray> matlabVelocityROI(opencvConvertToMX(velocityROISection));
@@ -196,14 +195,11 @@ void CameraTask::doWork()
                         cv::cvtColor(velocityROISection2, velocityROISection2, CV_BGR2GRAY);
                         std::unique_ptr<mwArray> matlabVelocityROI2(opencvConvertToMX(velocityROISection2));
 
-                        imwrite("velocityPrevious.jpg", velocityROISection);
-                        imwrite("velocityCurrent.jpg", velocityROISection2);
-
                         initializeVelocityROI(matlabVelocityROI2.get(), matlabVelocityROI.get());
                     }
                     doneInit = true;
                 }
-
+                MDataEntry frameResults(curFrame + 1);
                 try {
                     if (curSetupState & SetupState::NORMAL_ROI) {
                         mwArray outerLumenDiameter, topIMT, bottomIMT;
@@ -220,8 +216,7 @@ void CameraTask::doWork()
                                matlabArrays[TOP_REF_WALL], matlabArrays[BOTTOM_REF_WALL]);
 
                         QPoint offset(std::max(0, roi.x()), std::max(0, roi.y()));
-                        log.add(MDataEntry(
-                                    curFrame + 1,
+                        frameResults.addWallPart(
                                     getFirst(outerLumenDiameter, 0),
                                     getFirst(topIMT, 0),
                                     getFirst(bottomIMT, 0),
@@ -229,11 +224,20 @@ void CameraTask::doWork()
                                     convertMWArray(matlabArrays[TOP_STRONG_LINE], offset),
                                     convertMWArray(matlabArrays[TOP_WEAK_LINE], offset),
                                     convertMWArray(matlabArrays[BOTTOM_STRONG_LINE], offset),
-                                    convertMWArray(matlabArrays[BOTTOM_WEAK_LINE], offset)));
+                                    convertMWArray(matlabArrays[BOTTOM_WEAK_LINE], offset));
+                    }
+                    if (curSetupState & SetupState::VELOCITY_ROI) {
+                        cv::Mat velocityROISection = tempMat(getCVROI(velocityROI));
+                        cv::cvtColor(velocityROISection, velocityROISection, CV_BGR2GRAY);
+                        std::unique_ptr<mwArray> matlabVelocityROI(opencvConvertToMX(velocityROISection));
+                        VelocityResults vr = getVelocityFromFrame(matlabVelocityROI.get(), curFrame, curVelocityState);
+                        curVelocityState.previousXTrackingLoc = vr.xTrackingLocationIndividual;
+                        frameResults.addVelocityPart(std::move(vr));
                     }
                 } catch (const mwException& e) {
                     std::cerr << "exception caught: " << e.what() << std::endl;
                 }
+                log.add(std::move(frameResults));
             }
 
             drawOverlay(curFrame + 1, tempMat);
@@ -241,7 +245,7 @@ void CameraTask::doWork()
         }
 
         //Export camera image
-        if(cvImageBuf){
+        if (cvImageBuf) {
             memcpy(cvImageBuf,cameraFrame,height*width*3);
         }
 
@@ -499,7 +503,7 @@ bool CameraTask::autoInitializeOnROI(mwArray *matlabROI)
 {
     try {
         mwArray numPoints(1, 1, mxINT32_CLASS);
-        int pointsInLine = roi.width() * 0.10;  // 10 percent of the width of the ROI
+        int pointsInLine = roi.width() * 0.05;  // 5 percent of the width of the ROI
         if (pointsInLine < 5) pointsInLine = 5; // lower limit is 5 points
         int numPointsData [] = { pointsInLine };
         numPoints.SetData(numPointsData, 1);
@@ -542,6 +546,10 @@ bool CameraTask::initializeVelocityROI(mwArray *velocityCurrentROI, mwArray *vel
                 qDebug() << "could not find starting point of velocity movement for video type 1";
             }
         }
+        curVelocityState.firstMovingFrame = indexOfFirstMovingFrame;
+        curVelocityState.previousXTrackingLoc = 1;
+        curVelocityState.videoType = videoType;
+        curVelocityState.xAxisLocation = velocityXLocation;
 
         doneInit = false;
     } catch (const mwException& e) {
@@ -549,6 +557,54 @@ bool CameraTask::initializeVelocityROI(mwArray *velocityCurrentROI, mwArray *vel
         return false;
     }
     return true;
+}
+
+VelocityResults CameraTask::getVelocityFromFrame(mwArray *velocityCurrentROI,
+                                                 int frame,
+                                                 VelocityState velocityState)
+{
+    VelocityResults results;
+    try {
+        mwArray frameNumMat(1, 1, mxINT32_CLASS);
+        int frameNumberData [] = { frame };
+        frameNumMat.SetData(frameNumberData, 1);
+
+        mwArray xAxisLocationMat(1, 1, mxINT32_CLASS);
+        int xAxisLocationData [] = { velocityState.xAxisLocation };
+        xAxisLocationMat.SetData(xAxisLocationData, 1);
+
+        mwArray videoTypeMat(1, 1, mxINT32_CLASS);
+        int videoTypeData [] = { velocityState.videoType };
+        videoTypeMat.SetData(videoTypeData, 1);
+
+        mwArray firstMovingFrameMat(1, 1, mxINT32_CLASS);
+        int firstMovingFrameData [] = { velocityState.firstMovingFrame };
+        firstMovingFrameMat.SetData(firstMovingFrameData, 1);
+
+        mwArray previousXTrackingLocMat(1, 1, mxINT32_CLASS);
+        int previousXTrackingLocData [] = { velocityState.previousXTrackingLoc };
+        previousXTrackingLocMat.SetData(previousXTrackingLocData, 1);
+
+        const int numReturnValues = 5;
+
+        mwArray maxPositiveMat, avgPositiveMat, maxNegativeMat, avgNegativeMat, xTrackingLocationIndividualMat;
+
+        processVelocityIntervals(numReturnValues, maxPositiveMat,
+                                 avgPositiveMat, maxNegativeMat, avgNegativeMat,
+                                 xTrackingLocationIndividualMat,
+                                 *velocityCurrentROI, frameNumMat,
+                                 xAxisLocationMat, videoTypeMat,
+                                 firstMovingFrameMat, previousXTrackingLocMat);
+
+        results.maxPositive = getFirst(avgPositiveMat, NAN);
+        results.maxNegative = getFirst(maxNegativeMat, NAN);
+        results.avgNegative = getFirst(avgNegativeMat, NAN);
+        results.xTrackingLocationIndividual = getFirst(xTrackingLocationIndividualMat, NAN);
+        qDebug() << "velocity results: " << results;
+    } catch (const mwException& e) {
+        std::cerr << "exception caught: " << e.what() << std::endl;
+    }
+    return results;
 }
 
 int CameraTask::getIndexOfFirstMovingFrame()

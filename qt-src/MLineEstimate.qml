@@ -1,17 +1,18 @@
 import QtQuick 2.5
+import "."
 
 Canvas {
     id: line
     antialiasing: true
 
-    property color strokeColor:  "#ffffff"
-    property color fillColor: "#ffffff"
+    property color strokeColor:  Style.ui_color_light_orange
+    property color fillColor: Style.ui_color_light_red
     property color curFillColor: fillColor
     property color curStrokeColor: strokeColor
     property int lineWidth: 20
     property bool fill: true
     property bool stroke: true
-    property real alpha: 0.5
+    property real alpha: 0.6
     property var pointList
     x:0
     y:0

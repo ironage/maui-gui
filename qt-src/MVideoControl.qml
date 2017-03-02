@@ -76,6 +76,7 @@ Item {
             yOffset: -2
             value: 0.0
             enabled: parent.enabled
+            description: totalFrames === 0 ? "" : ~~(value * totalFrames) + 1
             onRequestNewValue: scrollTo(newValue)
             function scrollTo(newValue) {
                 if (newValue >= 0.999) {

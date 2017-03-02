@@ -69,4 +69,13 @@ MProgressHandle {
         anchors.bottom: grip.top
         anchors.horizontalCenter: parent.horizontalCenter
     }
+    MText {
+        text: grip.description
+        anchors.horizontalCenter: m_vbar.horizontalCenter
+        y: m_vbar.y - height - 5
+        font.pixelSize: 13
+        color: grip.color
+        styleColor: "white"
+        visible: parent.enabled
+    }
 }

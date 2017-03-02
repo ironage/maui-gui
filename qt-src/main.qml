@@ -443,11 +443,11 @@ ApplicationWindow {
                         line2.pointList = newBottomList
                     }
                 }
-                MPointLine {
+                MLineEstimate {
                     id: line1
                     visible: roi.visible && roi.adjustable
                 }
-                MPointLine {
+                MLineEstimate {
                     id: line2
                     visible: roi.visible && roi.adjustable
                 }

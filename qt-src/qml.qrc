@@ -31,5 +31,6 @@
         <file>MPaneVelocityDetect.qml</file>
         <file>MExitButton.qml</file>
         <file>MScaleAdjusterHorizontal.qml</file>
+        <file>MLineEstimate.qml</file>
     </qresource>
 </RCC>

@@ -47,10 +47,10 @@ private:
         AutoInitCurFrame
     };
     struct VelocityState {
-        int videoType = -1;
-        int firstMovingFrame = -1;
-        int xAxisLocation = -1;
-        int previousXTrackingLoc = -1;
+        double videoType = -1;
+        double firstMovingFrame = -1;
+        double xAxisLocation = -1;
+        double previousXTrackingLoc = 1;
     };
 
 #if defined(SHOW_FRAMERATE) && !defined(ANDROID) //Android camera has its own FPS debug info

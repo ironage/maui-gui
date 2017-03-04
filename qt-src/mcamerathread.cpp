@@ -565,24 +565,24 @@ VelocityResults CameraTask::getVelocityFromFrame(mwArray *velocityCurrentROI,
 {
     VelocityResults results;
     try {
-        mwArray frameNumMat(1, 1, mxINT32_CLASS);
-        int frameNumberData [] = { frame };
+        mwArray frameNumMat(1, 1, mxDOUBLE_CLASS);
+        double frameNumberData [] = { frame };
         frameNumMat.SetData(frameNumberData, 1);
 
-        mwArray xAxisLocationMat(1, 1, mxINT32_CLASS);
-        int xAxisLocationData [] = { velocityState.xAxisLocation };
+        mwArray xAxisLocationMat(1, 1, mxDOUBLE_CLASS);
+        double xAxisLocationData [] = { velocityState.xAxisLocation };
         xAxisLocationMat.SetData(xAxisLocationData, 1);
 
-        mwArray videoTypeMat(1, 1, mxINT32_CLASS);
-        int videoTypeData [] = { velocityState.videoType };
+        mwArray videoTypeMat(1, 1, mxDOUBLE_CLASS);
+        double videoTypeData [] = { velocityState.videoType };
         videoTypeMat.SetData(videoTypeData, 1);
 
-        mwArray firstMovingFrameMat(1, 1, mxINT32_CLASS);
-        int firstMovingFrameData [] = { velocityState.firstMovingFrame };
+        mwArray firstMovingFrameMat(1, 1, mxDOUBLE_CLASS);
+        double firstMovingFrameData [] = { velocityState.firstMovingFrame };
         firstMovingFrameMat.SetData(firstMovingFrameData, 1);
 
-        mwArray previousXTrackingLocMat(1, 1, mxINT32_CLASS);
-        int previousXTrackingLocData [] = { velocityState.previousXTrackingLoc };
+        mwArray previousXTrackingLocMat(1, 1, mxDOUBLE_CLASS);
+        double previousXTrackingLocData [] = { velocityState.previousXTrackingLoc };
         previousXTrackingLocMat.SetData(previousXTrackingLocData, 1);
 
         const int numReturnValues = 5;
@@ -596,7 +596,8 @@ VelocityResults CameraTask::getVelocityFromFrame(mwArray *velocityCurrentROI,
                                  xAxisLocationMat, videoTypeMat,
                                  firstMovingFrameMat, previousXTrackingLocMat);
 
-        results.maxPositive = getFirst(avgPositiveMat, NAN);
+        results.maxPositive = getFirst(maxPositiveMat, NAN);
+        results.avgPositive = getFirst(avgPositiveMat, NAN);
         results.maxNegative = getFirst(maxNegativeMat, NAN);
         results.avgNegative = getFirst(avgNegativeMat, NAN);
         results.xTrackingLocationIndividual = getFirst(xTrackingLocationIndividualMat, NAN);

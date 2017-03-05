@@ -84,15 +84,72 @@ void CameraTask::convertUVsp2UVp(unsigned char* __restrict srcptr, unsigned char
 
 void CameraTask::drawOverlay(int frame, cv::Mat& mat) {
     const MDataEntry *existing = log.get(frame);
+    const cv::Scalar strongColor(0, 0, 250);  // b,g,r
+    const cv::Scalar weakColor(0, 250, 0);    // b,g,r
     if (existing) {
-        cv::Scalar strongColor(0, 0, 250);  // b,g,r
-        cv::Scalar weakColor(0, 250, 0);    // b,g,r
         drawLine(mat, existing->getTopStrongLine(), strongColor);
         drawLine(mat, existing->getTopWeakLine(), weakColor);
         drawLine(mat, existing->getBottomStrongLine(), strongColor);
         drawLine(mat, existing->getBottomWeakLine(), weakColor);
         cachedFrameIsDirty = true; // now that we have drawn on this frame, force re-load cache next time
     }
+
+    if (curSetupState & VELOCITY_ROI) {
+        const cv::Point velocityBase(velocityROI.x(), velocityROI.y());
+        if (curVelocityState.xAxisLocation > 0) {
+            cv::Scalar xAxisColor(0, 84, 211); // bgr of #d35400 pumpkin
+            cv::Point leftAxisPoint = makeSafePoint(0, curVelocityState.xAxisLocation, velocityBase);
+            cv::Point rightAxisPoint = makeSafePoint(velocityROI.width(), curVelocityState.xAxisLocation, velocityBase);
+            drawLine(mat, {leftAxisPoint, rightAxisPoint}, xAxisColor);
+        }
+        const int radius = 1;
+        const int thickness = 1;
+
+        for (int i = startFrame; i < frame; i++) {
+            const MDataEntry *previousRecord = log.get(i);
+            if (!previousRecord) continue;
+            const VelocityResults vr = previousRecord->getVelocity();
+
+            if (vr.xTrackingLocationIndividual != NAN) {
+                if (vr.avgPositive != NAN) {
+                    cv::Point avgPositive = makeSafePoint(vr.xTrackingLocationIndividual, vr.avgPositive, velocityBase);
+                    cv::circle(mat, avgPositive, radius, weakColor, thickness);
+                }
+                if (vr.maxPositive != NAN) {
+                    cv::Point maxPositive = makeSafePoint(vr.xTrackingLocationIndividual, vr.maxPositive, velocityBase);
+                    cv::circle(mat, maxPositive, radius, strongColor, thickness);
+                }
+                if (vr.avgNegative != NAN) {
+                    cv::Point avgNegative = makeSafePoint(vr.xTrackingLocationIndividual, vr.avgNegative, velocityBase);
+                    cv::circle(mat, avgNegative, radius, weakColor, thickness);
+                }
+                if (vr.maxNegative != NAN) {
+                    cv::Point maxNegative = makeSafePoint(vr.xTrackingLocationIndividual, vr.maxNegative, velocityBase);
+                    cv::circle(mat, maxNegative, radius, strongColor, thickness);
+                }
+            }
+        }
+    }
+}
+
+// drawing a pixel located outside of a matrix will cause a crash
+cv::Point CameraTask::makeSafePoint(int x, int y, const cv::Point& offset)
+{
+    int xTest = x + offset.x;
+    int yTest = y + offset.y;
+    if (xTest >= width) {
+        xTest = width -1;
+    }
+    if (xTest < 0) {
+        xTest = 0;
+    }
+    if (yTest >= height) {
+        yTest = height -1;
+    }
+    if (yTest < 0) {
+        yTest = 0;
+    }
+    return cv::Point(xTest, yTest);
 }
 
 void CameraTask::doWork()
@@ -188,14 +245,23 @@ void CameraTask::doWork()
                         cv::cvtColor(velocityROISection, velocityROISection, CV_BGR2GRAY);
                         std::unique_ptr<mwArray> matlabVelocityROI(opencvConvertToMX(velocityROISection));
 
-                        if (!getNextFrameData()) continue; // FIXME: emit error
+                        if (!getNextFrameData()) {
+                            emit videoFinished(CameraTask::ProcessingState::VELOCITY_INIT_FAILED);
+                            continue;
+                        }
                         camera->setProperty(CV_CAP_PROP_POS_FRAMES, curFrame); // AutoInit does not advance frames
 
                         cv::Mat velocityROISection2 = tempMat(getCVROI(velocityROI));
                         cv::cvtColor(velocityROISection2, velocityROISection2, CV_BGR2GRAY);
                         std::unique_ptr<mwArray> matlabVelocityROI2(opencvConvertToMX(velocityROISection2));
 
-                        initializeVelocityROI(matlabVelocityROI2.get(), matlabVelocityROI.get());
+                        if (!initializeVelocityROI(matlabVelocityROI2.get(), matlabVelocityROI.get())) {
+                            emit videoFinished(CameraTask::ProcessingState::VELOCITY_INIT_FAILED);
+                            curPlayState = PlayState::Paused;
+                            camera->setProperty(CV_CAP_PROP_POS_FRAMES, curFrame); // this frame needs reprocessing
+                            cachedFrameIsDirty = true;
+                            continue;
+                        }
                     }
                     doneInit = true;
                 }
@@ -525,6 +591,7 @@ bool CameraTask::autoInitializeOnROI(mwArray *matlabROI)
 
 bool CameraTask::initializeVelocityROI(mwArray *velocityCurrentROI, mwArray *velocityPreviousROI)
 {
+    curVelocityState = VelocityState(); // reset to -1s
     try {
         mwArray numPoints(1, 1, mxINT32_CLASS);
         int numPointsData [] = { 5 };
@@ -554,6 +621,10 @@ bool CameraTask::initializeVelocityROI(mwArray *velocityCurrentROI, mwArray *vel
         doneInit = false;
     } catch (const mwException& e) {
         std::cerr << "exception caught: " << e.what() << std::endl;
+    }
+    if (curVelocityState.xAxisLocation < 0
+        || (curVelocityState.videoType != 1 && curVelocityState.videoType != 2)
+        || (curVelocityState.videoType == 1 && curVelocityState.firstMovingFrame < 0)) {
         return false;
     }
     return true;
@@ -601,7 +672,7 @@ VelocityResults CameraTask::getVelocityFromFrame(mwArray *velocityCurrentROI,
         results.maxNegative = getFirst(maxNegativeMat, NAN);
         results.avgNegative = getFirst(avgNegativeMat, NAN);
         results.xTrackingLocationIndividual = getFirst(xTrackingLocationIndividualMat, NAN);
-        qDebug() << "velocity results: " << results;
+        //qDebug() << "velocity results: " << results;
     } catch (const mwException& e) {
         std::cerr << "exception caught: " << e.what() << std::endl;
     }

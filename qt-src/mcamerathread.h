@@ -30,7 +30,8 @@ public:
 
     enum ProcessingState {
         SUCCESS,
-        AUTO_INIT_FAILED
+        AUTO_INIT_FAILED,
+        VELOCITY_INIT_FAILED
     };
     enum SetupState { // mutually exclusive bits for & checks
         NONE,
@@ -134,6 +135,7 @@ protected:
     int getIndexOfFirstMovingFrame();
     bool getNextFrameData();
     void drawOverlay(int frame, cv::Mat &mat);
+    cv::Point makeSafePoint(int x, int y, const cv::Point& offset = cv::Point(0,0));
     void processOutputVideo();
 };
 

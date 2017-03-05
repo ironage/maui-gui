@@ -41,7 +41,7 @@ public:
     const std::vector<cv::Point>& getTopWeakLine() const { return topWeakLine; }
     const std::vector<cv::Point>& getBottomStrongLine() const { return bottomStrongLine; }
     const std::vector<cv::Point>& getBottomWeakLine() const { return bottomWeakLine; }
-    const VelocityResults getVelocity() const { return velocity; }
+    const VelocityResults& getVelocity() const { return velocity; }
 private:
     QString getILTPixels(); // intima-intima, computed
     QString getILTUnits(double conversion);

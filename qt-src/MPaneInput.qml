@@ -31,7 +31,7 @@ Item {
     function setCurrentProgress(progress) {
         if (listView.currentIndex < listModel.count) {
             listModel.get(listView.currentIndex).percentComplete = progress
-            console.log("setting progress: " + progress + " new percent: " + listModel.get(listView.currentIndex).percentComplete)
+            //console.log("setting progress: " + progress + " new percent: " + listModel.get(listView.currentIndex).percentComplete)
         }
     }
 

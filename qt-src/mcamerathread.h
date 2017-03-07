@@ -51,7 +51,7 @@ private:
         double videoType = -1;
         double firstMovingFrame = -1;
         double xAxisLocation = -1;
-        double previousXTrackingLoc = 1;
+        std::vector<double> previousXTrackingLoc;
     };
 
 #if defined(SHOW_FRAMERATE) && !defined(ANDROID) //Android camera has its own FPS debug info

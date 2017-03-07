@@ -6,15 +6,16 @@
 #include <QString>
 
 #include <map>
+#include <vector>
 
 #include "mlogmetadata.h"
 struct VelocityResults
 {
-    double maxPositive = NAN;
-    double avgPositive = NAN;
-    double maxNegative = NAN;
-    double avgNegative = NAN;
-    double xTrackingLocationIndividual = NAN;
+    std::vector<double> maxPositive;
+    std::vector<double> avgPositive;
+    std::vector<double> maxNegative;
+    std::vector<double> avgNegative;
+    std::vector<double> xTrackingLocationIndividual;
 };
 
 QDebug operator<<(QDebug debug, const VelocityResults &r);

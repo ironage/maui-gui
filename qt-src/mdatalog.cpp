@@ -10,12 +10,13 @@
 QDebug operator<<(QDebug debug, const VelocityResults &r)
 {
     QDebugStateSaver saver(debug);
-    debug.nospace() << "VelocityResults(" << r.maxPositive << ", "
-                    << r.avgPositive << ", "
-                    << r.maxNegative << ", "
-                    << r.avgNegative << ", "
-                    << r.xTrackingLocationIndividual << ", "
-                    << ')';
+//    debug.nospace() << "VelocityResults(" << r.maxPositive << ", "
+//                    << r.avgPositive << ", "
+//                    << r.maxNegative << ", "
+//                    << r.avgNegative << ", "
+//                    << r.xTrackingLocationIndividual << ", "
+//                    << ')';
+    debug.nospace() << "VelocityResults(with " << r.xTrackingLocationIndividual.size() << " elements)";
     return debug;
 }
 

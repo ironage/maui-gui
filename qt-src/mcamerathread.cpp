@@ -43,6 +43,20 @@ void CameraTask::stop()
     running = false;
 }
 
+void printMatVector(mwArray &data)
+{
+    qDebug() << "mat(" << data.NumberOfDimensions() << " x " << data.NumberOfFields() << ") : ";
+    for (size_t i = 0; i < data.NumberOfFields(); i++) {
+        qDebug() << "field " << i << " is: " << data.GetFieldName(i);
+    }
+    size_t numElements = data.NumberOfElements();
+    mxDouble *raw = new mxDouble[numElements];
+    data.GetData(raw, numElements);
+    for (size_t i = 0; i < numElements; i++) {
+        qDebug() << "[" << i << "]=" << raw[i];
+    }
+}
+
 mwArray* opencvConvertToMX(cv::Mat& m) {
     int rows = m.rows;
     int cols = m.cols;
@@ -74,6 +88,16 @@ std::vector<cv::Point> convertMWArray(mwArray &points, QPoint offset) {
     return result;
 }
 
+std::vector<double> covertMWArrayToList(mwArray &array) {
+    std::vector<double> result;
+    size_t numElements = array.NumberOfElements();
+    if (numElements > 0) {
+        result.resize(numElements);
+        array.GetData(&result[0], numElements);
+    }
+    return result;
+}
+
 void CameraTask::convertUVsp2UVp(unsigned char* __restrict srcptr, unsigned char* __restrict dstptr, int stride)
 {
     for(int i=0;i<stride;i++){
@@ -84,9 +108,10 @@ void CameraTask::convertUVsp2UVp(unsigned char* __restrict srcptr, unsigned char
 
 void CameraTask::drawOverlay(int frame, cv::Mat& mat) {
     const MDataEntry *existing = log.get(frame);
+    if (!existing) return;
     const cv::Scalar strongColor(0, 0, 250);  // b,g,r
     const cv::Scalar weakColor(0, 250, 0);    // b,g,r
-    if (existing) {
+    if (curSetupState & NORMAL_ROI) {
         drawLine(mat, existing->getTopStrongLine(), strongColor);
         drawLine(mat, existing->getTopWeakLine(), weakColor);
         drawLine(mat, existing->getBottomStrongLine(), strongColor);
@@ -104,30 +129,25 @@ void CameraTask::drawOverlay(int frame, cv::Mat& mat) {
         }
         const int radius = 1;
         const int thickness = 1;
-
-        for (int i = startFrame; i < frame; i++) {
-            const MDataEntry *previousRecord = log.get(i);
-            if (!previousRecord) continue;
-            const VelocityResults vr = previousRecord->getVelocity();
-
-            if (vr.xTrackingLocationIndividual != NAN) {
-                if (vr.avgPositive != NAN) {
-                    cv::Point avgPositive = makeSafePoint(vr.xTrackingLocationIndividual, vr.avgPositive, velocityBase);
-                    cv::circle(mat, avgPositive, radius, weakColor, thickness);
-                }
-                if (vr.maxPositive != NAN) {
-                    cv::Point maxPositive = makeSafePoint(vr.xTrackingLocationIndividual, vr.maxPositive, velocityBase);
-                    cv::circle(mat, maxPositive, radius, strongColor, thickness);
-                }
-                if (vr.avgNegative != NAN) {
-                    cv::Point avgNegative = makeSafePoint(vr.xTrackingLocationIndividual, vr.avgNegative, velocityBase);
-                    cv::circle(mat, avgNegative, radius, weakColor, thickness);
-                }
-                if (vr.maxNegative != NAN) {
-                    cv::Point maxNegative = makeSafePoint(vr.xTrackingLocationIndividual, vr.maxNegative, velocityBase);
-                    cv::circle(mat, maxNegative, radius, strongColor, thickness);
-                }
+        const VelocityResults vr = existing->getVelocity();
+        const size_t num_results = vr.xTrackingLocationIndividual.size();
+        if (vr.avgPositive.size() == num_results
+                && vr.avgNegative.size() == num_results
+                && vr.maxNegative.size() == num_results
+                && vr.maxPositive.size() == num_results) {
+            for (int i = 0; i < num_results; i++) {
+                cv::Point avgPositive = makeSafePoint(vr.xTrackingLocationIndividual[i], vr.avgPositive[i], velocityBase);
+                cv::circle(mat, avgPositive, radius, weakColor, thickness);
+                cv::Point maxPositive = makeSafePoint(vr.xTrackingLocationIndividual[i], vr.maxPositive[i], velocityBase);
+                cv::circle(mat, maxPositive, radius, strongColor, thickness);
+                cv::Point avgNegative = makeSafePoint(vr.xTrackingLocationIndividual[i], vr.avgNegative[i], velocityBase);
+                cv::circle(mat, avgNegative, radius, weakColor, thickness);
+                cv::Point maxNegative = makeSafePoint(vr.xTrackingLocationIndividual[i], vr.maxNegative[i], velocityBase);
+                cv::circle(mat, maxNegative, radius, strongColor, thickness);
             }
+        } else {
+            qDebug() << "Warning: refusing to draw inconsistent velocity results.";
+
         }
     }
 }
@@ -614,7 +634,7 @@ bool CameraTask::initializeVelocityROI(mwArray *velocityCurrentROI, mwArray *vel
             }
         }
         curVelocityState.firstMovingFrame = indexOfFirstMovingFrame;
-        curVelocityState.previousXTrackingLoc = 1;
+        curVelocityState.previousXTrackingLoc = { 1 };
         curVelocityState.videoType = videoType;
         curVelocityState.xAxisLocation = velocityXLocation;
 
@@ -628,6 +648,20 @@ bool CameraTask::initializeVelocityROI(mwArray *velocityCurrentROI, mwArray *vel
         return false;
     }
     return true;
+}
+
+mwArray makeMWArrayFromVector(const std::vector<double>& data) {
+    size_t length = data.size();
+    mwArray mwData(1, length, mxDOUBLE_CLASS); // check row vs col order
+    mxDouble *dataBuffer = new mxDouble[length];
+    for (size_t i = 0; i < length; i++) {
+        dataBuffer[i] = data[i];
+    }
+    if (length > 0) {
+        mwData.SetData(dataBuffer, length);
+    }
+    delete [] dataBuffer;
+    return mwData;
 }
 
 VelocityResults CameraTask::getVelocityFromFrame(mwArray *velocityCurrentROI,
@@ -652,10 +686,7 @@ VelocityResults CameraTask::getVelocityFromFrame(mwArray *velocityCurrentROI,
         double firstMovingFrameData [] = { velocityState.firstMovingFrame };
         firstMovingFrameMat.SetData(firstMovingFrameData, 1);
 
-        mwArray previousXTrackingLocMat(1, 1, mxDOUBLE_CLASS);
-        double previousXTrackingLocData [] = { velocityState.previousXTrackingLoc };
-        previousXTrackingLocMat.SetData(previousXTrackingLocData, 1);
-
+        mwArray previousXTrackingLocMat = makeMWArrayFromVector(velocityState.previousXTrackingLoc);
         const int numReturnValues = 5;
 
         mwArray maxPositiveMat, avgPositiveMat, maxNegativeMat, avgNegativeMat, xTrackingLocationIndividualMat;
@@ -667,11 +698,13 @@ VelocityResults CameraTask::getVelocityFromFrame(mwArray *velocityCurrentROI,
                                  xAxisLocationMat, videoTypeMat,
                                  firstMovingFrameMat, previousXTrackingLocMat);
 
-        results.maxPositive = getFirst(maxPositiveMat, NAN);
-        results.avgPositive = getFirst(avgPositiveMat, NAN);
-        results.maxNegative = getFirst(maxNegativeMat, NAN);
-        results.avgNegative = getFirst(avgNegativeMat, NAN);
-        results.xTrackingLocationIndividual = getFirst(xTrackingLocationIndividualMat, NAN);
+        results.maxPositive = covertMWArrayToList(maxPositiveMat);
+        results.avgPositive = covertMWArrayToList(avgPositiveMat);
+        results.maxNegative = covertMWArrayToList(maxNegativeMat);
+        results.avgNegative = covertMWArrayToList(avgNegativeMat);
+        results.xTrackingLocationIndividual = covertMWArrayToList(xTrackingLocationIndividualMat);
+        printMatVector(maxPositiveMat);
+        printMatVector(xTrackingLocationIndividualMat);
         //qDebug() << "velocity results: " << results;
     } catch (const mwException& e) {
         std::cerr << "exception caught: " << e.what() << std::endl;

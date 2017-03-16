@@ -46,7 +46,7 @@ void CameraTask::stop()
 void printMatVector(mwArray &data)
 {
     qDebug() << "mat(" << data.NumberOfDimensions() << " x " << data.NumberOfFields() << ") : ";
-    for (size_t i = 0; i < data.NumberOfFields(); i++) {
+    for (int i = 0; i < data.NumberOfFields(); i++) {
         qDebug() << "field " << i << " is: " << data.GetFieldName(i);
     }
     size_t numElements = data.NumberOfElements();
@@ -285,7 +285,7 @@ void CameraTask::doWork()
                     }
                     doneInit = true;
                 }
-                MDataEntry frameResults(curFrame + 1);
+                MDataEntry frameResults(curFrame + 1, (1/frameRate) * curFrame);
                 try {
                     if (curSetupState & SetupState::NORMAL_ROI) {
                         mwArray outerLumenDiameter, topIMT, bottomIMT;
@@ -306,7 +306,6 @@ void CameraTask::doWork()
                                     getFirst(outerLumenDiameter, 0),
                                     getFirst(topIMT, 0),
                                     getFirst(bottomIMT, 0),
-                                    (1/frameRate) * curFrame,
                                     convertMWArray(matlabArrays[TOP_STRONG_LINE], offset),
                                     convertMWArray(matlabArrays[TOP_WEAK_LINE], offset),
                                     convertMWArray(matlabArrays[BOTTOM_STRONG_LINE], offset),
@@ -316,8 +315,10 @@ void CameraTask::doWork()
                         cv::Mat velocityROISection = tempMat(getCVROI(velocityROI));
                         cv::cvtColor(velocityROISection, velocityROISection, CV_BGR2GRAY);
                         std::unique_ptr<mwArray> matlabVelocityROI(opencvConvertToMX(velocityROISection));
-                        VelocityResults vr = getVelocityFromFrame(matlabVelocityROI.get(), curFrame, curVelocityState);
-                        curVelocityState.previousXTrackingLoc = vr.xTrackingLocationIndividual;
+                        VelocityResults vr = getVelocityFromFrame(matlabVelocityROI.get(), curFrame + 1, curVelocityState);
+                        if (!vr.xTrackingLocationIndividual.empty()) {
+                            curVelocityState.previousMaxXTrackingLoc = vr.xTrackingLocationIndividual[vr.xTrackingLocationIndividual.size() - 1];
+                        }
                         frameResults.addVelocityPart(std::move(vr));
                     }
                 } catch (const mwException& e) {
@@ -578,7 +579,7 @@ double CameraTask::getFirst(mwArray &data, double defaultValue)
 void CameraTask::writeResults()
 {
     initializeOutput();
-    log.write(outputFileName + "_data");
+    log.write(outputFileName);
     if (doProcessOutputVideo) {
         processOutputVideo();
     }
@@ -634,7 +635,7 @@ bool CameraTask::initializeVelocityROI(mwArray *velocityCurrentROI, mwArray *vel
             }
         }
         curVelocityState.firstMovingFrame = indexOfFirstMovingFrame;
-        curVelocityState.previousXTrackingLoc = { 1 };
+        curVelocityState.previousMaxXTrackingLoc = 1;
         curVelocityState.videoType = videoType;
         curVelocityState.xAxisLocation = velocityXLocation;
 
@@ -686,7 +687,10 @@ VelocityResults CameraTask::getVelocityFromFrame(mwArray *velocityCurrentROI,
         double firstMovingFrameData [] = { velocityState.firstMovingFrame };
         firstMovingFrameMat.SetData(firstMovingFrameData, 1);
 
-        mwArray previousXTrackingLocMat = makeMWArrayFromVector(velocityState.previousXTrackingLoc);
+        mwArray previousXTrackingLocMat(1, 1, mxDOUBLE_CLASS);
+        double previousXTrackingLocData [] = { velocityState.previousMaxXTrackingLoc };
+        previousXTrackingLocMat.SetData(previousXTrackingLocData, 1);
+
         const int numReturnValues = 5;
 
         mwArray maxPositiveMat, avgPositiveMat, maxNegativeMat, avgNegativeMat, xTrackingLocationIndividualMat;
@@ -703,8 +707,6 @@ VelocityResults CameraTask::getVelocityFromFrame(mwArray *velocityCurrentROI,
         results.maxNegative = covertMWArrayToList(maxNegativeMat);
         results.avgNegative = covertMWArrayToList(avgNegativeMat);
         results.xTrackingLocationIndividual = covertMWArrayToList(xTrackingLocationIndividualMat);
-        printMatVector(maxPositiveMat);
-        printMatVector(xTrackingLocationIndividualMat);
         //qDebug() << "velocity results: " << results;
     } catch (const mwException& e) {
         std::cerr << "exception caught: " << e.what() << std::endl;

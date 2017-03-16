@@ -35,6 +35,13 @@ std::vector<QString> MLogMetaData::getHeader() const
     return std::vector<QString> {getFileName(), getFilePath(), getTimestamp(), conversion, version};
 }
 
+std::vector<QString> MLogMetaData::getVelocityHeader() const
+{
+    QString conversion = QString("") + QString::number(getVelocityPixels()) + " pixels = 1 " + getVelocityUnits();
+    QString version = "MAUI version " + MRemoteInterface::getDisplayVersion();
+    return std::vector<QString> {getFileName(), getFilePath(), getTimestamp(), conversion, version};
+}
+
 void MLogMetaData::operator=(const MLogMetaData &other)
 {
     fileName = other.fileName;

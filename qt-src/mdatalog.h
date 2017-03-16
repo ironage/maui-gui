@@ -35,7 +35,7 @@ public:
 
     int getFrameNumber() const { return frameNumber; }
     QString getCSV(double conversion);
-    QString getVelocityCSV(double conversion, int index);
+    QString getVelocityCSV(double conversion, int index, double xAxisLocation);
     static QString getHeader(QString units);
     static QString getVelocityHeader(QString units);
     static QString getEmptyEntry();
@@ -71,6 +71,7 @@ public:
     void clear();
     MLogMetaData getMetaData() { return metaData; }
     const MDataEntry* get(int frame) const;
+    void setVelocityXAxisLocation(double xLoc);
 private:
     void writeVelocity(QString fileName);
     std::map<int, MDataEntry> entries;

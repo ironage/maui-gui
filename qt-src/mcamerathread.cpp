@@ -638,6 +638,7 @@ bool CameraTask::initializeVelocityROI(mwArray *velocityCurrentROI, mwArray *vel
         curVelocityState.previousMaxXTrackingLoc = 1;
         curVelocityState.videoType = videoType;
         curVelocityState.xAxisLocation = velocityXLocation;
+        log.setVelocityXAxisLocation(velocityXLocation);
 
         doneInit = false;
     } catch (const mwException& e) {

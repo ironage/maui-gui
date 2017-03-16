@@ -65,21 +65,21 @@ QString MDataEntry::getCSV(double conversion)
                      + getILTUnits(conversion);
 }
 
-QString MDataEntry::getVelocityCSV(double conversion, int index)
+QString MDataEntry::getVelocityCSV(double conversion, int index, double xAxisLocation)
 {
     if (index >= 0 && index < velocity.maxPositive.size() && index < velocity.avgPositive.size()
             && index < velocity.avgNegative.size() && index < velocity.maxNegative.size()) {
         return QString() + QString::number(frameNumber) + ","
                          + QString::number(timeSeconds) + ","
                          + QString::number(velocity.xTrackingLocationIndividual[index]) + ","
-                         + QString::number(velocity.maxPositive[index]) + ","
-                         + QString::number(velocity.avgPositive[index]) + ","
-                         + QString::number(velocity.avgNegative[index]) + ","
-                         + QString::number(velocity.maxNegative[index]) + ","
-                         + QString::number(velocity.maxPositive[index] * conversion) + ","
-                         + QString::number(velocity.avgPositive[index] * conversion) + ","
-                         + QString::number(velocity.avgNegative[index] * conversion) + ","
-                         + QString::number(velocity.maxNegative[index] * conversion);
+                         + QString::number(xAxisLocation - velocity.maxPositive[index]) + ","
+                         + QString::number(xAxisLocation - velocity.avgPositive[index]) + ","
+                         + QString::number(xAxisLocation - velocity.avgNegative[index]) + ","
+                         + QString::number(xAxisLocation - velocity.maxNegative[index]) + ","
+                         + QString::number((xAxisLocation - velocity.maxPositive[index]) * conversion) + ","
+                         + QString::number((xAxisLocation - velocity.avgPositive[index]) * conversion) + ","
+                         + QString::number((xAxisLocation - velocity.avgNegative[index]) * conversion) + ","
+                         + QString::number((xAxisLocation - velocity.maxNegative[index]) * conversion);
 
     } else {
         return QString();
@@ -209,7 +209,7 @@ void MDataLog::writeVelocity(QString fileName)
             curLine += MDataEntry::getVelocityHeader(metaData.getVelocityUnits());
         } else {
             if (curData != entries.end()) {
-                QString velocityLine = curData->second.getVelocityCSV(conversion, velocityIndex);
+                QString velocityLine = curData->second.getVelocityCSV(conversion, velocityIndex, metaData.getVelocityXAxisLocation());
                 if (velocityLine.isEmpty()) {
                     velocityIndex = 0;
                     ++curData;
@@ -240,6 +240,11 @@ const MDataEntry* MDataLog::get(int frame) const
         return &(needle->second);
     }
     return nullptr;
+}
+
+void MDataLog::setVelocityXAxisLocation(double xLoc)
+{
+    metaData.setVelocityXAxisLocation(xLoc);
 }
 
 MDataLog::MDataLog()

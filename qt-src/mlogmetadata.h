@@ -30,6 +30,7 @@ public:
     QString getOutputDir() const { return outputDirectory; }
     double getVelocityPixels() const { return velocityPixels; }
     double getVelocityXSeconds() const { return velocityXSeconds; }
+    double getVelocityXAxisLocation() const { return velocityXAxisLocation; }
     void setFileName(QString name) { fileName = name; }
     void setFilePath(QString path) { filePath = path; }
     void setPixels(double numPixels) { pixels = numPixels; }
@@ -37,6 +38,7 @@ public:
     void setVelocityUnits(QString newUnits) { velocityUnits = newUnits; }
     void setVelocityPixels(double numPixels) { velocityPixels = numPixels; }
     void setVelocityXSeconds(double numSeconds) { velocityXSeconds = numSeconds; }
+    void setVelocityXAxisLocation(double xLoc) { velocityXAxisLocation = xLoc; }
     void touchWriteTime();
     QString getWriteTime() { return uniqueness; }
     std::vector<QString> getHeader() const;
@@ -44,7 +46,6 @@ public:
     void operator=(const MLogMetaData& other);
 signals:
     void propertiesChanged();
-public slots:
 
 private:
     QString fileName;
@@ -56,6 +57,7 @@ private:
     QString velocityUnits;
     double velocityPixels;
     double velocityXSeconds;
+    double velocityXAxisLocation;
 };
 
 bool operator!=(const MLogMetaData& lhs, const MLogMetaData& rhs);

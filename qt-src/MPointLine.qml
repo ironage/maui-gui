@@ -7,8 +7,14 @@ Rectangle {
     anchors.fill: parent
     color: "transparent"
     property real alpha: 1
-    property int cornerWidth: 6
-    property color pointColor: "white"
+    property int cornerWidth: 18
+    property color idlePointColor: Style.ui_color_silver
+    property color hoverPointColor: Style.ui_color_light_turquoise
+    property color pointColor: (ptMA.containsMouse === true
+                                || pt2MA.containsMouse === true
+                                || pt3MA.containsMouse === true
+                                || pt4MA.containsMouse === true
+                                || pt5MA.containsMouse === true) ? hoverPointColor : idlePointColor
 
     property var pointList
 
@@ -26,7 +32,8 @@ Rectangle {
         color: pointColor
         radius: width/2
         MouseArea {
-            enabled: false//true //m_root.enabled
+            id: ptMA
+            enabled: m_root.enabled
             anchors.fill: parent
             hoverEnabled: true
             drag {
@@ -68,7 +75,8 @@ Rectangle {
         color: pointColor
         radius: width/2
         MouseArea {
-            enabled: false //m_root.enabled
+            id: pt2MA
+            enabled: m_root.enabled
             anchors.fill: parent
             hoverEnabled: true
             drag {
@@ -108,7 +116,8 @@ Rectangle {
         color: pointColor
         radius: width/2
         MouseArea {
-            enabled: false //m_root.enabled
+            id: pt3MA
+            enabled: m_root.enabled
             anchors.fill: parent
             hoverEnabled: true
             drag {
@@ -148,7 +157,8 @@ Rectangle {
         color: pointColor
         radius: width/2
         MouseArea {
-            enabled: false //m_root.enabled
+            id: pt4MA
+            enabled: m_root.enabled
             anchors.fill: parent
             hoverEnabled: true
             drag {
@@ -188,7 +198,8 @@ Rectangle {
         color: pointColor
         radius: width/2
         MouseArea {
-            enabled: false //m_root.enabled
+            id: pt5MA
+            enabled: m_root.enabled
             anchors.fill: parent
             hoverEnabled: true
             drag {
@@ -216,6 +227,8 @@ Rectangle {
         }
     }
     MLine {
+        strokeColor: pointColor
+        fillColor: pointColor
         visible: (pointList.length >= 2)
         x1: pt.x - pt.xOffset
         x2: point2.x - point2.xOffset
@@ -223,6 +236,8 @@ Rectangle {
         y2: point2.y - point2.yOffset
     }
     MLine {
+        strokeColor: pointColor
+        fillColor: pointColor
         visible: (pointList.length >= 3)
         x1: point2.x - point2.xOffset
         x2: point3.x - point3.xOffset
@@ -230,6 +245,8 @@ Rectangle {
         y2: point3.y - point3.yOffset
     }
     MLine {
+        strokeColor: pointColor
+        fillColor: pointColor
         visible: (pointList.length >= 4)
         x1: point3.x - point3.xOffset
         x2: point4.x - point4.xOffset
@@ -237,6 +254,8 @@ Rectangle {
         y2: point4.y - point4.yOffset
     }
     MLine {
+        strokeColor: pointColor
+        fillColor: pointColor
         visible: (pointList.length >= 5)
         x1: point4.x - point4.xOffset
         x2: point5.x - point5.xOffset

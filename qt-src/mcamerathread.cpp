@@ -590,7 +590,8 @@ bool CameraTask::autoInitializeOnROI(mwArray *matlabROI)
 {
     try {
         mwArray numPoints(1, 1, mxINT32_CLASS);
-        int pointsInLine = roi.width() * 0.05;  // 5 percent of the width of the ROI
+        //int pointsInLine = roi.width() * 0.05;  // 5 percent of the width of the ROI
+        int pointsInLine = 5; // hard coded for draggable dots
         if (pointsInLine < 5) pointsInLine = 5; // lower limit is 5 points
         int numPointsData [] = { pointsInLine };
         numPoints.SetData(numPointsData, 1);

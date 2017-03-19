@@ -5,6 +5,7 @@
 #include <QSize>
 #include <QUrl>
 #include <QRgb>
+#include <QVariantList>
 
 MCVPlayer::MCVPlayer() : QObject(),
     m_format(QSize(500, 500), QVideoFrame::Format_ARGB32),
@@ -383,6 +384,43 @@ void MCVPlayer::setProcessOutputVideo(bool process)
 {
     if (thread) {
         thread->doSetProcessOutputVideo(process);
+    }
+}
+
+QList<MPoint> convertList(const QVariant& newPoints) {
+    QList<MPoint> list;
+    if (newPoints.canConvert<QVariantList>()) {
+        QList<QVariant> points = newPoints.toList();
+        for (QVariant v : points) {
+            if (!v.canConvert<QPointF>()) {
+                qDebug() << "Cannot convert vaniant to QPointF. Skipping" << v;
+                continue;
+            }
+            list.append(MPoint(v.toPointF()));
+        }
+    } else {
+        qDebug() << "Cannot convert points from variant to list!";
+    }
+    return list;
+}
+
+void MCVPlayer::setNewTopPoints(QVariant newPoints)
+{
+    if (thread) {
+        QList<MPoint> converted = convertList(newPoints);
+        if (!converted.empty()) {
+            thread->doSetNewTopPoints(converted);
+        }
+    }
+}
+
+void MCVPlayer::setNewBottomPoints(QVariant newPoints)
+{
+    if (thread) {
+        QList<MPoint> converted = convertList(newPoints);
+        if (!converted.empty()) {
+            thread->doSetNewBottomPoints(converted);
+        }
     }
 }
 

@@ -24,7 +24,7 @@ SOURCES += main.cpp \
     msettings.cpp \
     qblowfish.cpp
 
-QT += qml quick multimedia network
+QT += core qml quick multimedia network
 CONFIG += c++11
 
 RESOURCES += qml.qrc

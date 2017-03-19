@@ -54,6 +54,12 @@ Item {
     function setSetupState(state) {
         cv_player.setSetupState(state)
     }
+    function setNewTopPoints(newPoints) {
+        cv_player.setNewTopPoints(newPoints)
+    }
+    function setNewBottomPoints(newPoints) {
+        cv_player.setNewBottomPoints(newPoints)
+    }
 
     onProgress_minChanged: {
         cv_player.setStartFrame(progress_min * (cv_player.duration - 1));

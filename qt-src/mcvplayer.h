@@ -85,6 +85,8 @@ public slots:
     void matlabInitFinished(MInitTask::InitStats status);
     bool getProcessOutputVideo();
     void setProcessOutputVideo(bool process);
+    void setNewTopPoints(QVariant newPoints);
+    void setNewBottomPoints(QVariant newPoints);
     //FIXME: proper list access
     //QQmlListProperty::QQmlListProperty(QObject *object, void *data, AppendFunction append, CountFunction count, AtFunction at, ClearFunction clear)
     QQmlListProperty<MPoint> getTopPoints() { return QQmlListProperty<MPoint>(this, topPoints); }

@@ -4,31 +4,35 @@
 #include <QObject>
 #include <QDebug>
 #include <QDebugStateSaver>
+#include <QPointF>
 
 // QQmlListProperty can only expose pointers to QObjects
 // and QPoint is not a QObject (!!!)
 class MPoint : public QObject
 {
     Q_OBJECT
-    Q_PROPERTY(int x READ x WRITE setX NOTIFY xChanged)
-    Q_PROPERTY(int y READ y WRITE setY NOTIFY yChanged)
+    Q_PROPERTY(double x READ x WRITE setX NOTIFY xChanged)
+    Q_PROPERTY(double y READ y WRITE setY NOTIFY yChanged)
 public:
     explicit MPoint(QObject *parent = 0);
-    explicit MPoint(int x, int y, QObject *parent = 0);
+    explicit MPoint(double x, double y, QObject *parent = 0);
     MPoint(const MPoint& other);
+    MPoint(const QPointF& p);
+    MPoint operator-(const MPoint& other) { return MPoint(mx - other.mx, my - other.my); }
+    MPoint operator+(const MPoint& other) { return MPoint(mx + other.mx, my + other.my); }
 signals:
     void xChanged();
     void yChanged();
 
 public slots:
-    int x() const { return mx; }
-    int y() const { return my; }
-    void setX(int newX);
-    void setY(int newY);
+    double x() const { return mx; }
+    double y() const { return my; }
+    void setX(double newX);
+    void setY(double newY);
 
 private:
-    int mx;
-    int my;
+    double mx;
+    double my;
 };
 
 bool operator!=(const MPoint& lhs, const MPoint& rhs);

@@ -451,10 +451,28 @@ ApplicationWindow {
                 MPointLine {
                     id: line1
                     visible: roi.visible && roi.adjustable
+                    onManualChange: {
+                        var newTopList = []
+                        for (var topNdx = 0; topNdx < pointList.length; ++topNdx) {
+                            var topPoint = Qt.point(pointList[topNdx].x, pointList[topNdx].y)
+                            topPoint = m_video.viewPointToVideoPoint(topPoint)
+                            newTopList.push(topPoint);
+                        }
+                        m_video.setNewTopPoints(newTopList)
+                    }
                 }
                 MPointLine {
                     id: line2
                     visible: roi.visible && roi.adjustable
+                    onManualChange: {
+                        var newTopList = []
+                        for (var topNdx = 0; topNdx < pointList.length; ++topNdx) {
+                            var topPoint = Qt.point(pointList[topNdx].x, pointList[topNdx].y)
+                            topPoint = m_video.viewPointToVideoPoint(topPoint)
+                            newTopList.push(topPoint);
+                        }
+                        m_video.setNewBottomPoints(newTopList)
+                    }
                 }
                 MScaleAdjuster {
                     id: scale

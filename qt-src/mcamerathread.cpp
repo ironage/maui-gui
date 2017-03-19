@@ -73,6 +73,16 @@ mwArray* opencvConvertToMX(cv::Mat& m) {
     return T;
 }
 
+void setPoint(const MPoint &p, mwArray &points, size_t index) {
+    size_t numElements = points.NumberOfElements();
+    if (numElements > 0  && index + (numElements/2) < numElements) {
+        points.Get(1, (index + 1)) = p.x();
+        points.Get(1, (index + 1) + (numElements/2)) = p.y();
+    } else {
+        qDebug() << "Attempting to write beyond array dimensions:" << index << " size: " << numElements;
+    }
+}
+
 std::vector<cv::Point> convertMWArray(mwArray &points, QPoint offset) {
     size_t numElements = points.NumberOfElements();
     std::vector<cv::Point> result;
@@ -147,7 +157,6 @@ void CameraTask::drawOverlay(int frame, cv::Mat& mat) {
             }
         } else {
             qDebug() << "Warning: refusing to draw inconsistent velocity results.";
-
         }
     }
 }
@@ -245,8 +254,7 @@ void CameraTask::doWork()
             } else if (curPlayState == PlayState::Playing) {
                 if (!doneInit) {
                     if (curSetupState & SetupState::NORMAL_ROI) {
-                        bool autoInitSuccess = autoInitializeOnROI(matlabROI.get());
-                        if (!autoInitSuccess || topPoints.empty() || bottomPoints.empty()) {
+                        if (topPoints.empty() || bottomPoints.empty()) {
                             emit videoFinished(CameraTask::ProcessingState::AUTO_INIT_FAILED);
                             curPlayState = PlayState::Paused;
                             camera->setProperty(CV_CAP_PROP_POS_FRAMES, curFrame); // this frame needs reprocessing
@@ -452,6 +460,38 @@ void CameraTask::setSetupState(CameraTask::SetupState state)
     curSetupState = state;
 }
 
+void printPoints(QList<MPoint>& list) {
+    for (MPoint p : list) {
+        qDebug() << "(" << p.x() << ", " << p.y() << ")";
+    }
+}
+
+void CameraTask::setNewTopPoints(QList<MPoint> points)
+{
+    // points come in raw, need to adjust to roi
+    QPointF offset(roi.x(), roi.y());
+    for (int i = 0; i < points.size(); ++i) {
+        setPoint(points[i] - offset, matlabArrays[TOP_STRONG_POINTS], i);
+        // topPoints is the accessor that has absolute coordinates
+        topPoints[i].setX(points[i].x());
+        topPoints[i].setY(points[i].y());
+    }
+}
+
+void CameraTask::setNewBottomPoints(QList<MPoint> points)
+{
+    // points come in raw, need to adjust to roi
+    QPointF offset(roi.x(), roi.y());
+    for (int i = 0; i < points.size(); ++i) {
+        setPoint(points[i] - offset, matlabArrays[BOTTOM_STRONG_POINTS], i);
+        // bottomPoints is the accessor that has absolute coordinates
+        bottomPoints[i].setX(points[i].x());
+        bottomPoints[i].setY(points[i].y());
+    }
+    qDebug() << "bottomPoints after: ";
+    printPoints(bottomPoints);
+}
+
 void CameraTask::notifyInitPoints(mwArray topWall, mwArray bottomWall, QPoint offset)
 {
     topPoints.clear();
@@ -588,11 +628,12 @@ void CameraTask::writeResults()
 
 bool CameraTask::autoInitializeOnROI(mwArray *matlabROI)
 {
+    qDebug() << "running auto init";
     try {
         mwArray numPoints(1, 1, mxINT32_CLASS);
         //int pointsInLine = roi.width() * 0.05;  // 5 percent of the width of the ROI
-        int pointsInLine = 5; // hard coded for draggable dots
-        if (pointsInLine < 5) pointsInLine = 5; // lower limit is 5 points
+        int pointsInLine = 3; // hard coded for draggable dots
+        //if (pointsInLine < 5) pointsInLine = 5; // lower limit is 5 points
         int numPointsData [] = { pointsInLine };
         numPoints.SetData(numPointsData, 1);
         mwArray kerUpHeight, kerBotHeight;
@@ -807,6 +848,8 @@ MCameraThread::MCameraThread(MVideoCapture* camera, QVideoFrame* videoFrame, uns
     connect(this, SIGNAL(continueProcessing()), task, SLOT(continueProcessing()), Qt::QueuedConnection);
     connect(this, SIGNAL(setProcessOutputVideo(bool)), task, SLOT(setProcessOutputVideo(bool)), Qt::QueuedConnection);
     connect(this, SIGNAL(setSetupState(CameraTask::SetupState)), task, SLOT(setSetupState(CameraTask::SetupState)), Qt::QueuedConnection);
+    connect(this, SIGNAL(setNewTopPoints(QList<MPoint>)), task, SLOT(setNewTopPoints(QList<MPoint>)), Qt::QueuedConnection);
+    connect(this, SIGNAL(setNewBottomPoints(QList<MPoint>)), task, SLOT(setNewBottomPoints(QList<MPoint>)), Qt::QueuedConnection);
 }
 
 MCameraThread::~MCameraThread()
@@ -897,4 +940,14 @@ bool MCameraThread::doGetProcessOutputVideo()
 void MCameraThread::doSetSetupState(CameraTask::SetupState state)
 {
     emit setSetupState(state);
+}
+
+void MCameraThread::doSetNewTopPoints(QList<MPoint> points)
+{
+    emit setNewTopPoints(points);
+}
+
+void MCameraThread::doSetNewBottomPoints(QList<MPoint> points)
+{
+    emit setNewBottomPoints(points);
 }

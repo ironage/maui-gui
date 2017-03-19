@@ -8,7 +8,7 @@ MPoint::MPoint(QObject *parent) :
 
 }
 
-MPoint::MPoint(int x, int y, QObject *parent) :
+MPoint::MPoint(double x, double y, QObject *parent) :
     QObject(parent),
     mx(x),
     my(y)
@@ -22,7 +22,13 @@ MPoint::MPoint(const MPoint &other) :
 {
 }
 
-void MPoint::setX(int newX)
+MPoint::MPoint(const QPointF &p) :
+    QObject(),
+    mx(p.x()), my(p.y())
+{
+}
+
+void MPoint::setX(double newX)
 {
     if (newX != mx) {
         mx = newX;
@@ -30,7 +36,7 @@ void MPoint::setX(int newX)
     }
 }
 
-void MPoint::setY(int newY)
+void MPoint::setY(double newY)
 {
     if (newY != my) {
         my = newY;

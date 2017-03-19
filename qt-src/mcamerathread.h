@@ -1,18 +1,19 @@
 #ifndef CAMERATHREAD_H
 #define CAMERATHREAD_H
 
-#include<QDebug>
-#include<QThread>
-#include<QObject>
-#include<QElapsedTimer>
-#include<QVideoFrame>
+#include <QDebug>
+#include <QList>
+#include <QThread>
+#include <QObject>
+#include <QElapsedTimer>
+#include <QVideoFrame>
 
-#include<opencv2/highgui/highgui.hpp>
-#include<opencv2/video/video.hpp>
-#include<opencv2/imgproc/imgproc.hpp>
-#include<opencv2/imgproc/types_c.h>
+#include <opencv2/highgui/highgui.hpp>
+#include <opencv2/video/video.hpp>
+#include <opencv2/imgproc/imgproc.hpp>
+#include <opencv2/imgproc/types_c.h>
 
-#include<vector>
+#include <vector>
 
 #include "mdatalog.h"
 #include "mpoint.h"
@@ -117,6 +118,8 @@ public slots:
     void setProcessOutputVideo(bool doProcess);
     bool getDoProcessOutputVideo() { return doProcessOutputVideo; }
     void setSetupState(CameraTask::SetupState state);
+    void setNewTopPoints(QList<MPoint> points);
+    void setNewBottomPoints(QList<MPoint> points);
 signals:
     void imageReady(int);
     void initPointsDetected(QList<MPoint>, QList<MPoint>);
@@ -161,6 +164,8 @@ public:
     void doSetProcessOutputVideo(bool process);
     bool doGetProcessOutputVideo();
     void doSetSetupState(CameraTask::SetupState state);
+    void doSetNewTopPoints(QList<MPoint> points);
+    void doSetNewBottomPoints(QList<MPoint> points);
 private:
     QThread workerThread;
     CameraTask* task = NULL;
@@ -176,6 +181,8 @@ signals:
     void setROI(QRect roi);
     void setVelocityROI(QRect roi);
     void forceROIRefresh();
+    void setNewTopPoints(QList<MPoint> points);
+    void setNewBottomPoints(QList<MPoint> points);
     void setRecomputeROIMode(bool mode);
     void setLogMetaData(MLogMetaData d);
     void setProcessOutputVideo(bool process);

@@ -488,8 +488,8 @@ void CameraTask::setNewBottomPoints(QList<MPoint> points)
         bottomPoints[i].setX(points[i].x());
         bottomPoints[i].setY(points[i].y());
     }
-    qDebug() << "bottomPoints after: ";
-    printPoints(bottomPoints);
+//    qDebug() << "bottomPoints after: ";
+//    printPoints(bottomPoints);
 }
 
 void CameraTask::notifyInitPoints(mwArray topWall, mwArray bottomWall, QPoint offset)

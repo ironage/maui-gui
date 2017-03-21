@@ -31,6 +31,9 @@ Rectangle {
         updateViewPoints(hPercent * newWidth, topPercent * newHeight, bottomPercent * newHeight)
         viewPointsChanged(hPercent * newWidth, topPercent * newHeight, bottomPercent * newHeight)
     }
+    function initializeMappedPointsToCurrent(newWidth, newHeight) {
+        initializeMappedPoints(newWidth, newHeight, slider.hPos / newWidth, slider.vPos / newHeight, slider2.vPos / newHeight)
+    }
 
     signal viewPointsChanged(int hValue, int topValue, int bottomValue)
 

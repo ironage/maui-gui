@@ -66,7 +66,7 @@ Item {
                     horizontalAlignment: TextInput.AlignHCenter
                 }
                 MText {
-                    text: "seconds"
+                    text: (time.text === "1") ? "second" : "seconds"
                     style: Text.Normal
                     color: Style.ui_color_dark_dblue
                 }

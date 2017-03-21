@@ -316,7 +316,10 @@ ApplicationWindow {
                 }
                 onVideoRectChanged: {
                     scale.initializeMappedPoints(m_video.width, m_video.height, 0.75, 0.2, 0.6)
-                    //velocityVerticalScale.initializeMappedPoints(m_video.width, m_video.height, 0.75, 0.2, 0.6)
+                    velocityROI.reInitToCenter()
+                    velocityROI.parentLayoutChanged() // updates velocity scales too
+                    velocityVerticalScale.initializeMappedPointsToCurrent(m_video.width, m_video.height)
+                    velocityHorizontalScale.initializeMappedPointsToCurrent(m_video.width, m_video.height)
                     console.log("source rect changed under ROI")
                 }
                 property bool firstLoad: true
@@ -572,23 +575,10 @@ ApplicationWindow {
                     function parentLayoutChanged() {
                         var newLeft = m_video.videoPointToViewPoint(Qt.point(velocityHorizontalScale.mappedLeftValue, velocityHorizontalScale.mappedVValue))
                         var newRight = m_video.videoPointToViewPoint(Qt.point(velocityHorizontalScale.mappedRightValue, velocityHorizontalScale.mappedVValue))
-                        velocityHorizontalScale.updateViewPoints(newLeft.x, newLeft.y, newRight.y)
+                        velocityHorizontalScale.updateViewPoints(newLeft.y, newLeft.x, newRight.x)
                     }
                     function initializeToParent() {
                         velocityHorizontalScale.updateViewPoints(velocityROI.roiY + velocityROI.roiHeight + 20, velocityROI.roiX + (velocityROI.roiWidth * 0.1) - (gripSize/2), velocityROI.roiX + velocityROI.roiWidth - (velocityROI.roiWidth * 0.1) + (gripSize/2))
-                    }
-                }
-                Timer {
-                    // This is because the hValue of each component in the scale
-                    // depends on each other and by the time the window maximizes to the
-                    // final height, the qml property binding has already been broken.
-                    interval: 700
-                    running: true
-                    repeat: false
-                    onTriggered: {
-                        scale.initializeToParent()
-                        velocityHorizontalScale.initializeToParent()
-                        velocityVerticalScale.initializeToParent()
                     }
                 }
             }

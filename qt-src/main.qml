@@ -454,6 +454,10 @@ ApplicationWindow {
                 MPointLine {
                     id: line1
                     visible: roi.visible && roi.adjustable
+                    minX: roi.roiX
+                    minY: roi.roiY
+                    maxX: roi.roiX + roi.roiWidth
+                    maxY: roi.roiY + roi.roiHeight
                     onManualChange: {
                         var newTopList = []
                         for (var topNdx = 0; topNdx < pointList.length; ++topNdx) {
@@ -467,6 +471,10 @@ ApplicationWindow {
                 MPointLine {
                     id: line2
                     visible: roi.visible && roi.adjustable
+                    minX: roi.roiX
+                    minY: roi.roiY
+                    maxX: roi.roiX + roi.roiWidth
+                    maxY: roi.roiY + roi.roiHeight
                     onManualChange: {
                         var newTopList = []
                         for (var topNdx = 0; topNdx < pointList.length; ++topNdx) {

@@ -15,6 +15,11 @@ Rectangle {
                                 || pt3MA.containsMouse === true
                                 /*|| pt4MA.containsMouse === true
                                 || pt5MA.containsMouse === true*/) ? hoverPointColor : idlePointColor
+    property int minX: 0
+    property int minY: 0
+    property int maxX: parent.width
+    property int maxY: parent.height
+    property int boundPadding: 1
 
     property var pointList
     signal manualChange()
@@ -40,10 +45,10 @@ Rectangle {
             drag {
                 target: pt
                 axis: Drag.XAndYAxis
-                minimumX: pt.xOffset
-                maximumX: m_root.width + pt.xOffset
-                minimumY: pt.yOffset
-                maximumY: m_root.height + pt.yOffset
+                minimumX: pt.xOffset + minX + boundPadding
+                maximumX: pt.xOffset + maxX - boundPadding
+                minimumY: pt.yOffset + minY + boundPadding
+                maximumY: pt.yOffset + maxY - boundPadding
                 threshold: Style.drag_threshold
             }
             onPositionChanged:  {
@@ -84,10 +89,10 @@ Rectangle {
             drag {
                 target: point2
                 axis: Drag.XAndYAxis
-                minimumX: point2.xOffset
-                maximumX: m_root.width + point2.xOffset
-                minimumY: point2.yOffset
-                maximumY: m_root.height + point2.yOffset
+                minimumX: point2.xOffset + minX
+                maximumX: point2.xOffset + maxX
+                minimumY: point2.yOffset + minY
+                maximumY: point2.yOffset + maxY
                 threshold: Style.drag_threshold
             }
             onPositionChanged:  {
@@ -126,10 +131,10 @@ Rectangle {
             drag {
                 target: point3
                 axis: Drag.XAndYAxis
-                minimumX: point3.xOffset
-                maximumX: m_root.width + point3.xOffset
-                minimumY: point3.yOffset
-                maximumY: m_root.height + point3.yOffset
+                minimumX: point3.xOffset + minX
+                maximumX: point3.xOffset + maxX
+                minimumY: point3.yOffset + minY
+                maximumY: point3.yOffset + maxY
                 threshold: Style.drag_threshold
             }
             onPositionChanged:  {

@@ -34,9 +34,6 @@ public:
     void addVelocityPart(VelocityResults &&vResults);
 
     int getFrameNumber() const { return frameNumber; }
-    QString getVelocityCSV(double conversion, int index, double xAxisLocation);
-    static QString getVelocityHeader(QString units);
-    static QString getEmptyVelocityEntry();
     const std::vector<cv::Point>& getTopStrongLine() const { return topStrongLine; }
     const std::vector<cv::Point>& getTopWeakLine() const { return topWeakLine; }
     const std::vector<cv::Point>& getBottomStrongLine() const { return bottomStrongLine; }

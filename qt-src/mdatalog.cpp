@@ -53,42 +53,6 @@ void MDataEntry::addVelocityPart(VelocityResults &&vResults)
     velocity = std::move(vResults);
 }
 
-QString MDataEntry::getVelocityCSV(double conversion, int index, double xAxisLocation)
-{
-    if (index >= 0 && index < velocity.maxPositive.size() && index < velocity.avgPositive.size()
-            && index < velocity.avgNegative.size() && index < velocity.maxNegative.size()) {
-        return QString() + QString::number(frameNumber) + ","
-                         + QString::number(timeSeconds) + ","
-                         + QString::number(velocity.xTrackingLocationIndividual[index]) + ","
-                         + QString::number(xAxisLocation - velocity.maxPositive[index]) + ","
-                         + QString::number(xAxisLocation - velocity.avgPositive[index]) + ","
-                         + QString::number(xAxisLocation - velocity.avgNegative[index]) + ","
-                         + QString::number(xAxisLocation - velocity.maxNegative[index]) + ","
-                         + QString::number((xAxisLocation - velocity.maxPositive[index]) * conversion) + ","
-                         + QString::number((xAxisLocation - velocity.avgPositive[index]) * conversion) + ","
-                         + QString::number((xAxisLocation - velocity.avgNegative[index]) * conversion) + ","
-                         + QString::number((xAxisLocation - velocity.maxNegative[index]) * conversion);
-
-    } else {
-        return QString();
-    }
-}
-
-QString MDataEntry::getVelocityHeader(QString units)
-{
-    return QString("frame number,time(seconds),xLocation,"
-                   "max positive(pixels),avg positive(pixels),avg negative(pixels),max negative(pixels),"
-                   "max positive(" + units + "),"
-                   "avg positive(" + units + "),"
-                   "avg negative(" + units + "),"
-                   "max negative(" + units + ")");
-}
-
-QString MDataEntry::getEmptyVelocityEntry()
-{
-    return QString(",,,,,,,,,,");
-}
-
 QString MDataEntry::getILTPixels() const
 {
     if (OLDPixels != 0 && topIMTPixels != 0 && bottomIMTPixels != 0) {
@@ -115,12 +79,13 @@ void MDataLog::write(QString fileName)
     metaData.touchWriteTime();
     QString dataFileName     = fileName + "_data"     + metaData.getWriteTime() + ".csv";
     QString velocityFileName = fileName + "_velocity" + metaData.getWriteTime() + ".csv";
-    writeVelocity(velocityFileName);
+    QString combinedFileName = fileName + "_combined" + metaData.getWriteTime() + ".csv";
 
-    MDiameterWriter dwriter(dataFileName, metaData);
-    //MVelocityWriter vwriter(velocityFileName, metaData);
+    MDiameterWriter dWriter(dataFileName, metaData);
+    MVelocityWriter vWriter(velocityFileName, metaData);
+    MCombinedWriter cWriter(combinedFileName, metaData);
 
-    std::vector<MResultsWriter*> writers = { &dwriter };
+    std::vector<MResultsWriter*> writers = { &dWriter, &vWriter, &cWriter };
 
     for (MResultsWriter *writer : writers) {
         std::unique_ptr<QFile> file = writer->open();
@@ -132,68 +97,36 @@ void MDataLog::write(QString fileName)
         std::vector<QString> header = writer->getMetaDataHeader();
         size_t maxLines = std::max(header.size(), entries.size());
         std::map<int, MDataEntry>::iterator curData = entries.begin();
-        for (int i = 0; i < maxLines + 1; i++) {
+        int velocityIndex = 0;
+        for (int i = 0; i < maxLines + 1 || curData != entries.end(); i++) {
+            QString curLine;
+            // FIXME: this isn't printing maui version on diameter outputs?? need to count without using "i"
             if (i < header.size()) {
-                out << header[i];
+                curLine += header[i];
             }
-            out << ",";
+            curLine += ",";
             if (i == 0) {
-                out << writer->getHeader();
-        } else {
-            if (curData != entries.end()) {
-                out << writer->getEntry(curData->second);
-                ++curData;
+                curLine += writer->getHeader();
             } else {
-                out << writer->getEmptyEntry();
-            }
-        }
-        out << "\n";
-    }
-    // file is flushed and closed on destruction
-    }
-}
-
-void MDataLog::writeVelocity(QString fileName)
-{
-    QFile file(fileName);
-    if (!file.open(QIODevice::WriteOnly | QIODevice::Text)) {
-        qDebug() << "Could not open csv file for writing: " << file.fileName();
-        return;
-    }
-
-    QTextStream out(&file);
-    std::vector<QString> header = metaData.getVelocityHeader();
-    double conversion = metaData.getVelocityPixels() > 0 ? 1.0 / metaData.getVelocityPixels() : 1;
-    size_t maxLines = std::max(header.size(), entries.size());
-    std::map<int, MDataEntry>::iterator curData = entries.begin();
-    int velocityIndex = 0;
-    for (int i = 0; i < maxLines + 1 || curData != entries.end(); i++) {
-        QString curLine;
-        if (i < header.size()) {
-            curLine += header[i];
-        }
-        curLine += ",";
-        if (i == 0) {
-            curLine += MDataEntry::getVelocityHeader(metaData.getVelocityUnits());
-        } else {
-            if (curData != entries.end()) {
-                QString velocityLine = curData->second.getVelocityCSV(conversion, velocityIndex, metaData.getVelocityXAxisLocation());
-                if (velocityLine.isEmpty()) {
-                    velocityIndex = 0;
-                    ++curData;
-                    continue;
+                if (curData != entries.end()) {
+                    QString velocityLine = writer->getEntry(curData->second, velocityIndex);
+                    if (velocityLine.isEmpty()) {
+                        velocityIndex = 0;
+                        ++curData;
+                        continue;
+                    } else {
+                        curLine += velocityLine;
+                        ++velocityIndex;
+                    }
                 } else {
-                    curLine += velocityLine;
-                    ++velocityIndex;
+                    curLine += writer->getEmptyEntry();
                 }
-            } else {
-                curLine += MDataEntry::getEmptyVelocityEntry();
             }
+            curLine += "\n";
+            out << curLine;
         }
-        curLine += "\n";
-        out << curLine;
+        // file is flushed and closed on destruction
     }
-    // file is flushed and closed on destruction
 }
 
 void MDataLog::clear()

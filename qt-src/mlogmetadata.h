@@ -41,8 +41,6 @@ public:
     void setVelocityXAxisLocation(double xLoc) { velocityXAxisLocation = xLoc; }
     void touchWriteTime();
     QString getWriteTime() { return uniqueness; }
-    std::vector<QString> getHeader() const;
-    std::vector<QString> getVelocityHeader() const;
     void operator=(const MLogMetaData& other);
 signals:
     void propertiesChanged();

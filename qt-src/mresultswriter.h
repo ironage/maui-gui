@@ -15,7 +15,7 @@ public:
     virtual QString getHeader() const = 0;
     virtual std::vector<QString> getMetaDataHeader() const = 0;
     virtual QString getEmptyEntry() const = 0;
-    virtual QString getEntry(const MDataEntry &entry) const = 0;
+    virtual QString getEntry(const MDataEntry &entry, int index) const = 0;
     template<typename T> QString getString(T value) const;
 protected:
     QString filename;
@@ -28,19 +28,34 @@ public:
     QString getHeader() const override;
     std::vector<QString> getMetaDataHeader() const override;
     QString getEmptyEntry() const override;
-    QString getEntry(const MDataEntry &entry) const override;
+    QString getEntry(const MDataEntry &entry, int index) const override;
 private:
     QString getILTPixels(); // intima-intima, computed
     QString getILTUnits(double conversion);
     double conversion;
 };
 
-class MVelocityWriter {
-
+class MVelocityWriter : public MResultsWriter {
+public:
+    MVelocityWriter(QString name, MLogMetaData &attachedMetaData);
+    QString getHeader() const override;
+    std::vector<QString> getMetaDataHeader() const override;
+    QString getEmptyEntry() const override;
+    QString getEntry(const MDataEntry &entry, int index) const override;
+private:
+    double conversion;
 };
 
-class MCombinedWriter {
-
+class MCombinedWriter : public MResultsWriter {
+public:
+    MCombinedWriter(QString name, MLogMetaData &attachedMetaData);
+    QString getHeader() const override;
+    std::vector<QString> getMetaDataHeader() const override;
+    QString getEmptyEntry() const override;
+    QString getEntry(const MDataEntry &entry, int index) const override;
+private:
+    MVelocityWriter vWriter;
+    MDiameterWriter dWriter;
 };
 
 #endif // MRESULTSWRITER_H

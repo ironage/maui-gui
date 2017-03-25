@@ -34,21 +34,21 @@ public:
     void addVelocityPart(VelocityResults &&vResults);
 
     int getFrameNumber() const { return frameNumber; }
-    QString getCSV(double conversion);
     QString getVelocityCSV(double conversion, int index, double xAxisLocation);
-    static QString getHeader(QString units);
     static QString getVelocityHeader(QString units);
-    static QString getEmptyEntry();
     static QString getEmptyVelocityEntry();
-    template<typename T> static QString getString(T value);
     const std::vector<cv::Point>& getTopStrongLine() const { return topStrongLine; }
     const std::vector<cv::Point>& getTopWeakLine() const { return topWeakLine; }
     const std::vector<cv::Point>& getBottomStrongLine() const { return bottomStrongLine; }
     const std::vector<cv::Point>& getBottomWeakLine() const { return bottomWeakLine; }
     const VelocityResults& getVelocity() const { return velocity; }
+    double getOLDPixels() const { return OLDPixels; }
+    double getTopIMTPixels() const { return topIMTPixels; }
+    double getBottomIMTPixels() const { return bottomIMTPixels; }
+    double getTime() const { return timeSeconds; }
+    QString getILTPixels() const; // intima-intima, computed
+    QString getILTUnits(double conversion) const;
 private:
-    QString getILTPixels(); // intima-intima, computed
-    QString getILTUnits(double conversion);
     int frameNumber;
     double OLDPixels;       // media-media
     double topIMTPixels;    // top intima-media

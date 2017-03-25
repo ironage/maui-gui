@@ -7,6 +7,8 @@
 #include <QFile>
 #include <QTextStream>
 
+#include "mresultswriter.h"
+
 QDebug operator<<(QDebug debug, const VelocityResults &r)
 {
     QDebugStateSaver saver(debug);
@@ -51,20 +53,6 @@ void MDataEntry::addVelocityPart(VelocityResults &&vResults)
     velocity = std::move(vResults);
 }
 
-QString MDataEntry::getCSV(double conversion)
-{
-    return QString() + QString::number(frameNumber) + ","
-                     + MDataEntry::getString(OLDPixels) + ","
-                     + MDataEntry::getString(topIMTPixels) + ","
-                     + MDataEntry::getString(bottomIMTPixels) + ","
-                     + QString::number(timeSeconds) + ","
-                     + MDataEntry::getString(OLDPixels * conversion) + ","
-                     + MDataEntry::getString(topIMTPixels * conversion) + ","
-                     + MDataEntry::getString(bottomIMTPixels * conversion) + ","
-                     + getILTPixels() + ","
-                     + getILTUnits(conversion);
-}
-
 QString MDataEntry::getVelocityCSV(double conversion, int index, double xAxisLocation)
 {
     if (index >= 0 && index < velocity.maxPositive.size() && index < velocity.avgPositive.size()
@@ -86,14 +74,6 @@ QString MDataEntry::getVelocityCSV(double conversion, int index, double xAxisLoc
     }
 }
 
-QString MDataEntry::getHeader(QString units)
-{
-    return QString("frame number,media-media distance(pixels),Top intima-media distance(pixels),"
-                   "Bottom intima-media distance(pixels),time(seconds),media-media distance(")
-            + units + "),Top intima-media distance(" + units + "),Bottom intima-media distance("
-            + units + "),intima-intima distance(pixels),intima-intima distance(" + units + ")";
-}
-
 QString MDataEntry::getVelocityHeader(QString units)
 {
     return QString("frame number,time(seconds),xLocation,"
@@ -104,17 +84,12 @@ QString MDataEntry::getVelocityHeader(QString units)
                    "max negative(" + units + ")");
 }
 
-QString MDataEntry::getEmptyEntry()
-{
-    return QString(",,,,,,,,,");
-}
-
 QString MDataEntry::getEmptyVelocityEntry()
 {
     return QString(",,,,,,,,,,");
 }
 
-QString MDataEntry::getILTPixels()
+QString MDataEntry::getILTPixels() const
 {
     if (OLDPixels != 0 && topIMTPixels != 0 && bottomIMTPixels != 0) {
         return QString::number(OLDPixels - topIMTPixels - bottomIMTPixels);
@@ -122,21 +97,12 @@ QString MDataEntry::getILTPixels()
     return QString("NaN");
 }
 
-QString MDataEntry::getILTUnits(double conversion)
+QString MDataEntry::getILTUnits(double conversion) const
 {
     if (OLDPixels != 0 && topIMTPixels != 0 && bottomIMTPixels != 0) {
         return QString::number((OLDPixels - topIMTPixels - bottomIMTPixels) * conversion);
     }
     return QString("NaN");
-}
-
-template<typename T>
-QString MDataEntry::getString(T value)
-{
-    if (value == 0) {
-        return QString("NaN");
-    }
-    return QString::number(value);
 }
 
 void MDataLog::add(MDataEntry &&entry)
@@ -150,39 +116,41 @@ void MDataLog::write(QString fileName)
     QString dataFileName     = fileName + "_data"     + metaData.getWriteTime() + ".csv";
     QString velocityFileName = fileName + "_velocity" + metaData.getWriteTime() + ".csv";
     writeVelocity(velocityFileName);
-    QFile file(dataFileName);
-    if (file.exists()) { // With dates on each file, this shouldn't happen!
-        qDebug() << "File exsists already! Adding date to avoid conflict " << fileName;
-        file.setFileName(fileName + QDateTime::currentDateTime().toString("yyyy-MM-dd_hh-mm-ss") + ".csv");
-    }
-    if (!file.open(QIODevice::WriteOnly | QIODevice::Text)) {
-        qDebug() << "Could not open csv file for writing: " << file.fileName();
-        return;
-    }
 
-    QTextStream out(&file);
-    std::vector<QString> header = metaData.getHeader();
-    double conversion = metaData.getPixels() > 0 ? 1.0 / metaData.getPixels() : 1;
-    size_t maxLines = std::max(header.size(), entries.size());
-    std::map<int, MDataEntry>::iterator curData = entries.begin();
-    for (int i = 0; i < maxLines + 1; i++) {
-        if (i < header.size()) {
-            out << header[i];
+    MDiameterWriter dwriter(dataFileName, metaData);
+    //MVelocityWriter vwriter(velocityFileName, metaData);
+
+    std::vector<MResultsWriter*> writers = { &dwriter };
+
+    for (MResultsWriter *writer : writers) {
+        std::unique_ptr<QFile> file = writer->open();
+        if (!file) {
+            qDebug() << "skipping output on invalid writer file.";
+            continue;
         }
-        out << ",";
-        if (i == 0) {
-            out << MDataEntry::getHeader(metaData.getUnits());
+        QTextStream out(file.get());
+        std::vector<QString> header = writer->getMetaDataHeader();
+        size_t maxLines = std::max(header.size(), entries.size());
+        std::map<int, MDataEntry>::iterator curData = entries.begin();
+        for (int i = 0; i < maxLines + 1; i++) {
+            if (i < header.size()) {
+                out << header[i];
+            }
+            out << ",";
+            if (i == 0) {
+                out << writer->getHeader();
         } else {
             if (curData != entries.end()) {
-                out << curData->second.getCSV(conversion);
+                out << writer->getEntry(curData->second);
                 ++curData;
             } else {
-                out << MDataEntry::getEmptyEntry();
+                out << writer->getEmptyEntry();
             }
         }
         out << "\n";
     }
     // file is flushed and closed on destruction
+    }
 }
 
 void MDataLog::writeVelocity(QString fileName)

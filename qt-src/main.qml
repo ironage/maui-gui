@@ -513,7 +513,8 @@ ApplicationWindow {
                     roiY: ~~(parent.height * 0.7)
                     roiWidth: initialWidth
                     roiHeight: initialHeight
-                    roiColor: Style.ui_color_light_lblue
+                    roiRestColor: Style.ui_color_dark_lblue
+                    roiHoverColor: Style.ui_color_bright_lblue
 
                     property point mappedXY: Qt.point(1,1)
                     property point mappedBR: Qt.point(1,1)

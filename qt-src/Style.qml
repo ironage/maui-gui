@@ -17,6 +17,7 @@ QtObject {
     property color ui_text_style: "#343434"
     property color ui_border_color: "#181818"
     property int ui_border_width: 2
+    property color ui_color_bright_red: "#f75c4c"
     property color ui_color_light_red: "#e74c3c"
     property color ui_color_dark_red: "#c0392b"
     property color ui_color_light_grey: "#95a5a6"
@@ -25,6 +26,7 @@ QtObject {
     property color ui_color_dark_green: "#27ae60"
     property color ui_color_light_dblue: "#34495e"
     property color ui_color_dark_dblue: "#2c3e50"
+    property color ui_color_bright_lblue: "#54b8fb"
     property color ui_color_light_lblue: "#3498db"
     property color ui_color_dark_lblue: "#2980b9"
     property color ui_color_light_turquoise: "#1abc9c"

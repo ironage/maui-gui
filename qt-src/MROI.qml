@@ -15,7 +15,12 @@ Rectangle {
     property bool adjustable: true
     property int cornerWidth: 16
     property int rectMin: 20
-    property color roiColor: Style.ui_color_light_red
+    property bool handleHover: (mouseBL.containsMouse || mouseTL.containsMouse || mouseTR.containsMouse || mouseBR.containsMouse
+                             || mouseMT.containsMouse || mouseMR.containsMouse || mouseMB.containsMouse || mouseML.containsMouse)
+
+    property color roiRestColor: Style.ui_color_dark_red
+    property color roiHoverColor: Style.ui_color_bright_red
+    property color roiColor: (handleHover ? roiHoverColor : roiRestColor)
 
     Rectangle {
         id: roi
@@ -57,6 +62,7 @@ Rectangle {
         color: roi.border.color
         radius: width/2
         MouseArea {
+            id: mouseBR
             enabled: m_root.enabled
             anchors.fill: parent
             hoverEnabled: true
@@ -96,6 +102,7 @@ Rectangle {
         color: roi.border.color
         radius: width/2
         MouseArea {
+            id: mouseTL
             enabled: m_root.enabled
             anchors.fill: parent
             hoverEnabled: true
@@ -137,6 +144,7 @@ Rectangle {
         color: roi.border.color
         radius: width/2
         MouseArea {
+            id: mouseTR
             enabled: m_root.enabled
             anchors.fill: parent
             hoverEnabled: true
@@ -177,6 +185,7 @@ Rectangle {
         color: roi.border.color
         radius: width/2
         MouseArea {
+            id: mouseBL
             enabled: m_root.enabled
             anchors.fill: parent
             hoverEnabled: true
@@ -216,6 +225,7 @@ Rectangle {
         color: roi.border.color
         radius: width/2
         MouseArea {
+            id: mouseMT
             enabled: m_root.enabled
             anchors.fill: parent
             hoverEnabled: true
@@ -252,6 +262,7 @@ Rectangle {
         color: roi.border.color
         radius: width/2
         MouseArea {
+            id: mouseMB
             enabled: m_root.enabled
             anchors.fill: parent
             hoverEnabled: true
@@ -287,6 +298,7 @@ Rectangle {
         color: roi.border.color
         radius: width/2
         MouseArea {
+            id: mouseML
             enabled: m_root.enabled
             anchors.fill: parent
             hoverEnabled: true
@@ -323,6 +335,7 @@ Rectangle {
         color: roi.border.color
         radius: width/2
         MouseArea {
+            id: mouseMR
             enabled: m_root.enabled
             anchors.fill: parent
             hoverEnabled: true

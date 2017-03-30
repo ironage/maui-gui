@@ -77,9 +77,9 @@ void MDataLog::add(MDataEntry &&entry)
 void MDataLog::write(QString fileName)
 {
     metaData.touchWriteTime();
-    QString dataFileName     = fileName + "_data"     + metaData.getWriteTime() + ".csv";
-    QString velocityFileName = fileName + "_velocity" + metaData.getWriteTime() + ".csv";
-    QString combinedFileName = fileName + "_combined" + metaData.getWriteTime() + ".csv";
+    QString dataFileName     = fileName + "_data_"     + metaData.getWriteTime() + ".csv";
+    QString velocityFileName = fileName + "_velocity_" + metaData.getWriteTime() + ".csv";
+    QString combinedFileName = fileName + "_combined_" + metaData.getWriteTime() + ".csv";
 
     MDiameterWriter dWriter(dataFileName, metaData);
     MVelocityWriter vWriter(velocityFileName, metaData);

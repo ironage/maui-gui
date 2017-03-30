@@ -140,7 +140,16 @@ MCombinedWriter::MCombinedWriter(QString name, MLogMetaData &attachedMetaData)
 
 QString MCombinedWriter::getHeader() const
 {
-    return dWriter.getHeader() + "," + vWriter.getHeader();
+    QString units = metaData.getVelocityUnits();
+    return dWriter.getHeader() + ",velocity xLocation,"
+                                 "velocity max positive(pixels),"
+                                 "velocity avg positive(pixels),"
+                                 "velocity avg negative(pixels),"
+                                 "velocity max negative(pixels),"
+                                 "velocity max positive(" + units + "),"
+                                 "velocity avg positive(" + units + "),"
+                                 "velocity avg negative(" + units + "),"
+                                 "velocity max negative(" + units + ")";
 }
 
 std::vector<QString> MCombinedWriter::getMetaDataHeader() const
@@ -154,14 +163,52 @@ std::vector<QString> MCombinedWriter::getMetaDataHeader() const
 
 QString MCombinedWriter::getEmptyEntry() const
 {
-    return dWriter.getEmptyEntry() + vWriter.getEmptyEntry();
+    return dWriter.getEmptyEntry() + getVelocityEmptyEntry();
 }
 
 QString MCombinedWriter::getEntry(const MDataEntry &entry, int index) const
 {
-    QString velocityEntry = vWriter.getEntry(entry, index);
-    if (!velocityEntry.isEmpty()) {
-        return dWriter.getEntry(entry, 0) + velocityEntry;
+    QString velocityEntry = getVelocityEntry(entry, index);
+    QString diameterEntry = dWriter.getEntry(entry, 0);
+    if (index == 0) { // always at least write one entry on this frame
+        if (velocityEntry.isEmpty()) {
+            velocityEntry = getVelocityEmptyEntry();
+        }
+        return diameterEntry + velocityEntry;
+    } else {
+        if (!velocityEntry.isEmpty()) {
+            return diameterEntry + velocityEntry;
+        }
     }
     return QString(); // no more data for this entry
+}
+
+QString MCombinedWriter::getVelocityEmptyEntry() const
+{
+    return ",,,,,,,,,";
+}
+
+QString MCombinedWriter::getVelocityEntry(const MDataEntry &entry, int index) const
+{
+    const VelocityResults &velocity = entry.getVelocity();
+    if (index >= 0
+            && index < velocity.maxPositive.size()
+            && index < velocity.avgPositive.size()
+            && index < velocity.avgNegative.size()
+            && index < velocity.maxNegative.size()) {
+        double xAxisLocation = metaData.getVelocityXAxisLocation();
+        double conversion = vWriter.getVelocityConversion();
+        return QString() + ","
+                         + QString::number(velocity.xTrackingLocationIndividual[index]) + ","
+                         + QString::number(xAxisLocation - velocity.maxPositive[index]) + ","
+                         + QString::number(xAxisLocation - velocity.avgPositive[index]) + ","
+                         + QString::number(xAxisLocation - velocity.avgNegative[index]) + ","
+                         + QString::number(xAxisLocation - velocity.maxNegative[index]) + ","
+                         + QString::number((xAxisLocation - velocity.maxPositive[index]) * conversion) + ","
+                         + QString::number((xAxisLocation - velocity.avgPositive[index]) * conversion) + ","
+                         + QString::number((xAxisLocation - velocity.avgNegative[index]) * conversion) + ","
+                         + QString::number((xAxisLocation - velocity.maxNegative[index]) * conversion);
+    } else {
+        return QString();
+    }
 }

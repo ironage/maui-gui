@@ -42,6 +42,7 @@ public:
     std::vector<QString> getMetaDataHeader() const override;
     QString getEmptyEntry() const override;
     QString getEntry(const MDataEntry &entry, int index) const override;
+    double getVelocityConversion() const { return conversion; }
 private:
     double conversion;
 };
@@ -54,6 +55,8 @@ public:
     QString getEmptyEntry() const override;
     QString getEntry(const MDataEntry &entry, int index) const override;
 private:
+    QString getVelocityEmptyEntry() const;
+    QString getVelocityEntry(const MDataEntry &entry, int index) const;
     MVelocityWriter vWriter;
     MDiameterWriter dWriter;
 };

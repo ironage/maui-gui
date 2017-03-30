@@ -95,12 +95,11 @@ void MDataLog::write(QString fileName)
         }
         QTextStream out(file.get());
         std::vector<QString> header = writer->getMetaDataHeader();
-        size_t maxLines = std::max(header.size(), entries.size());
+        size_t maxLines = std::max(header.size(), entries.size()) + 1; // + 1 is for top line header
         std::map<int, MDataEntry>::iterator curData = entries.begin();
         int velocityIndex = 0;
-        for (int i = 0; i < maxLines + 1 || curData != entries.end(); i++) {
+        for (int i = 0; i < maxLines || curData != entries.end();) {
             QString curLine;
-            // FIXME: this isn't printing maui version on diameter outputs?? need to count without using "i"
             if (i < header.size()) {
                 curLine += header[i];
             }
@@ -124,6 +123,7 @@ void MDataLog::write(QString fileName)
             }
             curLine += "\n";
             out << curLine;
+            ++i;
         }
         // file is flushed and closed on destruction
     }

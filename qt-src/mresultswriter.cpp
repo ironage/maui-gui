@@ -4,6 +4,8 @@
 
 #include <QDateTime>
 
+#include <cmath>
+
 MResultsWriter::MResultsWriter(QString name, MLogMetaData &attachedMetaData)
     : filename(name), metaData(attachedMetaData)
 {
@@ -136,6 +138,32 @@ QString MVelocityWriter::getEntry(const MDataEntry &entry, int index) const
 MCombinedWriter::MCombinedWriter(QString name, MLogMetaData &attachedMetaData)
     : MResultsWriter(name, attachedMetaData), vWriter("", attachedMetaData), dWriter("", attachedMetaData)
 {
+    QString diameterUnits = metaData.getUnits();
+    if (diameterUnits.compare("in", Qt::CaseInsensitive) == 0) {
+        diameterToCMConversion = 2.54;
+    } else if (diameterUnits.compare("mm", Qt::CaseInsensitive) == 0) {
+        diameterToCMConversion = 0.10;
+    } else {
+        if (!diameterUnits.compare("cm", Qt::CaseInsensitive) == 0) {
+            qDebug() << "Unknown diameter units! assuming cm! " << diameterUnits;
+        }
+        diameterToCMConversion = 1;
+    }
+
+    QString velocityUnits = metaData.getVelocityUnits();
+    if (velocityUnits.compare("in/s", Qt::CaseInsensitive) == 0) {
+        flowUnits = "fl oz/min";
+        velocityConversionType = IN_PER_SECOND;
+    } else if (velocityUnits.compare("cm/s", Qt::CaseInsensitive) == 0) {
+        flowUnits = "mL/min";
+        velocityConversionType = CM_PER_SECOND;
+    } else {
+        if (!velocityUnits.compare("mm/s", Qt::CaseInsensitive) == 0) {
+            qDebug() << "unhandled flow units! defaulting to mm/s!" << velocityUnits;
+        }
+        flowUnits = "mL/min";
+        velocityConversionType = MM_PER_SECOND;
+    }
 }
 
 QString MCombinedWriter::getHeader() const
@@ -149,7 +177,11 @@ QString MCombinedWriter::getHeader() const
                                  "velocity max positive(" + units + "),"
                                  "velocity avg positive(" + units + "),"
                                  "velocity avg negative(" + units + "),"
-                                 "velocity max negative(" + units + ")";
+                                 "velocity max negative(" + units + "),"
+                                 "flow max positive(" + flowUnits + "),"
+                                 "flow avg positive(" + flowUnits + "),"
+                                 "flow avg negative(" + flowUnits + "),"
+                                 "flow max negative(" + flowUnits + ")";
 }
 
 std::vector<QString> MCombinedWriter::getMetaDataHeader() const
@@ -183,9 +215,32 @@ QString MCombinedWriter::getEntry(const MDataEntry &entry, int index) const
     return QString(); // no more data for this entry
 }
 
+double MCombinedWriter::calculateFlow(double diameter, double velocity) const
+{
+    if (diameter <= 0 || velocity <= 0) {
+        return 0;
+    }
+    const long double LOCAL_PI = 3.141592653589793238L;
+    const double secondsPerMinute = 60.0;
+    const double mmPerCm = 0.10;
+    const double inPerCm = 0.393701;
+    const double mLToFlOz = 0.03381402;
+    // cross sectional area * velocity * 60 (seconds to minutes)
+    // (PI * r^2) * velocity * 60
+    switch (velocityConversionType) {
+    case IN_PER_SECOND:
+        return (LOCAL_PI * pow(((diameter * diameterToCMConversion) / 2), 2)) * (velocity * inPerCm) * secondsPerMinute * mLToFlOz;
+    case CM_PER_SECOND:
+        return (LOCAL_PI * pow(((diameter * diameterToCMConversion) / 2), 2)) * velocity * secondsPerMinute;
+    default:
+    case MM_PER_SECOND:
+        return (LOCAL_PI * pow(((diameter * diameterToCMConversion) / 2), 2)) * (velocity * mmPerCm) * secondsPerMinute;
+    }
+}
+
 QString MCombinedWriter::getVelocityEmptyEntry() const
 {
-    return ",,,,,,,,,";
+    return ",,,,,,,,,,,,,";
 }
 
 QString MCombinedWriter::getVelocityEntry(const MDataEntry &entry, int index) const
@@ -197,17 +252,30 @@ QString MCombinedWriter::getVelocityEntry(const MDataEntry &entry, int index) co
             && index < velocity.avgNegative.size()
             && index < velocity.maxNegative.size()) {
         double xAxisLocation = metaData.getVelocityXAxisLocation();
-        double conversion = vWriter.getVelocityConversion();
+        double velocityConversion = vWriter.getVelocityConversion();
+        double diameterConversion = dWriter.getDiameterConversion();
+        double diameter = entry.getOLDPixels() * diameterConversion;
+
+        double maxPosV = (xAxisLocation - velocity.maxPositive[index]) * velocityConversion;
+        double avgPosV = (xAxisLocation - velocity.avgPositive[index]) * velocityConversion;
+        double avgNegV = (xAxisLocation - velocity.avgNegative[index]) * velocityConversion;
+        double maxNegV = (xAxisLocation - velocity.maxNegative[index]) * velocityConversion;
+
+
         return QString() + ","
                          + QString::number(velocity.xTrackingLocationIndividual[index]) + ","
                          + QString::number(xAxisLocation - velocity.maxPositive[index]) + ","
                          + QString::number(xAxisLocation - velocity.avgPositive[index]) + ","
                          + QString::number(xAxisLocation - velocity.avgNegative[index]) + ","
                          + QString::number(xAxisLocation - velocity.maxNegative[index]) + ","
-                         + QString::number((xAxisLocation - velocity.maxPositive[index]) * conversion) + ","
-                         + QString::number((xAxisLocation - velocity.avgPositive[index]) * conversion) + ","
-                         + QString::number((xAxisLocation - velocity.avgNegative[index]) * conversion) + ","
-                         + QString::number((xAxisLocation - velocity.maxNegative[index]) * conversion);
+                         + QString::number(maxPosV) + ","
+                         + QString::number(avgPosV) + ","
+                         + QString::number(avgNegV) + ","
+                         + QString::number(maxNegV) + ","
+                         + QString::number(calculateFlow(diameter, maxPosV)) + ","
+                         + QString::number(calculateFlow(diameter, avgPosV)) + ","
+                         + QString::number(calculateFlow(diameter, avgNegV)) + ","
+                         + QString::number(calculateFlow(diameter, maxNegV));
     } else {
         return QString();
     }

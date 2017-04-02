@@ -29,6 +29,7 @@ public:
     std::vector<QString> getMetaDataHeader() const override;
     QString getEmptyEntry() const override;
     QString getEntry(const MDataEntry &entry, int index) const override;
+    double getDiameterConversion() const { return conversion; }
 private:
     QString getILTPixels(); // intima-intima, computed
     QString getILTUnits(double conversion);
@@ -55,10 +56,19 @@ public:
     QString getEmptyEntry() const override;
     QString getEntry(const MDataEntry &entry, int index) const override;
 private:
+    enum FlowUnits {
+        CM_PER_SECOND,
+        MM_PER_SECOND,
+        IN_PER_SECOND
+    };
+    double calculateFlow(double diameter, double velocity) const;
     QString getVelocityEmptyEntry() const;
     QString getVelocityEntry(const MDataEntry &entry, int index) const;
     MVelocityWriter vWriter;
     MDiameterWriter dWriter;
+    FlowUnits velocityConversionType;
+    QString flowUnits;
+    double diameterToCMConversion;
 };
 
 #endif // MRESULTSWRITER_H

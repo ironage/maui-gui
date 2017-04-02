@@ -117,6 +117,18 @@ void CameraTask::convertUVsp2UVp(unsigned char* __restrict srcptr, unsigned char
 }
 
 void CameraTask::drawOverlay(int frame, cv::Mat& mat) {
+
+    // allow drawing a velocity baseline even without any log data entries on this frame
+    if (curSetupState & VELOCITY_ROI) {
+        const cv::Point velocityBase(velocityROI.x(), velocityROI.y());
+        if (curVelocityState.xAxisLocation > 0) {
+            cv::Scalar xAxisColor(0, 84, 211); // bgr of #d35400 pumpkin
+            cv::Point leftAxisPoint = makeSafePoint(0, curVelocityState.xAxisLocation, velocityBase);
+            cv::Point rightAxisPoint = makeSafePoint(velocityROI.width(), curVelocityState.xAxisLocation, velocityBase);
+            drawLine(mat, {leftAxisPoint, rightAxisPoint}, xAxisColor, 2);
+        }
+    }
+
     const MDataEntry *existing = log.get(frame);
     if (!existing) return;
     const cv::Scalar strongColor(0, 0, 250);  // b,g,r
@@ -130,29 +142,23 @@ void CameraTask::drawOverlay(int frame, cv::Mat& mat) {
     }
 
     if (curSetupState & VELOCITY_ROI) {
-        const cv::Point velocityBase(velocityROI.x(), velocityROI.y());
-        if (curVelocityState.xAxisLocation > 0) {
-            cv::Scalar xAxisColor(0, 84, 211); // bgr of #d35400 pumpkin
-            cv::Point leftAxisPoint = makeSafePoint(0, curVelocityState.xAxisLocation, velocityBase);
-            cv::Point rightAxisPoint = makeSafePoint(velocityROI.width(), curVelocityState.xAxisLocation, velocityBase);
-            drawLine(mat, {leftAxisPoint, rightAxisPoint}, xAxisColor);
-        }
         const int radius = 1;
         const int thickness = 1;
         const VelocityResults vr = existing->getVelocity();
+        const cv::Point velocityOffset(vr.drawOffsetX, vr.drawOffsetY);
         const size_t num_results = vr.xTrackingLocationIndividual.size();
         if (vr.avgPositive.size() == num_results
                 && vr.avgNegative.size() == num_results
                 && vr.maxNegative.size() == num_results
                 && vr.maxPositive.size() == num_results) {
             for (int i = 0; i < num_results; i++) {
-                cv::Point avgPositive = makeSafePoint(vr.xTrackingLocationIndividual[i], vr.avgPositive[i], velocityBase);
+                cv::Point avgPositive = makeSafePoint(vr.xTrackingLocationIndividual[i], vr.avgPositive[i], velocityOffset);
                 cv::circle(mat, avgPositive, radius, weakColor, thickness);
-                cv::Point maxPositive = makeSafePoint(vr.xTrackingLocationIndividual[i], vr.maxPositive[i], velocityBase);
+                cv::Point maxPositive = makeSafePoint(vr.xTrackingLocationIndividual[i], vr.maxPositive[i], velocityOffset);
                 cv::circle(mat, maxPositive, radius, strongColor, thickness);
-                cv::Point avgNegative = makeSafePoint(vr.xTrackingLocationIndividual[i], vr.avgNegative[i], velocityBase);
+                cv::Point avgNegative = makeSafePoint(vr.xTrackingLocationIndividual[i], vr.avgNegative[i], velocityOffset);
                 cv::circle(mat, avgNegative, radius, weakColor, thickness);
-                cv::Point maxNegative = makeSafePoint(vr.xTrackingLocationIndividual[i], vr.maxNegative[i], velocityBase);
+                cv::Point maxNegative = makeSafePoint(vr.xTrackingLocationIndividual[i], vr.maxNegative[i], velocityOffset);
                 cv::circle(mat, maxNegative, radius, strongColor, thickness);
             }
         } else {
@@ -213,6 +219,7 @@ void CameraTask::doWork()
             QThread::msleep(10);
             continue; // loop
         case PlayState::AutoInitCurFrame:
+        case PlayState::AutoInitVelocityInFrame:
             break;
         case PlayState::Seeking:
             camera->setProperty(CV_CAP_PROP_POS_FRAMES, frameToSeekTo);
@@ -223,7 +230,7 @@ void CameraTask::doWork()
         }
 
         curFrame = camera->getProperty(CV_CAP_PROP_POS_FRAMES); // opencv frame is 0 indexed
-        if (curPlayState == PlayState::AutoInitCurFrame) {
+        if (curPlayState == PlayState::AutoInitCurFrame || curPlayState == PlayState::AutoInitVelocityInFrame) {
             if (!cameraFrame || cachedFrameIsDirty) {
                 if (!getNextFrameData()) continue;
                 camera->setProperty(CV_CAP_PROP_POS_FRAMES, curFrame); // AutoInit does not advance frames
@@ -251,6 +258,27 @@ void CameraTask::doWork()
             } else if (curPlayState == PlayState::AutoInitCurFrame) {
                 curPlayState = PlayState::Paused;
                 autoInitializeOnROI(matlabROI.get());
+            } else if (curPlayState == PlayState::AutoInitVelocityInFrame) {
+                curPlayState = PlayState::Paused;
+
+                if (curSetupState & SetupState::VELOCITY_ROI) {
+                    cv::Mat velocityROISection = tempMat(getCVROI(velocityROI));
+                    cv::cvtColor(velocityROISection, velocityROISection, CV_BGR2GRAY);
+                    std::unique_ptr<mwArray> matlabVelocityROI(opencvConvertToMX(velocityROISection));
+
+                    if (!getNextFrameData()) {
+                        emit videoFinished(CameraTask::ProcessingState::VELOCITY_INIT_FAILED);
+                        continue;
+                    }
+                    camera->setProperty(CV_CAP_PROP_POS_FRAMES, curFrame); // AutoInit does not advance frames
+
+                    cv::Mat velocityROISection2 = tempMat(getCVROI(velocityROI));
+                    cv::cvtColor(velocityROISection2, velocityROISection2, CV_BGR2GRAY);
+                    std::unique_ptr<mwArray> matlabVelocityROI2(opencvConvertToMX(velocityROISection2));
+
+                    initializeVelocityROI(matlabVelocityROI2.get(), matlabVelocityROI.get(), false);
+
+                }
             } else if (curPlayState == PlayState::Playing) {
                 if (!doneInit) {
                     if (curSetupState & SetupState::NORMAL_ROI) {
@@ -283,7 +311,7 @@ void CameraTask::doWork()
                         cv::cvtColor(velocityROISection2, velocityROISection2, CV_BGR2GRAY);
                         std::unique_ptr<mwArray> matlabVelocityROI2(opencvConvertToMX(velocityROISection2));
 
-                        if (!initializeVelocityROI(matlabVelocityROI2.get(), matlabVelocityROI.get())) {
+                        if (!initializeVelocityROI(matlabVelocityROI2.get(), matlabVelocityROI.get(), true)) {
                             emit videoFinished(CameraTask::ProcessingState::VELOCITY_INIT_FAILED);
                             curPlayState = PlayState::Paused;
                             camera->setProperty(CV_CAP_PROP_POS_FRAMES, curFrame); // this frame needs reprocessing
@@ -324,6 +352,8 @@ void CameraTask::doWork()
                         cv::cvtColor(velocityROISection, velocityROISection, CV_BGR2GRAY);
                         std::unique_ptr<mwArray> matlabVelocityROI(opencvConvertToMX(velocityROISection));
                         VelocityResults vr = getVelocityFromFrame(matlabVelocityROI.get(), curFrame + 1, curVelocityState);
+                        vr.drawOffsetX = velocityROI.x();
+                        vr.drawOffsetY = velocityROI.y();
                         if (!vr.xTrackingLocationIndividual.empty()) {
                             curVelocityState.previousMaxXTrackingLoc = vr.xTrackingLocationIndividual[vr.xTrackingLocationIndividual.size() - 1];
                         }
@@ -426,9 +456,8 @@ void CameraTask::setVelocityROI(QRect newROI)
 {
     if (velocityROI != newROI) {
         velocityROI = newROI;
-        //qDebug() << "Setting velocityROI: " << velocityROI;
         if (curPlayState == PlayState::Paused) {
-            //curPlayState = PlayState::AutoInitCurFrame;
+            curPlayState = PlayState::AutoInitVelocityInFrame;
         }
     }
 }
@@ -539,11 +568,11 @@ cv::Rect CameraTask::getCVROI(QRect rect)
     return cv::Rect(roiX, roiY, roiW, roiH);
 }
 
-void CameraTask::drawLine(cv::Mat &dest, const std::vector<cv::Point>& points, cv::Scalar color)
+void CameraTask::drawLine(cv::Mat &dest, const std::vector<cv::Point>& points, cv::Scalar color, int thickness)
 {
     int numPoints = int(points.size());
     for (int i = 0; i < numPoints - 1; ++i) {
-        cv::line(dest, points[i], points[i+1], color, 1, CV_AA); // antialised line of thickness 1
+        cv::line(dest, points[i], points[i+1], color, thickness, CV_AA); // antialised line of thickness 1
     }
 }
 
@@ -652,7 +681,7 @@ bool CameraTask::autoInitializeOnROI(mwArray *matlabROI)
     return true;
 }
 
-bool CameraTask::initializeVelocityROI(mwArray *velocityCurrentROI, mwArray *velocityPreviousROI)
+bool CameraTask::initializeVelocityROI(mwArray *velocityCurrentROI, mwArray *velocityPreviousROI, bool findFirstFrame)
 {
     curVelocityState = VelocityState(); // reset to -1s
     try {
@@ -670,7 +699,7 @@ bool CameraTask::initializeVelocityROI(mwArray *velocityCurrentROI, mwArray *vel
         qDebug() << "velocityXLocation: " << velocityXLocation << " videoType " << videoType;
 
         int indexOfFirstMovingFrame = 1; // for type 2 videos this is always 1
-        if (videoType == 1) {
+        if (videoType == 1 && findFirstFrame) {
             indexOfFirstMovingFrame = getIndexOfFirstMovingFrame();
             if (indexOfFirstMovingFrame < 0) {
                 qDebug() << "could not find starting point of velocity movement for video type 1";

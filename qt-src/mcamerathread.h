@@ -46,7 +46,8 @@ private:
         Playing,
         Paused,
         Seeking,
-        AutoInitCurFrame
+        AutoInitCurFrame,
+        AutoInitVelocityInFrame
     };
     struct VelocityState {
         double videoType = -1;
@@ -128,12 +129,12 @@ signals:
 protected:
     void notifyInitPoints(mwArray topWall, mwArray bottomWall, QPoint offset);
     cv::Rect getCVROI(QRect rect);
-    void drawLine(cv::Mat &dest, const std::vector<cv::Point>& points, cv::Scalar color);
+    void drawLine(cv::Mat &dest, const std::vector<cv::Point>& points, cv::Scalar color, int thickness = 1);
     void initializeOutput();
     double getFirst(mwArray& data, double defaultValue);
     void writeResults();
     bool autoInitializeOnROI(mwArray* matlabROI);
-    bool initializeVelocityROI(mwArray* velocityCurrentROI, mwArray* velocityPreviousROI);
+    bool initializeVelocityROI(mwArray* velocityCurrentROI, mwArray* velocityPreviousROI, bool findFirstFrame);
     VelocityResults getVelocityFromFrame(mwArray* velocityCurrentROI, int frame, VelocityState velocityState);
     int getIndexOfFirstMovingFrame();
     bool getNextFrameData();

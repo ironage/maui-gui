@@ -16,6 +16,8 @@ struct VelocityResults
     std::vector<double> maxNegative;
     std::vector<double> avgNegative;
     std::vector<double> xTrackingLocationIndividual;
+    double drawOffsetX = 0;
+    double drawOffsetY = 0;
 };
 
 QDebug operator<<(QDebug debug, const VelocityResults &r);

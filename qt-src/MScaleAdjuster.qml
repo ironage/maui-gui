@@ -15,7 +15,8 @@ Rectangle {
     property int mappedTopValue: 20
     property int mappedBottomValue: 40
     property color scaleColor: Style.ui_color_dark_red
-    property color scaleHighlightColor: Style.ui_color_light_red
+    property color scaleHighlightColor: Style.ui_color_bright_red
+    property bool highlightAll: slider.activeHover || slider2.activeHover || lineArea.containsMouse || lineArea.drag.active
 
     function changeMappedPoints(hValue, topValue, bottomValue) {
         mappedHValue = hValue
@@ -50,11 +51,10 @@ Rectangle {
         gripSize: 20 // keep this even, else off by one from rounding errors happen
         alpha: m_root.alpha
         startY: 0.25 * m_root.height
-        fill_color_highlight: scaleHighlightColor
-        stroke_color_highlight: scaleHighlightColor
-        fill_color: scaleColor
-        stroke_color: scaleColor
-        drag_specs.maximumY: slider2.vPos - min_line_height
+        fillColorHighlight: scaleHighlightColor
+        fillColor: scaleColor
+        outsideHighlight: m_root.highlightAll
+        dragSpecs.maximumY: slider2.vPos - min_line_height
         onHPosChanged: {
             line.x = hPos
             slider2.updateHPos(hPos)
@@ -72,10 +72,10 @@ Rectangle {
         height: slider2.vPos - slider.vPos + 1
         property int saved_height: 10
         width: 5
-        color: line_area.containsMouse || line_area.drag.active ? slider.fill_color_highlight : slider.fill_color
+        color: lineArea.containsMouse || lineArea.drag.active || m_root.highlightAll ? slider.fillColorHighlight : slider.fillColor
         opacity: alpha
         MouseArea {
-            id: line_area
+            id: lineArea
             enabled: m_root.enabled
             anchors.fill:  parent
             hoverEnabled: true
@@ -85,7 +85,7 @@ Rectangle {
                 minimumX: -1
                 maximumX: m_root.width - slider.width - 1
                 minimumY: 0
-                maximumY: m_root.height - line_area.height
+                maximumY: m_root.height - lineArea.height
                 threshold: Style.drag_threshold
             }
             onPositionChanged:  {
@@ -112,11 +112,10 @@ Rectangle {
         gripSize: 20
         alpha: m_root.alpha
         startY: 0.75 * m_root.height
-        fill_color_highlight: slider.fill_color_highlight
-        stroke_color_highlight: slider.stroke_color_highlight
-        fill_color: slider.fill_color
-        stroke_color: slider.stroke_color
-        drag_specs.minimumY: slider.vPos + min_line_height + 1
+        fillColorHighlight: slider.fillColorHighlight
+        fillColor: slider.fillColor
+        outsideHighlight: m_root.highlightAll
+        dragSpecs.minimumY: slider.vPos + min_line_height + 1
         onHPosChanged: {
             slider.updateHPos(hPos)
             line.x = hPos

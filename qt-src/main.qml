@@ -555,7 +555,7 @@ ApplicationWindow {
                     visible: velocityDetectionPane.checked && (m_video.source !== "")
                     text: "" + (m_video.video_height <= 0 ? "" : (velocityVerticalScale.mappedBottomValue - velocityVerticalScale.mappedTopValue) + " pixels = ") + velocityDetectionPane.scale + " " + velocityDetectionPane.conversionUnits
                     scaleColor: Style.ui_color_dark_lblue
-                    scaleHighlightColor: Style.ui_color_light_lblue
+                    scaleHighlightColor: Style.ui_color_bright_lblue
                     onViewPointsChanged: {
                         var scaleTop = m_video.viewPointToVideoPoint(Qt.point(hValue, topValue))
                         var scaleBottom = m_video.viewPointToVideoPoint(Qt.point(hValue, bottomValue))
@@ -575,7 +575,7 @@ ApplicationWindow {
                     visible: velocityDetectionPane.checked && (m_video.source !== "")
                     text: "" + (m_video.video_height <= 0 ? "" : (velocityHorizontalScale.mappedRightValue - velocityHorizontalScale.mappedLeftValue) + " pixels = ") + velocityDetectionPane.time + (velocityDetectionPane.time === "1" ? " second" : " seconds")
                     scaleColor: Style.ui_color_dark_lblue
-                    scaleHighlightColor: Style.ui_color_light_lblue
+                    scaleHighlightColor: Style.ui_color_bright_lblue
                     onViewPointsChanged: {
                         var scaleLeft = m_video.viewPointToVideoPoint(Qt.point(leftValue, vValue))
                         var scaleRight = m_video.viewPointToVideoPoint(Qt.point(rightValue, vValue))

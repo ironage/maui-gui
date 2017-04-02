@@ -8,15 +8,16 @@ Rectangle {
     property alias lineWidth: line.height
     property alias gripSize: slider.gripSize
     property real alpha: 0.70
-    property int end_mark_width: 5
-    property int min_line_height: 2
+    property int endMarkWidth: 5
+    property int minLineHeight: 2
     property alias text: m_text.text
     property int mappedVValue: 20
     property int mappedLeftValue: 20
     property int mappedRightValue: 40
     property color scaleColor: Style.ui_color_dark_red
     property color scaleHighlightColor: Style.ui_color_light_red
-    property int vertical_line_offset: ((slider.gripSize / 2) + 2)
+    property int verticalLineOffset: ((slider.gripSize / 2) + 2)
+    property bool highlightAll: slider.activeHover || slider2.activeHover || lineArea.containsMouse || lineArea.drag.active
 
     function changeMappedPoints(vValue, leftValue, rightValue) {
         mappedVValue = vValue
@@ -52,15 +53,14 @@ Rectangle {
         alpha: m_root.alpha
         startY: 0.25 * m_root.height
         startX: 0.25 * m_root.width
-        fill_color_highlight: scaleHighlightColor
-        stroke_color_highlight: scaleHighlightColor
-        fill_color: scaleColor
-        stroke_color: scaleColor
-        end_mark_max: vPos + vertical_line_offset
-        drag_specs.maximumX: slider2.hPos - min_line_height
+        fillColorHighlight: scaleHighlightColor
+        fillColor: scaleColor
+        outsideHighlight: m_root.highlightAll
+        endMarkMax: vPos + verticalLineOffset
+        dragSpecs.maximumX: slider2.hPos - minLineHeight
         onVPosChanged: {
             slider2.updateVPos(vPos)
-            line.y = vPos + vertical_line_offset
+            line.y = vPos + verticalLineOffset
         }
         onDragUpdate: {
             viewPointsChanged(vPos, slider.hPos, slider2.hPos)
@@ -75,10 +75,10 @@ Rectangle {
         width: slider2.hPos - slider.hPos + 1
         property int saved_width: 10
         height: 5
-        color: line_area.containsMouse || line_area.drag.active ? slider.fill_color_highlight : slider.fill_color
+        color: m_root.highlightAll || lineArea.containsMouse || lineArea.drag.active ? slider.fillColorHighlight : slider.fillColor
         opacity: alpha
         MouseArea {
-            id: line_area
+            id: lineArea
             enabled: m_root.enabled
             anchors.fill:  parent
             hoverEnabled: true
@@ -88,7 +88,7 @@ Rectangle {
                 minimumX: -1
                 maximumX: m_root.width - slider.width - 1
                 minimumY: 0
-                maximumY: m_root.height - line_area.height
+                maximumY: m_root.height - lineArea.height
                 threshold: Style.drag_threshold
             }
             onPositionChanged:  {
@@ -104,8 +104,8 @@ Rectangle {
                 viewPointsChanged(slider.vPos, slider.hPos, slider2.hPos)
             }
             function updatePosition() {
-                slider.updateVPos(line.y - vertical_line_offset)
-                slider2.updateVPos(line.y - vertical_line_offset)
+                slider.updateVPos(line.y - verticalLineOffset)
+                slider2.updateVPos(line.y - verticalLineOffset)
             }
         }
     }
@@ -116,13 +116,12 @@ Rectangle {
         alpha: m_root.alpha
         rotationAngle: 90
         startY: 0.75 * m_root.height
-        fill_color_highlight: slider.fill_color_highlight
-        stroke_color_highlight: slider.stroke_color_highlight
-        fill_color: slider.fill_color
-        stroke_color: slider.stroke_color
-        drag_specs.minimumX: slider.hPos + min_line_height + 1
-        drag_specs.maximumX: parent.width
-        end_mark_max: vPos + vertical_line_offset
+        fillColorHighlight: slider.fillColorHighlight
+        fillColor: slider.fillColor
+        outsideHighlight: m_root.highlightAll
+        dragSpecs.minimumX: slider.hPos + minLineHeight + 1
+        dragSpecs.maximumX: parent.width
+        endMarkMax: vPos + verticalLineOffset
         onVPosChanged: {
             slider.updateVPos(vPos)
         }

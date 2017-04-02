@@ -26,7 +26,7 @@ QtObject {
     property color ui_color_dark_green: "#27ae60"
     property color ui_color_light_dblue: "#34495e"
     property color ui_color_dark_dblue: "#2c3e50"
-    property color ui_color_bright_lblue: "#54b8fb"
+    property color ui_color_bright_lblue: "#50b4f7"
     property color ui_color_light_lblue: "#3498db"
     property color ui_color_dark_lblue: "#2980b9"
     property color ui_color_light_turquoise: "#1abc9c"

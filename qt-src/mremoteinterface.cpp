@@ -13,7 +13,7 @@
 #include <QProcess>
 
 static QByteArray sharedKey = "6mC4zR5SVzug3uiB9L42I164Wn640wt1";
-const double MRemoteInterface::CURRENT_VERSION = 4.0;
+const double MRemoteInterface::CURRENT_VERSION = 4.1;
 
 QJsonArray toJsonArray(QByteArray ba) {
     QJsonArray array;

@@ -13,6 +13,10 @@ scp -r maui-gui-repo hedgehp2@server.hedgehogmedical.com:~/public_html/downloads
 
 binarycreator.exe --online-only -c config\config.xml -p packages maui-installer.exe
 
+[for offline only installers use: 
+../../../../tools/build-installerfw-static64msvc2013-Release/bin/binarycreator.exe
+binarycreator.exe --offline-only -c config\config.xml -p packages maui-installer.exe
+]
 
 **See http://doc.qt.io/qtinstallerframework/qt-installer-framework-online-example.html
 

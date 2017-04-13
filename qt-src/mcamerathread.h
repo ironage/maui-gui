@@ -47,7 +47,8 @@ private:
         Paused,
         Seeking,
         AutoInitCurFrame,
-        AutoInitVelocityInFrame
+        AutoInitVelocityInFrame,
+        RedrawCurFrame
     };
     struct VelocityState {
         double videoType = -1;

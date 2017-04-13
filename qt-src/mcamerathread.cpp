@@ -126,6 +126,7 @@ void CameraTask::drawOverlay(int frame, cv::Mat& mat) {
             cv::Point leftAxisPoint = makeSafePoint(0, curVelocityState.xAxisLocation, velocityBase);
             cv::Point rightAxisPoint = makeSafePoint(velocityROI.width(), curVelocityState.xAxisLocation, velocityBase);
             drawLine(mat, {leftAxisPoint, rightAxisPoint}, xAxisColor, 2);
+            cachedFrameIsDirty = true; // now that we have drawn on this frame, force re-load cache next time
         }
     }
 
@@ -160,6 +161,7 @@ void CameraTask::drawOverlay(int frame, cv::Mat& mat) {
                 cv::circle(mat, avgNegative, radius, weakColor, thickness);
                 cv::Point maxNegative = makeSafePoint(vr.xTrackingLocationIndividual[i], vr.maxNegative[i], velocityOffset);
                 cv::circle(mat, maxNegative, radius, strongColor, thickness);
+                cachedFrameIsDirty = true; // now that we have drawn on this frame, force re-load cache next time
             }
         } else {
             qDebug() << "Warning: refusing to draw inconsistent velocity results.";
@@ -220,6 +222,7 @@ void CameraTask::doWork()
             continue; // loop
         case PlayState::AutoInitCurFrame:
         case PlayState::AutoInitVelocityInFrame:
+        case PlayState::RedrawCurFrame:
             break;
         case PlayState::Seeking:
             camera->setProperty(CV_CAP_PROP_POS_FRAMES, frameToSeekTo);
@@ -230,7 +233,9 @@ void CameraTask::doWork()
         }
 
         curFrame = camera->getProperty(CV_CAP_PROP_POS_FRAMES); // opencv frame is 0 indexed
-        if (curPlayState == PlayState::AutoInitCurFrame || curPlayState == PlayState::AutoInitVelocityInFrame) {
+        if (curPlayState == PlayState::AutoInitCurFrame
+                || curPlayState == PlayState::AutoInitVelocityInFrame
+                || curPlayState == PlayState::RedrawCurFrame) {
             if (!cameraFrame || cachedFrameIsDirty) {
                 if (!getNextFrameData()) continue;
                 camera->setProperty(CV_CAP_PROP_POS_FRAMES, curFrame); // AutoInit does not advance frames
@@ -258,6 +263,8 @@ void CameraTask::doWork()
             } else if (curPlayState == PlayState::AutoInitCurFrame) {
                 curPlayState = PlayState::Paused;
                 autoInitializeOnROI(matlabROI.get());
+            } else if (curPlayState == PlayState::RedrawCurFrame) {
+                curPlayState = PlayState::Paused;
             } else if (curPlayState == PlayState::AutoInitVelocityInFrame) {
                 curPlayState = PlayState::Paused;
 
@@ -487,6 +494,9 @@ void CameraTask::setProcessOutputVideo(bool doProcess)
 void CameraTask::setSetupState(CameraTask::SetupState state)
 {
     curSetupState = state;
+    if (curPlayState == PlayState::Paused) {
+        curPlayState = PlayState::RedrawCurFrame;
+    }
 }
 
 void printPoints(QList<MPoint>& list) {

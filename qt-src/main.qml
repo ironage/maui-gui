@@ -56,16 +56,6 @@ ApplicationWindow {
         }
     }
 
-    MLogMetaData {
-        id: logMetaData
-        conversionUnits: wallDetectionPane.conversionUnits
-        conversionPixels: m_video.video_height <= 0 ? 1 : (scale.mappedBottomValue - scale.mappedTopValue) / wallDetectionPane.scale
-        outputDir: outputPane.outputDirectory
-        velocityConversionUnits: velocityDetectionPane.conversionUnits
-        velocityConversionPixels: m_video.video_height <= 0 ? 1 : (velocityVerticalScale.mappedBottomValue - velocityVerticalScale.mappedTopValue) / velocityDetectionPane.scale
-        velocityTime: velocityDetectionPane.time
-    }
-
     MLoginWindow {
         id: loginWindow
         onVerifyAccount: remoteInterface.validateRequest(username, password)
@@ -292,7 +282,13 @@ ApplicationWindow {
                 roi: Qt.rect(roi.mappedXY.x, roi.mappedXY.y, roi.mappedWH.x, roi.mappedWH.y)
                 velocityROI: Qt.rect(velocityROI.mappedXY.x, velocityROI.mappedXY.y, velocityROI.mappedWH.x, velocityROI.mappedWH.y)
                 recomputeROIMode: roi.visible
-                logData: logMetaData
+                conversionUnits: wallDetectionPane.conversionUnits
+                conversionPixels: m_video.video_height <= 0 ? 1 : (scale.mappedBottomValue - scale.mappedTopValue) / wallDetectionPane.scale
+                outputDir: outputPane.outputDirectory
+                velocityConversionUnits: velocityDetectionPane.conversionUnits
+                velocityConversionPixels: m_video.video_height <= 0 ? 1 : (velocityVerticalScale.mappedBottomValue - velocityVerticalScale.mappedTopValue) / velocityDetectionPane.scale
+                velocityTime: velocityDetectionPane.time
+
                 onProgressChanged: {
                     if (summaryPane.isPlaying) {
                         m_video_control.moveTo(progress)
@@ -327,8 +323,6 @@ ApplicationWindow {
                     if (inputPane.isLoadingNewVideos) {
                         var readableName = name + "." + extension
                         summaryPane.fileName = readableName
-                        logMetaData.inputFileName = fullName
-                        logMetaData.inputFilePath = dir
                         inputPane.addFile(success, fullName, dir, readableName)
                     }
                     if (firstLoad) {

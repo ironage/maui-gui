@@ -8,7 +8,7 @@
 #include <QVariantList>
 
 MCVPlayer::MCVPlayer() : QObject(),
-    m_format(QSize(500, 500), QVideoFrame::Format_ARGB32),
+    m_format(QSize(50, 50), QVideoFrame::Format_ARGB32),
     m_surface(NULL),
     recomputeROIMode(false),
     stopped(true),
@@ -19,21 +19,19 @@ MCVPlayer::MCVPlayer() : QObject(),
     qRegisterMetaType<QList<MPoint>>();
     qRegisterMetaType<MLogMetaData>();
     qRegisterMetaType<MInitTask::InitStats>();
-    initThread = new MInitThread();
-    connect(initThread, SIGNAL(initFinished(MInitTask::InitStats)), this, SLOT(matlabInitFinished(MInitTask::InitStats)));
-    initThread->init();
+    connect(&initThread, SIGNAL(initFinished(MInitTask::InitStats)), this, SLOT(matlabInitFinished(MInitTask::InitStats)));
+    initThread.init();
 }
 
 MCVPlayer::~MCVPlayer()
 {
-    {
+    { // braces for locker scope
         QMutexLocker locker(&lock);
         if(thread)
             thread->stop();
         delete thread;
         delete camera;
     }
-    delete initThread;  // cleans up MATLAB
 
     while (topPoints.size() > 0) {
         delete topPoints.takeAt(0);
@@ -42,7 +40,8 @@ MCVPlayer::~MCVPlayer()
         delete bottomPoints.takeAt(0);
     }
 
-    //Camera release is automatic when cv::VideoCapture is destroyed
+    // Camera release is automatic when cv::VideoCapture is destroyed
+    // MATLAB is cleaned up via the initThread destructor
 }
 
 QSize MCVPlayer::getSize() const
@@ -162,7 +161,7 @@ void MCVPlayer::update()
     thread = NULL;
     delete camera;
     camera = NULL;
-    if(videoFrame && videoFrame->isMapped())
+    if (videoFrame && videoFrame->isMapped())
         videoFrame->unmap();
     delete videoFrame;
     videoFrame = NULL;
@@ -172,7 +171,7 @@ void MCVPlayer::update()
     camera = new MVideoCapture();
     //Open newly created device
     try {
-        if(camera->open(sourceFile.toStdString())){
+        if(camera->open(sourceFile.toStdString())) {
             updateVideoSettings();
             qDebug() << "starting video at size: " << size;
             //Create new buffers, camera accessor and thread
@@ -181,7 +180,7 @@ void MCVPlayer::update()
                 allocateVideoFrame();
 
             thread = new MCameraThread(camera,videoFrame,cvImageBuf,size.width(),size.height());
-            connect(thread,SIGNAL(imageReady(int)), this, SLOT(imageReceived(int)));
+            connect(thread, SIGNAL(imageReady(int)), this, SLOT(imageReceived(int)));
             connect(thread, SIGNAL(initPointsDetected(QList<MPoint>,QList<MPoint>)), this, SLOT(initPointsReceived(QList<MPoint>,QList<MPoint>)));
             connect(thread, SIGNAL(videoFinished(CameraTask::ProcessingState)), this, SIGNAL(videoFinished(CameraTask::ProcessingState)));
             connect(thread, SIGNAL(outputProgress(int)), this, SIGNAL(outputProgress(int)));
@@ -199,6 +198,8 @@ void MCVPlayer::update()
             emit sourceUpdated();
             seek(0);
             qDebug() << "Opened file: " << sourceFile;
+            logMetaData.setFileName(sourceUrl.toString());
+            logMetaData.setFilePath(getSourceDir());
             emit videoLoaded(true, sourceUrl, getSourceName(), getSourceExtension(), getSourceDir());
         } else {
             qDebug() << "Could not open video file: " << sourceFile;
@@ -267,17 +268,6 @@ void MCVPlayer::initPointsReceived(QList<MPoint> top, QList<MPoint> bottom)
     }
 }
 
-/// remove
-void MCVPlayer::onNewVideoContentReceived(const QVideoFrame &frame)
-{
-    qDebug() << "Presenting: " << frame << " to " << m_surface;
-    if (m_surface) {
-        qDebug() << "before present: " << m_surface->error();
-        bool success = m_surface->present(frame);
-        qDebug() << "after present: " << m_surface->error() << "success: " << success;
-    }
-}
-
 void MCVPlayer::setSourceFile(QString file)
 {
     sourceUrl = QUrl(file);
@@ -291,8 +281,8 @@ void MCVPlayer::play()
     QMutexLocker locker(&lock);
     if (thread) {
         stopped = false;
-        qDebug() << "playing now, metadata :  " << logMetaData->getFileName();
-        thread->doSetLogMetaData(*logMetaData);
+        qDebug() << "playing now, metadata :  " << logMetaData.getFileName();
+        thread->doSetLogMetaData(logMetaData);
         thread->doPlay();
     }
 }
@@ -424,20 +414,80 @@ void MCVPlayer::setNewBottomPoints(QVariant newPoints)
     }
 }
 
-//void MCVPlayer::setTopPoints(QList<MPoint> points)
-//{
-//    if (points != topPoints) {
-//        topPoints = points;
-//        // TODO: set in thread
-//        emit initPointsChanged();
-//    }
-//}
+QString MCVPlayer::getDiameterConversionUnits()
+{
+    return logMetaData.getUnits();
+}
 
-//void MCVPlayer::setBottomPoints(QList<MPoint> points)
-//{
-//    if (points != bottomPoints) {
-//        bottomPoints = points;
-//        // TODO: set in thread
-//        emit initPointsChanged();
-//    }
-//}
+void MCVPlayer::setDiameterConversionUnits(QString diameterUnits)
+{
+    if (logMetaData.getUnits() != diameterUnits) {
+        logMetaData.setUnits(diameterUnits);
+        emit diameterConversionUnitsChanged();
+    }
+}
+
+double MCVPlayer::getConversionPixels()
+{
+    return logMetaData.getPixels();
+}
+
+void MCVPlayer::setConversionPixels(double diameterConversionPixels)
+{
+    if (logMetaData.getPixels() != diameterConversionPixels) {
+        logMetaData.setPixels(diameterConversionPixels);
+        emit conversionPixelsChanged();
+    }
+}
+
+QString MCVPlayer::getOutputDir()
+{
+    return logMetaData.getOutputDir();
+}
+
+void MCVPlayer::setOutputDir(QString outputDir)
+{
+    if (logMetaData.getOutputDir() != outputDir) {
+        logMetaData.setOutputDir(outputDir);
+        emit outputDirChanged();
+    }
+}
+
+QString MCVPlayer::getVelocityConversionUnits()
+{
+    return logMetaData.getVelocityUnits();
+}
+
+void MCVPlayer::setVelocityConversionUnits(QString velocityConversionUnits)
+{
+    if (logMetaData.getVelocityUnits() != velocityConversionUnits) {
+        logMetaData.setVelocityUnits(velocityConversionUnits);
+        emit velocityConversionUnitsChanged();
+    }
+}
+
+double MCVPlayer::getVelocityConversionPixels()
+{
+    return logMetaData.getVelocityPixels();
+}
+
+void MCVPlayer::setVelocityConversionPixels(double velocityConversionPixels)
+{
+    if (logMetaData.getVelocityPixels() != velocityConversionPixels) {
+        logMetaData.setVelocityPixels(velocityConversionPixels);
+        emit velocityConversionPixelsChanged();
+    }
+}
+
+double MCVPlayer::getVelocityTime()
+{
+    return logMetaData.getVelocityXSeconds();
+}
+
+void MCVPlayer::setVelocityTime(double velocityTime)
+{
+    if (logMetaData.getVelocityXSeconds() != velocityTime) {
+        logMetaData.setVelocityXSeconds(velocityTime);
+        emit velocityTimeChanged();
+    }
+}

@@ -41,7 +41,7 @@ void MInitTask::doWork()
 
     const char *pStrings[]={"-nojvm","-nojit"};
     // Initialize the MATLAB Compiler Runtime global state
-    if (!mclInitializeApplication(pStrings,2))
+    if (!mclInitializeApplication(pStrings, 2))
     {
         qDebug() << "Could not initialize the application properly.";
         emit done(InitStats::FAILURE_IN_APPLICATION_INIT);

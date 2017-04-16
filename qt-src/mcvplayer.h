@@ -9,7 +9,6 @@
 #include <QVideoSurfaceFormat>
 #include <QString>
 
-//FIXME: prune libs
 #include <opencv2/core/core.hpp>
 #include <opencv2/highgui/highgui.hpp>
 #include <opencv2/imgproc/imgproc.hpp>
@@ -43,8 +42,15 @@ class MCVPlayer : public QObject
     Q_PROPERTY(bool recomputeROIOnChange READ getRecomputeROIMode WRITE setRecomputeROIMode NOTIFY recomputeROIChanged)
     Q_PROPERTY(QQmlListProperty<MPoint> initTopPoints READ getTopPoints NOTIFY initPointsChanged)
     Q_PROPERTY(QQmlListProperty<MPoint> initBottomPoints READ getBottomPoints NOTIFY initPointsChanged)
-    Q_PROPERTY(MLogMetaData* logInfo MEMBER logMetaData NOTIFY logDataChanged)
+    Q_PROPERTY(MLogMetaData logInfo MEMBER logMetaData NOTIFY logDataChanged)
     Q_PROPERTY(bool doProcessOutputVideo READ getProcessOutputVideo WRITE setProcessOutputVideo NOTIFY processOutputVideoChanged)
+
+    Q_PROPERTY(QString conversionUnits READ getDiameterConversionUnits WRITE setDiameterConversionUnits NOTIFY diameterConversionUnitsChanged)
+    Q_PROPERTY(double conversionPixels READ getConversionPixels WRITE setConversionPixels NOTIFY conversionPixelsChanged)
+    Q_PROPERTY(QString outputDir READ getOutputDir WRITE setOutputDir NOTIFY outputDirChanged)
+    Q_PROPERTY(QString velocityConversionUnits READ getVelocityConversionUnits WRITE setVelocityConversionUnits NOTIFY velocityConversionUnitsChanged)
+    Q_PROPERTY(double velocityConversionPixels READ getVelocityConversionPixels WRITE setVelocityConversionPixels NOTIFY velocityConversionPixelsChanged)
+    Q_PROPERTY(double velocityTime READ getVelocityTime WRITE setVelocityTime NOTIFY velocityTimeChanged)
 public:
     MCVPlayer();
     ~MCVPlayer();
@@ -54,7 +60,6 @@ public:
 
     void setVideoSurface(QAbstractVideoSurface *surface);
 public slots:
-    void onNewVideoContentReceived(const QVideoFrame &frame);
     QString getSourceFile() { return sourceFile; }
     QUrl getSourceUrl() { return sourceUrl; }
     void setSourceFile(QString file);
@@ -91,7 +96,18 @@ public slots:
     //QQmlListProperty::QQmlListProperty(QObject *object, void *data, AppendFunction append, CountFunction count, AtFunction at, ClearFunction clear)
     QQmlListProperty<MPoint> getTopPoints() { return QQmlListProperty<MPoint>(this, topPoints); }
     QQmlListProperty<MPoint> getBottomPoints() { return QQmlListProperty<MPoint>(this, bottomPoints); }
-
+    QString getDiameterConversionUnits();
+    void setDiameterConversionUnits(QString diameterUnits);
+    double getConversionPixels();
+    void setConversionPixels(double diameterConversionPixels);
+    QString getOutputDir();
+    void setOutputDir(QString outputDir);
+    QString getVelocityConversionUnits();
+    void setVelocityConversionUnits(QString velocityConversionUnits);
+    double getVelocityConversionPixels();
+    void setVelocityConversionPixels(double velocityConversionPixels);
+    double getVelocityTime();
+    void setVelocityTime(double velocityTime);
 signals:
     void sizeChanged();
     void videoPropertiesChanged();
@@ -108,14 +124,14 @@ signals:
     void sourceUpdated();
     void processOutputVideoChanged();
     void videoLoaded(bool success, QUrl fullName, QString name, QString extension, QString dir);
+    void diameterConversionUnitsChanged();
+    void conversionPixelsChanged();
+    void outputDirChanged();
+    void velocityConversionUnitsChanged();
+    void velocityConversionPixelsChanged();
+    void velocityTimeChanged();
 private:
-
-#ifdef ANDROID
-    const QVideoFrame::PixelFormat VIDEO_OUTPUT_FORMAT = QVideoFrame::PixelFormat::Format_YV12;
-#else
     const QVideoFrame::PixelFormat VIDEO_OUTPUT_FORMAT = QVideoFrame::PixelFormat::Format_ARGB32;
-#endif
-
     QAbstractVideoSurface *m_surface;
     QVideoSurfaceFormat m_format;
     QString sourceFile;
@@ -132,12 +148,12 @@ private:
     QMutex lock; // protects camera and thread from race conditions
     MVideoCapture* camera = NULL;
     MCameraThread* thread = NULL;
-    MInitThread* initThread = NULL;
+    MInitThread initThread;
     QVideoFrame* videoFrame = NULL;
     cv::Mat cvImage;
     unsigned char* cvImageBuf = NULL;
     bool stopped;
-    MLogMetaData* logMetaData;
+    MLogMetaData logMetaData;
     void update();
     void updateVideoSettings();
     void allocateCvImage();
@@ -152,4 +168,3 @@ Q_DECLARE_METATYPE(QList<MPoint>)
 Q_DECLARE_METATYPE(QList<MPoint*>)
 
 #endif // MCVPLAYER_H
-

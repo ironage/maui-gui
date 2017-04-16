@@ -10,6 +10,7 @@ Item {
     property alias readSrcName: cv_player.sourceName
     property alias readSrcExtension: cv_player.sourceExtension
     property double progress: 0
+    property alias frameIndex: cv_player.position
     property alias duration: cv_player.duration
     property double progress_min: 0.0
     property double progress_max: 1.0
@@ -24,6 +25,12 @@ Item {
     property alias logData: cv_player.logInfo
     property alias videoRect: output.sourceRect
     property alias doProcessOutputVideo: cv_player.doProcessOutputVideo
+    property alias conversionUnits: cv_player.conversionUnits
+    property alias conversionPixels: cv_player.conversionPixels
+    property alias outputDir: cv_player.outputDir
+    property alias velocityConversionUnits: cv_player.velocityConversionUnits
+    property alias velocityConversionPixels: cv_player.velocityConversionPixels
+    property alias velocityTime: cv_player.velocityTime
 
     signal videoFinished(int state)
     signal outputProgress(int progress)
@@ -75,7 +82,6 @@ Item {
 
     MCVPlayer {
         id: cv_player
-
         onPositionChanged: {
             if (duration > 0) {
                 m_root.progress = (position / duration)

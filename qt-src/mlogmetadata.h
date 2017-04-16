@@ -39,11 +39,12 @@ public:
     void setVelocityPixels(double numPixels) { velocityPixels = numPixels; }
     void setVelocityXSeconds(double numSeconds) { velocityXSeconds = numSeconds; }
     void setVelocityXAxisLocation(double xLoc) { velocityXAxisLocation = xLoc; }
+    void setOutputDir(QString dir) { outputDirectory = dir; }
     void touchWriteTime();
     QString getWriteTime() { return uniqueness; }
     void operator=(const MLogMetaData& other);
 signals:
-    void propertiesChanged();
+    void propertiesChanged(); //FIXME: use this!
 
 private:
     QString fileName;

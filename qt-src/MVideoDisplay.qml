@@ -67,6 +67,15 @@ Item {
     function setNewBottomPoints(newPoints) {
         cv_player.setNewBottomPoints(newPoints)
     }
+    function addVideo(path) {
+        cv_player.addVideoFile(path)
+    }
+    function removeVideo(path) {
+        cv_player.removeVideoFile(path)
+    }
+    function changeToVideo(path) {
+        cv_player.changeToVideoFile(path)
+    }
 
     onProgress_minChanged: {
         cv_player.setStartFrame(progress_min * (cv_player.duration - 1));

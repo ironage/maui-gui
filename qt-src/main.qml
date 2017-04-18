@@ -192,14 +192,17 @@ ApplicationWindow {
                 height: 150
                 enabled: window.controlsEnabled
                 onVideoSelected: {
-                    m_video.source = path
+                    m_video.addVideo(path)
                     remoteInterface.setLocalSetting("directory_in", folder)
                 }
+                onVideoRemoved: {
+                    m_video.removeVideo(path)
+                }
                 onDisplayVideo: {
-                    m_video.source = path
+                    m_video.changeToVideo(path)
                 }
                 onClearVideo: {
-                    m_video.source = ""
+                    m_video.changeToVideo("")
                 }
             }
 
@@ -335,7 +338,6 @@ ApplicationWindow {
                     roi.parentLayoutChanged()
                     velocityROI.parentLayoutChanged()
                     configureComputationState()
-                    //forceROIRefresh()
                 }
                 onVideoFinished: {
                     window.controlsEnabled = true

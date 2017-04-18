@@ -19,6 +19,7 @@
 #include "mlogmetadata.h"
 #include "mpoint.h"
 #include "mvideocapture.h"
+#include "mvideoinfo.h"
 
 #include <QMediaPlayer>
 #include <QMutex>
@@ -42,7 +43,7 @@ class MCVPlayer : public QObject
     Q_PROPERTY(bool recomputeROIOnChange READ getRecomputeROIMode WRITE setRecomputeROIMode NOTIFY recomputeROIChanged)
     Q_PROPERTY(QQmlListProperty<MPoint> initTopPoints READ getTopPoints NOTIFY initPointsChanged)
     Q_PROPERTY(QQmlListProperty<MPoint> initBottomPoints READ getBottomPoints NOTIFY initPointsChanged)
-    Q_PROPERTY(MLogMetaData logInfo MEMBER logMetaData NOTIFY logDataChanged)
+    Q_PROPERTY(MLogMetaData logInfo READ getLogMetaData NOTIFY logDataChanged)
     Q_PROPERTY(bool doProcessOutputVideo READ getProcessOutputVideo WRITE setProcessOutputVideo NOTIFY processOutputVideoChanged)
 
     Q_PROPERTY(QString conversionUnits READ getDiameterConversionUnits WRITE setDiameterConversionUnits NOTIFY diameterConversionUnitsChanged)
@@ -60,22 +61,22 @@ public:
 
     void setVideoSurface(QAbstractVideoSurface *surface);
 public slots:
-    QString getSourceFile() { return sourceFile; }
-    QUrl getSourceUrl() { return sourceUrl; }
+    QString getSourceFile();
+    QUrl getSourceUrl();
     void setSourceFile(QString file);
-    QString getSourceDir() { return QFileInfo(sourceUrl.toLocalFile()).dir().absolutePath(); }
-    QString getSourceExtension() { return QFileInfo(sourceUrl.fileName()).suffix(); }
-    QString getSourceName() { return QFileInfo(sourceUrl.fileName()).completeBaseName(); }
+    QString getSourceDir();
+    QString getSourceExtension();
+    QString getSourceName();
     QSize getSize() const;
     void setSize(QSize size);
-    int getNumFrames() const { return numFrames; }
-    int getCurFrame() const { return curFrame; }
-    QRect getROI() const { return roi; }
+    int getNumFrames() const;
+    int getCurFrame() const;
+    QRect getROI() const;
     void setROI(const QRect& newROI);
-    QRect getVelocityROI() const { return velocityROI; }
+    QRect getVelocityROI() const;
     void setVelocityROI(const QRect& newROI);
     void forceROIRefresh();
-    bool getRecomputeROIMode() const { return recomputeROIMode; }
+    bool getRecomputeROIMode() const;
     void setRecomputeROIMode(bool mode);
     void setCurFrame(int newFrame);
     int getPlaybackState();
@@ -94,8 +95,9 @@ public slots:
     void setNewBottomPoints(QVariant newPoints);
     //FIXME: proper list access
     //QQmlListProperty::QQmlListProperty(QObject *object, void *data, AppendFunction append, CountFunction count, AtFunction at, ClearFunction clear)
-    QQmlListProperty<MPoint> getTopPoints() { return QQmlListProperty<MPoint>(this, topPoints); }
-    QQmlListProperty<MPoint> getBottomPoints() { return QQmlListProperty<MPoint>(this, bottomPoints); }
+    QQmlListProperty<MPoint> getTopPoints();
+    QQmlListProperty<MPoint> getBottomPoints();
+    MLogMetaData getLogMetaData() const;
     QString getDiameterConversionUnits();
     void setDiameterConversionUnits(QString diameterUnits);
     double getConversionPixels();
@@ -108,6 +110,9 @@ public slots:
     void setVelocityConversionPixels(double velocityConversionPixels);
     double getVelocityTime();
     void setVelocityTime(double velocityTime);
+    void addVideoFile(QString file);
+    void removeVideoFile(QString file);
+    void changeToVideoFile(QString fileUrl);
 signals:
     void sizeChanged();
     void videoPropertiesChanged();
@@ -131,36 +136,18 @@ signals:
     void velocityConversionPixelsChanged();
     void velocityTimeChanged();
 private:
-    const QVideoFrame::PixelFormat VIDEO_OUTPUT_FORMAT = QVideoFrame::PixelFormat::Format_ARGB32;
     QAbstractVideoSurface *m_surface;
     QVideoSurfaceFormat m_format;
-    QString sourceFile;
-    QUrl sourceUrl;
-
-    int numFrames;
-    int curFrame;
-    QSize size;
-    QRect roi;
-    QRect velocityROI;
-    bool recomputeROIMode;
-    QList<MPoint*> topPoints;
-    QList<MPoint*> bottomPoints;
-    QMutex lock; // protects camera and thread from race conditions
-    MVideoCapture* camera = NULL;
-    MCameraThread* thread = NULL;
+    std::vector<MVideoInfo*> videos;
+    MVideoInfo *curVideo;
     MInitThread initThread;
-    QVideoFrame* videoFrame = NULL;
-    cv::Mat cvImage;
-    unsigned char* cvImageBuf = NULL;
-    bool stopped;
-    MLogMetaData logMetaData;
-    void update();
-    void updateVideoSettings();
+
     void allocateCvImage();
     void allocateVideoFrame();
 private slots:
     void imageReceived(int frameNumber);
     void initPointsReceived(QList<MPoint> top, QList<MPoint> bottom);
+    void onVideoPropertiesChanged();
 };
 
 Q_DECLARE_METATYPE(QQmlListProperty<MPoint>)

@@ -23,7 +23,8 @@ SOURCES += main.cpp \
     mremoteinterface.cpp \
     msettings.cpp \
     qblowfish.cpp \
-    mresultswriter.cpp
+    mresultswriter.cpp \
+    mvideoinfo.cpp
 
 QT += core qml quick multimedia network
 CONFIG += c++11
@@ -66,4 +67,5 @@ HEADERS += \
     qblowfish.h \
     qblowfish_p.h \
     MAUIVelocityDllWithAutoInit.h \
-    mresultswriter.h
+    mresultswriter.h \
+    mvideoinfo.h

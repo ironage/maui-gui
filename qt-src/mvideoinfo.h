@@ -72,6 +72,7 @@ public:
 
     QVideoFrame* getVideoFrame() { return videoFrame; }
     QVideoFrame::PixelFormat getVideoFormat() const { return VIDEO_OUTPUT_FORMAT; }
+    void refreshAll();
 
 private:
     QString sourceFile;
@@ -90,7 +91,6 @@ private:
     bool stopped;
     MLogMetaData logMetaData;
     const QVideoFrame::PixelFormat VIDEO_OUTPUT_FORMAT = QVideoFrame::PixelFormat::Format_ARGB32;
-
 
     cv::Mat cvImage;
     unsigned char* cvImageBuf = NULL;

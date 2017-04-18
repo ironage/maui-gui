@@ -137,7 +137,7 @@ void MCVPlayer::setVideoSurface(QAbstractVideoSurface *surface)
 
 void MCVPlayer::imageReceived(int frameNumber)
 {
-    if (m_surface && curVideo) {
+    if (m_surface && curVideo && curVideo->getVideoFrame()) {
         if (!m_surface->present(*(curVideo->getVideoFrame()))) {
             qDebug() << "Could not present QVideoFrame to QAbstractVideoSurface, error: " << m_surface->error();
         }
@@ -210,6 +210,8 @@ void MCVPlayer::changeToVideoFile(QString fileUrl)
                     connect(curVideo, SIGNAL(velocityConversionPixelsChanged()), this, SIGNAL(velocityConversionPixelsChanged()));
                     connect(curVideo, SIGNAL(velocityTimeChanged()), this, SIGNAL(velocityTimeChanged()));
                     emit logDataChanged();
+
+                    curVideo->refreshAll();
                 }
             } else {
                 videos[i]->disconnect(); // breaks all connections

@@ -413,3 +413,21 @@ void MVideoInfo::setVelocityTime(double velocityTime)
         emit velocityTimeChanged();
     }
 }
+
+void MVideoInfo::refreshAll()
+{
+    emit sizeChanged();
+    emit videoPropertiesChanged();
+    emit imageReady(curFrame);
+    emit roiChanged();
+    emit velocityROIChanged();
+    emit sourceChanged();
+    emit sourceUpdated();
+    emit initPointsChanged();
+    emit diameterConversionUnitsChanged();
+    emit conversionPixelsChanged();
+    emit outputDirChanged();
+    emit velocityConversionUnitsChanged();
+    emit velocityConversionPixelsChanged();
+    emit velocityTimeChanged();
+}

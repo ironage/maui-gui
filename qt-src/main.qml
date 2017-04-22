@@ -282,8 +282,6 @@ ApplicationWindow {
                 Layout.margins: Style.h_padding
                 progress_min: m_video_control.start_percent
                 progress_max: m_video_control.end_percent
-                roi: Qt.rect(roi.mappedXY.x, roi.mappedXY.y, roi.mappedWH.x, roi.mappedWH.y)
-                velocityROI: Qt.rect(velocityROI.mappedXY.x, velocityROI.mappedXY.y, velocityROI.mappedWH.x, velocityROI.mappedWH.y)
                 recomputeROIMode: roi.visible
                 conversionUnits: wallDetectionPane.conversionUnits
                 conversionPixels: m_video.video_height <= 0 ? 1 : (scale.mappedBottomValue - scale.mappedTopValue) / wallDetectionPane.scale
@@ -313,30 +311,50 @@ ApplicationWindow {
                     m_video_control.end_percent = 1
                     m_video_control.start_percent = 0 // do this last so cur frame is start
                 }
-                onVideoRectChanged: {
-                    scale.initializeMappedPoints(m_video.width, m_video.height, 0.75, 0.2, 0.6)
-                    velocityROI.reInitToCenter()
-                    velocityROI.parentLayoutChanged() // updates velocity scales too
-                    velocityVerticalScale.initializeMappedPointsToCurrent(m_video.width, m_video.height)
-                    velocityHorizontalScale.initializeMappedPointsToCurrent(m_video.width, m_video.height)
-                    console.log("source rect changed under ROI")
+                onContentRectChanged: {
+                    roi.mappedXY = Qt.point(roiMapping.x, roiMapping.y)
+                    roi.mappedWH = Qt.point(roiMapping.width, roiMapping.height)
+                    roi.mappedBR = Qt.point(roi.mappedXY.x + roi.mappedWH.x, roi.mappedXY.y + roi.mappedWH.y)
+                    roi.parentLayoutChanged()
+                    velocityROI.mappedXY  = Qt.point(m_video.velocityROIMapping.x, m_video.velocityROIMapping.y)
+                    velocityROI.mappedWH = Qt.point(m_video.velocityROIMapping.width, m_video.velocityROIMapping.height)
+                    velocityROI.mappedBR = Qt.point(m_video.velocityROIMapping.x + m_video.velocityROIMapping.width, m_video.velocityROIMapping.y + m_video.velocityROIMapping.height)
+                    velocityROI.parentLayoutChanged()
+
+                    scale.changeMappedPoints(m_video.diameterScale.x, m_video.diameterScale.y,  m_video.diameterScale.y + m_video.diameterScale.height)
+                    scale.parentLayoutChanged()
+                    velocityVerticalScale.changeMappedPoints(m_video.velocityScaleVertical.x, m_video.velocityScaleVertical.y, m_video.velocityScaleVertical.y + m_video.velocityScaleVertical.height)
+                    velocityVerticalScale.parentLayoutChanged()
+                    velocityHorizontalScale.changeMappedPoints(m_video.velocityScaleHorizontal.y, m_video.velocityScaleHorizontal.x, m_video.velocityScaleHorizontal.x + m_video.velocityScaleHorizontal.width)
+                    velocityHorizontalScale.parentLayoutChanged()
                 }
-                property bool firstLoad: true
+                onVideoRectChanged: {
+                    roi.parentLayoutChanged()
+                    velocityROI.parentLayoutChanged()
+                }
+                onVideoControlInfoChanged: {
+                    roi.mappedXY = Qt.point(m_video.roiMapping.x, m_video.roiMapping.y)
+                    roi.mappedWH = Qt.point(m_video.roiMapping.width, m_video.roiMapping.height)
+                    roi.mappedBR = Qt.point(m_video.roiMapping.x + m_video.roiMapping.width, m_video.roiMapping.y + m_video.roiMapping.height)
+                    roi.parentLayoutChanged()
+                    velocityROI.mappedXY  = Qt.point(m_video.velocityROIMapping.x, m_video.velocityROIMapping.y)
+                    velocityROI.mappedWH = Qt.point(m_video.velocityROIMapping.width, m_video.velocityROIMapping.height)
+                    velocityROI.mappedBR = Qt.point(m_video.velocityROIMapping.x + m_video.velocityROIMapping.width, m_video.velocityROIMapping.y + m_video.velocityROIMapping.height)
+                    velocityROI.parentLayoutChanged()
+
+                    scale.changeMappedPoints(m_video.diameterScale.x, m_video.diameterScale.y,  m_video.diameterScale.y + m_video.diameterScale.height)
+                    scale.parentLayoutChanged()
+                    velocityVerticalScale.changeMappedPoints(m_video.velocityScaleVertical.x, m_video.velocityScaleVertical.y, m_video.velocityScaleVertical.y + m_video.velocityScaleVertical.height)
+                    velocityVerticalScale.parentLayoutChanged()
+                    velocityHorizontalScale.changeMappedPoints(m_video.velocityScaleHorizontal.y, m_video.velocityScaleHorizontal.x, m_video.velocityScaleHorizontal.x + m_video.velocityScaleHorizontal.width)
+                    velocityHorizontalScale.parentLayoutChanged()
+                }
                 onVideoLoaded: {
                     if (inputPane.isLoadingNewVideos) {
                         var readableName = name + "." + extension
                         summaryPane.fileName = readableName
                         inputPane.addFile(success, fullName, dir, readableName)
                     }
-                    if (firstLoad) {
-                        console.log("first load, init ROI")
-                        roi.reInitToCenter()
-                        velocityROI.reInitToCenter()
-                    }
-                    firstLoad = false
-                    roi.recomputeMappedPoints()
-                    roi.parentLayoutChanged()
-                    velocityROI.parentLayoutChanged()
                     configureComputationState()
                 }
                 onVideoFinished: {
@@ -371,13 +389,19 @@ ApplicationWindow {
                 onBottomPointsChanged: {
                     roi.updateLines()   //FIXME: split to not recompute both each time
                 }
+//                onRoiMappingChanged: {
+//                    roi.mappedXY = Qt.point(roiMapping.x, roiMapping.y)
+//                    roi.mappedWH = Qt.point(roiMapping.width, roiMapping.height)
+//                    roi.mappedBR = Qt.point(roi.mappedXY.x + roi.mappedWH.x, roi.mappedXY.y + roi.mappedWH.y)
+//                    roi.parentLayoutChanged()
+//                }
+
                 function configureComputationState() {
                     var state = 0 // CameraTask::SetupState::NONE
                     state = (wallDetectionPane.checked ? 1 : 0) * 1 + (velocityDetectionPane.checked ? 1 : 0) * 2
                     m_video.setSetupState(state)
                 }
 
-                //onVideoRectChanged: roi.recomputeMappedPoints()
                 onPlayback_stateChanged: {
                     if (playback_state === MediaPlayer.PausedState
                             || playback_state === MediaPlayer.StoppedState) {
@@ -389,18 +413,7 @@ ApplicationWindow {
                     id: roi
                     visible: wallDetectionPane.checked && (m_video.source !== "")
                     adjustable: !summaryPane.isPlaying
-                    property int initialSize: 200
-                    roiX: ~~(parent.width/2) - (initialSize/2)
-                    roiY: ~~(parent.height/2) - (initialSize/2)
-                    roiWidth: initialSize
-                    roiHeight: initialSize
-                    function reInitToCenter() {
-                        roiX = ~~(parent.width/2) - (initialSize/2)
-                        roiY = ~~(parent.height*.4) - (initialSize/2)
-                        roiWidth = initialSize
-                        roiHeight = initialSize
-                        recomputeMappedPoints()
-                    }
+
                     function parentLayoutChanged() {
                         var newXY = m_video.videoPointToViewPoint(mappedXY)
                         var newBR = m_video.videoPointToViewPoint(mappedBR)
@@ -415,21 +428,19 @@ ApplicationWindow {
                     property point mappedBR: Qt.point(1,1)
                     property point mappedWH: Qt.point(1,1)
 
-                    onRoiXChanged: updateLines()
-                    onRoiYChanged: updateLines()
-                    onRoiWidthChanged: updateLines()
-                    onRoiHeightChanged: updateLines()
+                    onMovedFromDrag: {
+                        recomputeMappedPoints()
+                        updateLines()
+                    }
 
                     function recomputeMappedPoints() {
                         mappedXY = m_video.viewPointToVideoPoint(Qt.point(roi.roiX,roi.roiY))
                         mappedBR = m_video.viewPointToVideoPoint(Qt.point(roi.roiX + roi.roiWidth,roi.roiY + roi.roiHeight))
                         mappedWH = Qt.point(mappedBR.x - mappedXY.x, mappedBR.y - mappedXY.y)
+                        m_video.roiMapping = Qt.rect(roi.mappedXY.x, roi.mappedXY.y, roi.mappedWH.x, roi.mappedWH.y)
                     }
 
                     function updateLines() {
-
-                        recomputeMappedPoints()
-
                         var newTopList = []
                         for (var topNdx = 0; topNdx < m_video.topPoints.length; ++topNdx) {
                             var topPoint = Qt.point(m_video.topPoints[topNdx].x, m_video.topPoints[topNdx].y)
@@ -489,9 +500,7 @@ ApplicationWindow {
                         var scaleTop = m_video.viewPointToVideoPoint(Qt.point(hValue, topValue))
                         var scaleBottom = m_video.viewPointToVideoPoint(Qt.point(hValue, bottomValue))
                         scale.changeMappedPoints(scaleTop.x, scaleTop.y, scaleBottom.y)
-                    }
-                    function initializeToParent() {
-                        scale.updateViewPoints(0.7 * m_video.width, 0.4 * m_video.height, 0.6 * m_video.height)
+                        m_video.diameterScale = Qt.rect(scaleTop.x, scaleTop.y, 0, scaleBottom.y - scaleTop.y)
                     }
                     function parentLayoutChanged() {
                         var newTop = m_video.videoPointToViewPoint(Qt.point(scale.mappedHValue, scale.mappedTopValue))
@@ -503,12 +512,6 @@ ApplicationWindow {
                     id: velocityROI
                     visible: velocityDetectionPane.checked && (m_video.source !== "")
                     adjustable: !summaryPane.isPlaying
-                    property int initialWidth: 400
-                    property int initialHeight: 100
-                    roiX: ~~(parent.width/2) - (initialWidth/2)
-                    roiY: ~~(parent.height * 0.7)
-                    roiWidth: initialWidth
-                    roiHeight: initialHeight
                     roiRestColor: Style.ui_color_dark_lblue
                     roiHoverColor: Style.ui_color_bright_lblue
 
@@ -516,13 +519,6 @@ ApplicationWindow {
                     property point mappedBR: Qt.point(1,1)
                     property point mappedWH: Qt.point(1,1)
 
-                    function reInitToCenter() {
-                        roiX = ~~(parent.width/2) - (initialWidth/2)
-                        roiY = ~~(parent.height * 0.7)
-                        roiWidth = initialWidth
-                        roiHeight = initialHeight
-                        recomputeMappedPoints()
-                    }
                     function parentLayoutChanged() {
                         var newXY = m_video.videoPointToViewPoint(mappedXY)
                         var newBR = m_video.videoPointToViewPoint(mappedBR)
@@ -530,9 +526,6 @@ ApplicationWindow {
                         roiY = newXY.y
                         roiWidth = newBR.x - newXY.x
                         roiHeight = newBR.y - newXY.y
-                        recomputeMappedPoints()
-                        velocityHorizontalScale.initializeToParent()
-                        velocityVerticalScale.initializeToParent()
                     }
 
                     onRoiXChanged: recomputeMappedPoints()
@@ -544,6 +537,7 @@ ApplicationWindow {
                         mappedXY = m_video.viewPointToVideoPoint(Qt.point(velocityROI.roiX,velocityROI.roiY))
                         mappedBR = m_video.viewPointToVideoPoint(Qt.point(velocityROI.roiX + velocityROI.roiWidth,velocityROI.roiY + velocityROI.roiHeight))
                         mappedWH = Qt.point(mappedBR.x - mappedXY.x, mappedBR.y - mappedXY.y)
+                        m_video.velocityROIMapping = Qt.rect(velocityROI.mappedXY.x, velocityROI.mappedXY.y, velocityROI.mappedWH.x, velocityROI.mappedWH.y)
                     }
                 }
                 MScaleAdjuster {
@@ -556,9 +550,7 @@ ApplicationWindow {
                         var scaleTop = m_video.viewPointToVideoPoint(Qt.point(hValue, topValue))
                         var scaleBottom = m_video.viewPointToVideoPoint(Qt.point(hValue, bottomValue))
                         velocityVerticalScale.changeMappedPoints(scaleTop.x, scaleTop.y, scaleBottom.y)
-                    }
-                    function initializeToParent() {
-                        velocityVerticalScale.updateViewPoints(velocityROI.roiX + velocityROI.roiWidth + 25, velocityROI.roiY + (velocityROI.roiHeight * 0.1) - (gripSize/2), velocityROI.roiY + velocityROI.roiHeight - (2 * velocityROI.roiHeight * 0.1) - (gripSize/2))
+                        m_video.velocityScaleVertical = Qt.rect(scaleTop.x, scaleTop.y, 0, scaleBottom.y - scaleTop.y)
                     }
                     function parentLayoutChanged() {
                         var newTop = m_video.videoPointToViewPoint(Qt.point(velocityVerticalScale.mappedHValue, velocityVerticalScale.mappedTopValue))
@@ -576,14 +568,12 @@ ApplicationWindow {
                         var scaleLeft = m_video.viewPointToVideoPoint(Qt.point(leftValue, vValue))
                         var scaleRight = m_video.viewPointToVideoPoint(Qt.point(rightValue, vValue))
                         velocityHorizontalScale.changeMappedPoints(scaleLeft.y, scaleLeft.x, scaleRight.x)
+                        m_video.velocityScaleHorizontal = Qt.rect(scaleLeft.x, scaleLeft.y, scaleRight.x - scaleLeft.x, 0)
                     }
                     function parentLayoutChanged() {
                         var newLeft = m_video.videoPointToViewPoint(Qt.point(velocityHorizontalScale.mappedLeftValue, velocityHorizontalScale.mappedVValue))
                         var newRight = m_video.videoPointToViewPoint(Qt.point(velocityHorizontalScale.mappedRightValue, velocityHorizontalScale.mappedVValue))
                         velocityHorizontalScale.updateViewPoints(newLeft.y, newLeft.x, newRight.x)
-                    }
-                    function initializeToParent() {
-                        velocityHorizontalScale.updateViewPoints(velocityROI.roiY + velocityROI.roiHeight + 20, velocityROI.roiX + (velocityROI.roiWidth * 0.1) - (gripSize/2), velocityROI.roiX + velocityROI.roiWidth - (velocityROI.roiWidth * 0.1) + (gripSize/2))
                     }
                 }
             }

@@ -44,6 +44,21 @@ void MVideoInfo::setVelocityROI(const QRect &newROI)
     }
 }
 
+void MVideoInfo::setDiameterScale(const QRect &newScale)
+{
+    diameterScale = newScale;
+}
+
+void MVideoInfo::setVelocityScaleVertical(const QRect &newScale)
+{
+    velocityScaleVertical = newScale;
+}
+
+void MVideoInfo::setVelocityScaleHorizontal(const QRect &newScale)
+{
+    velocityScaleHorizontal = newScale;
+}
+
 void MVideoInfo::forceROIRefresh()
 {
     QMutexLocker locker(&lock);
@@ -82,12 +97,26 @@ void MVideoInfo::updateVideoSettings() {
         size = QSize(videoWidth, videoHeight);
         emit sizeChanged();
 
+        double dW = size.width() / 3;
+        double dH = size.height() / 3;
+        roi = QRect((size.width() / 2) - (dW / 2), (size.height() / 3) - (dH / 2), dW, dH);
+
+        double vW = size.width() / 2;
+        double vH = size.height() / 6;
+        velocityROI = QRect((size.width() / 2) - (vW / 2), (size.height() * 0.7), vW, vH);
+
+        diameterScale = QRect(0.8 * size.width(), roi.y() + 0.2 * dH, 0, 0.6 * dH);
+        velocityScaleVertical = QRect(0.9 * size.width(), velocityROI.y() + 0.1 * vH, 0, vH - (vH * 0.1 * 4));
+        velocityScaleHorizontal = QRect(velocityROI.x() + (vW * 0.1), 0.9 * size.height(), vW - (vW * 0.1 * 2), 0);
+
         numFrames = camera->getProperty(CV_CAP_PROP_FRAME_COUNT); // returns zero for non-video files
 
         //Create new buffers, camera accessor and thread
         allocateCvImage();
         allocateVideoFrame();
 
+        emit roiChanged();
+        emit velocityROIChanged();
         emit videoPropertiesChanged();
     }
 }

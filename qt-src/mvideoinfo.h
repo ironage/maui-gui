@@ -24,6 +24,9 @@ public:
 
     void setROI(const QRect &newROI);
     void setVelocityROI(const QRect &newROI);
+    void setDiameterScale(const QRect &newScale);
+    void setVelocityScaleVertical(const QRect &newScale);
+    void setVelocityScaleHorizontal(const QRect &newScale);
     void forceROIRefresh();
     void setRecomputeROIMode(bool mode);
     void updateVideoSettings();
@@ -38,6 +41,9 @@ public:
     int getCurFrame() const { return curFrame; }
     QRect getROI() const { return roi; }
     QRect getVelocityROI() const { return velocityROI; }
+    QRect getDiameterScale() const { return diameterScale; }
+    QRect getVelocityScaleVertical() const { return velocityScaleVertical; }
+    QRect getVelocityScaleHorizontal() const { return velocityScaleHorizontal; }
     bool getRecomputeROIMode() const { return recomputeROIMode; }
     QList<MPoint*> getTopPoints() { return topPoints; }
     QList<MPoint*> getBottomPoints() { return bottomPoints; }
@@ -82,6 +88,9 @@ private:
     QSize size;
     QRect roi;
     QRect velocityROI;
+    QRect diameterScale;
+    QRect velocityScaleVertical;
+    QRect velocityScaleHorizontal;
     bool recomputeROIMode;
     QList<MPoint*> topPoints;
     QList<MPoint*> bottomPoints;

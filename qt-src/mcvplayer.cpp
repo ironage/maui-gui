@@ -97,6 +97,51 @@ void MCVPlayer::setVelocityROI(const QRect &newROI)
     }
 }
 
+QRect MCVPlayer::getDiameterScale() const
+{
+    if (curVideo) {
+        return curVideo->getDiameterScale();
+    }
+    return QRect();
+}
+
+void MCVPlayer::setDiameterScale(const QRect &newScale)
+{
+    if (curVideo) {
+        curVideo->setDiameterScale(newScale);
+    }
+}
+
+QRect MCVPlayer::getVelocityScaleVertical() const
+{
+    if (curVideo) {
+        return curVideo->getVelocityScaleVertical();
+    }
+    return QRect();
+}
+
+void MCVPlayer::setVelocityScaleVertical(const QRect &newScale)
+{
+    if (curVideo) {
+        curVideo->setVelocityScaleVertical(newScale);
+    }
+}
+
+QRect MCVPlayer::getVelocityScaleHorizontal() const
+{
+    if (curVideo) {
+        return curVideo->getVelocityScaleHorizontal();
+    }
+    return QRect();
+}
+
+void MCVPlayer::setVelocityScaleHorizontal(const QRect &newScale)
+{
+    if (curVideo) {
+        curVideo->setVelocityScaleHorizontal(newScale);
+    }
+}
+
 void MCVPlayer::forceROIRefresh()
 {
     if (curVideo) {
@@ -190,33 +235,37 @@ void MCVPlayer::changeToVideoFile(QString fileUrl)
 {
     for (int i = 0; i < videos.size(); ++i) {
         if (videos[i]) {
+            videos[i]->disconnect(); // breaks all connections
             if (videos[i]->getSourceUrl() == QUrl(fileUrl)) {
-                if (!curVideo || curVideo->getSourceUrl() != QUrl(fileUrl)) {
-                    curVideo = videos[i];
-                    connect(curVideo, SIGNAL(videoPropertiesChanged()), this, SLOT(onVideoPropertiesChanged()));
-                    connect(curVideo, SIGNAL(imageReady(int)), this, SLOT(imageReceived(int)));
-                    connect(curVideo, SIGNAL(initPointsDetected(QList<MPoint>,QList<MPoint>)), this, SIGNAL(initPointsChanged()));
-                    connect(curVideo, SIGNAL(videoFinished(CameraTask::ProcessingState)), this, SIGNAL(videoFinished(CameraTask::ProcessingState)));
-                    connect(curVideo, SIGNAL(outputProgress(int)), this, SIGNAL(outputProgress(int)));
-                    connect(curVideo, SIGNAL(sourceChanged()), this, SIGNAL(sourceChanged()));
-                    connect(curVideo, SIGNAL(sourceUpdated()), this, SIGNAL(sourceUpdated()));
-                    connect(curVideo, SIGNAL(videoLoaded(bool, QUrl, QString, QString, QString)), this, SIGNAL(videoLoaded(bool, QUrl, QString, QString, QString)));
-                    connect(curVideo, SIGNAL(sizeChanged()), this, SIGNAL(sizeChanged()));
-                    connect(curVideo, SIGNAL(initPointsChanged()), this, SIGNAL(initPointsChanged()));
-                    connect(curVideo, SIGNAL(diameterConversionUnitsChanged()), this, SIGNAL(diameterConversionUnitsChanged()));
-                    connect(curVideo, SIGNAL(conversionPixelsChanged()), this, SIGNAL(conversionPixelsChanged()));
-                    connect(curVideo, SIGNAL(outputDirChanged()), this, SIGNAL(outputDirChanged()));
-                    connect(curVideo, SIGNAL(velocityConversionUnitsChanged()), this, SIGNAL(velocityConversionUnitsChanged()));
-                    connect(curVideo, SIGNAL(velocityConversionPixelsChanged()), this, SIGNAL(velocityConversionPixelsChanged()));
-                    connect(curVideo, SIGNAL(velocityTimeChanged()), this, SIGNAL(velocityTimeChanged()));
-                    emit logDataChanged();
-
-                    curVideo->refreshAll();
-                }
-            } else {
-                videos[i]->disconnect(); // breaks all connections
+                curVideo = videos[i];
             }
         }
+    }
+    if (curVideo) {
+        connect(curVideo, SIGNAL(videoPropertiesChanged()), this, SLOT(onVideoPropertiesChanged()));
+        connect(curVideo, SIGNAL(imageReady(int)), this, SLOT(imageReceived(int)));
+        connect(curVideo, SIGNAL(roiChanged()), this, SLOT(roiChanged()));
+        connect(curVideo, SIGNAL(velocityROIChanged()), this, SLOT(velocityROIChanged()));
+        connect(curVideo, SIGNAL(initPointsDetected(QList<MPoint>,QList<MPoint>)), this, SIGNAL(initPointsChanged()));
+        connect(curVideo, SIGNAL(videoFinished(CameraTask::ProcessingState)), this, SIGNAL(videoFinished(CameraTask::ProcessingState)));
+        connect(curVideo, SIGNAL(outputProgress(int)), this, SIGNAL(outputProgress(int)));
+        connect(curVideo, SIGNAL(sourceChanged()), this, SIGNAL(sourceChanged()));
+        connect(curVideo, SIGNAL(sourceUpdated()), this, SIGNAL(sourceUpdated()));
+        connect(curVideo, SIGNAL(videoLoaded(bool, QUrl, QString, QString, QString)), this, SIGNAL(videoLoaded(bool, QUrl, QString, QString, QString)));
+        connect(curVideo, SIGNAL(sizeChanged()), this, SIGNAL(sizeChanged()));
+        connect(curVideo, SIGNAL(initPointsChanged()), this, SIGNAL(initPointsChanged()));
+        connect(curVideo, SIGNAL(diameterConversionUnitsChanged()), this, SIGNAL(diameterConversionUnitsChanged()));
+        connect(curVideo, SIGNAL(conversionPixelsChanged()), this, SIGNAL(conversionPixelsChanged()));
+        connect(curVideo, SIGNAL(outputDirChanged()), this, SIGNAL(outputDirChanged()));
+        connect(curVideo, SIGNAL(velocityConversionUnitsChanged()), this, SIGNAL(velocityConversionUnitsChanged()));
+        connect(curVideo, SIGNAL(velocityConversionPixelsChanged()), this, SIGNAL(velocityConversionPixelsChanged()));
+        connect(curVideo, SIGNAL(velocityTimeChanged()), this, SIGNAL(velocityTimeChanged()));
+        emit logDataChanged();
+        emit roiChanged();
+        emit velocityROIChanged();
+
+        curVideo->refreshAll();
+        emit videoControlInfoChanged();
     }
 }
 

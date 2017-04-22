@@ -6,6 +6,7 @@ import com.maui.custom 1.0  // MMediaPlayer.h
 Item {
     id: m_root
     property alias source: cv_player.sourceFile
+    property alias contentRect: output.contentRect
     property alias readSrcDir: cv_player.sourceDir
     property alias readSrcName: cv_player.sourceName
     property alias readSrcExtension: cv_player.sourceExtension
@@ -17,8 +18,11 @@ Item {
     property alias playback_state: cv_player.playbackState
     property alias video_width: cv_player.size.width
     property alias video_height: cv_player.size.height
-    property alias roi: cv_player.roi
-    property alias velocityROI: cv_player.velocityROI
+    property alias roiMapping: cv_player.roi
+    property alias velocityROIMapping: cv_player.velocityROI
+    property alias diameterScale: cv_player.diameterScale
+    property alias velocityScaleVertical: cv_player.velocityScaleVertical
+    property alias velocityScaleHorizontal: cv_player.velocityScaleHorizontal
     property alias recomputeROIMode: cv_player.recomputeROIOnChange
     property alias topPoints: cv_player.initTopPoints
     property alias bottomPoints: cv_player.initBottomPoints
@@ -35,6 +39,7 @@ Item {
     signal videoFinished(int state)
     signal outputProgress(int progress)
     signal videoLoaded(bool success, string fullName, string name, string extension, string dir)
+    signal videoControlInfoChanged()
 
     function viewPointToVideoPoint(viewPoint) {
         return output.mapPointToSource(viewPoint)
@@ -101,6 +106,7 @@ Item {
         onVideoFinished: m_root.videoFinished(state)
         onOutputProgress: m_root.outputProgress(progress)
         onVideoLoaded: m_root.videoLoaded(success, fullName, name, extension, dir)
+        onVideoControlInfoChanged: m_root.videoControlInfoChanged()
     }
 
     VideoOutput {

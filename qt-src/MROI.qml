@@ -22,6 +22,8 @@ Rectangle {
     property color roiHoverColor: Style.ui_color_bright_red
     property color roiColor: (handleHover ? roiHoverColor : roiRestColor)
 
+    signal movedFromDrag()
+
     Rectangle {
         id: roi
         x: 50
@@ -46,6 +48,16 @@ Rectangle {
                 minimumY: 0
                 maximumY: m_root.height - roi.height
                 threshold: Style.drag_threshold
+            }
+            onPositionChanged: {
+                if (drag.active)
+                    updatePosition()
+            }
+            onReleased: {
+                updatePosition()
+            }
+            function updatePosition() {
+                m_root.movedFromDrag()
             }
         }
     }
@@ -85,6 +97,7 @@ Rectangle {
             function updatePosition() {
                 roi.width = cornerBR.x - roi.x - cornerBR.xOffset
                 roi.height = cornerBR.y - roi.y - cornerBR.yOffset
+                m_root.movedFromDrag()
             }
         }
     }
@@ -127,6 +140,7 @@ Rectangle {
                 roi.x = cornerTL.x - cornerTL.xOffset
                 roi.height = roi.y - cornerTL.y + roi.height + cornerTL.yOffset
                 roi.y = cornerTL.y - cornerTL.yOffset
+                m_root.movedFromDrag()
             }
         }
     }
@@ -168,6 +182,7 @@ Rectangle {
                 roi.width = cornerTR.x - roi.x - cornerTR.xOffset
                 roi.height = roi.y - cornerTR.y + roi.height + cornerTR.yOffset
                 roi.y = cornerTR.y - cornerTR.yOffset
+                m_root.movedFromDrag()
             }
         }
     }
@@ -209,6 +224,7 @@ Rectangle {
                 roi.width = roi.x - cornerBL.x + roi.width + cornerBL.xOffset
                 roi.x = cornerBL.x - cornerBL.xOffset
                 roi.height = cornerBL.y - roi.y - cornerBL.yOffset
+                m_root.movedFromDrag()
             }
         }
     }
@@ -246,6 +262,7 @@ Rectangle {
             function updatePosition() {
                 roi.height = roi.y - midTop.y + roi.height + midTop.yOffset
                 roi.y = midTop.y - midTop.yOffset
+                m_root.movedFromDrag()
             }
         }
     }
@@ -282,6 +299,7 @@ Rectangle {
             }
             function updatePosition() {
                 roi.height = midBottom.y - roi.y - midBottom.yOffset
+                m_root.movedFromDrag()
             }
         }
     }
@@ -319,6 +337,7 @@ Rectangle {
             function updatePosition() {
                 roi.width = roi.x - midLeft.x + roi.width + midLeft.xOffset
                 roi.x = midLeft.x - midLeft.xOffset
+                m_root.movedFromDrag()
             }
         }
     }
@@ -355,6 +374,7 @@ Rectangle {
             }
             function updatePosition() {
                 roi.width = midRight.x - roi.x - midRight.xOffset
+                m_root.movedFromDrag()
             }
         }
     }

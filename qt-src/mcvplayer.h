@@ -40,6 +40,9 @@ class MCVPlayer : public QObject
     Q_PROPERTY(int playbackState READ getPlaybackState NOTIFY playbackStateChanged)
     Q_PROPERTY(QRect roi READ getROI WRITE setROI NOTIFY roiChanged)
     Q_PROPERTY(QRect velocityROI READ getVelocityROI WRITE setVelocityROI NOTIFY velocityROIChanged)
+    Q_PROPERTY(QRect diameterScale READ getDiameterScale WRITE setDiameterScale NOTIFY videoControlInfoChanged)
+    Q_PROPERTY(QRect velocityScaleVertical READ getVelocityScaleVertical WRITE setVelocityScaleVertical NOTIFY videoControlInfoChanged)
+    Q_PROPERTY(QRect velocityScaleHorizontal READ getVelocityScaleHorizontal WRITE setVelocityScaleHorizontal NOTIFY videoControlInfoChanged)
     Q_PROPERTY(bool recomputeROIOnChange READ getRecomputeROIMode WRITE setRecomputeROIMode NOTIFY recomputeROIChanged)
     Q_PROPERTY(QQmlListProperty<MPoint> initTopPoints READ getTopPoints NOTIFY initPointsChanged)
     Q_PROPERTY(QQmlListProperty<MPoint> initBottomPoints READ getBottomPoints NOTIFY initPointsChanged)
@@ -74,7 +77,13 @@ public slots:
     QRect getROI() const;
     void setROI(const QRect& newROI);
     QRect getVelocityROI() const;
-    void setVelocityROI(const QRect& newROI);
+    void setVelocityROI(const QRect &newROI);
+    QRect getDiameterScale() const;
+    void setDiameterScale(const QRect &newScale);
+    QRect getVelocityScaleVertical() const;
+    void setVelocityScaleVertical(const QRect &newScale);
+    QRect getVelocityScaleHorizontal() const;
+    void setVelocityScaleHorizontal(const QRect &newScale);
     void forceROIRefresh();
     bool getRecomputeROIMode() const;
     void setRecomputeROIMode(bool mode);
@@ -135,6 +144,7 @@ signals:
     void velocityConversionUnitsChanged();
     void velocityConversionPixelsChanged();
     void velocityTimeChanged();
+    void videoControlInfoChanged();
 private:
     QAbstractVideoSurface *m_surface;
     QVideoSurfaceFormat m_format;

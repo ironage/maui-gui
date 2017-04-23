@@ -10,6 +10,17 @@ Item {
     property string scale: scaleInput.acceptableInput ? scaleInput.text : 1
     property alias checked: enabledCheckbox.checked
 
+    function changeScale(newScale) {
+        scaleInput.text = newScale
+    }
+
+    function changeToUnits(newUnits) {
+        var pos = scaleUnits.find(newUnits)
+        if (pos >= 0) {
+            scaleUnits.currentIndex = pos
+        }
+    }
+
     Rectangle {
         id: background
         border.width: Style.border_width

@@ -244,8 +244,8 @@ void MCVPlayer::changeToVideoFile(QString fileUrl)
     if (curVideo) {
         connect(curVideo, SIGNAL(videoPropertiesChanged()), this, SLOT(onVideoPropertiesChanged()));
         connect(curVideo, SIGNAL(imageReady(int)), this, SLOT(imageReceived(int)));
-        connect(curVideo, SIGNAL(roiChanged()), this, SLOT(roiChanged()));
-        connect(curVideo, SIGNAL(velocityROIChanged()), this, SLOT(velocityROIChanged()));
+        connect(curVideo, SIGNAL(roiChanged()), this, SIGNAL(roiChanged()));
+        connect(curVideo, SIGNAL(velocityROIChanged()), this, SIGNAL(velocityROIChanged()));
         connect(curVideo, SIGNAL(initPointsDetected(QList<MPoint>,QList<MPoint>)), this, SIGNAL(initPointsChanged()));
         connect(curVideo, SIGNAL(videoFinished(CameraTask::ProcessingState)), this, SIGNAL(videoFinished(CameraTask::ProcessingState)));
         connect(curVideo, SIGNAL(outputProgress(int)), this, SIGNAL(outputProgress(int)));
@@ -255,10 +255,10 @@ void MCVPlayer::changeToVideoFile(QString fileUrl)
         connect(curVideo, SIGNAL(sizeChanged()), this, SIGNAL(sizeChanged()));
         connect(curVideo, SIGNAL(initPointsChanged()), this, SIGNAL(initPointsChanged()));
         connect(curVideo, SIGNAL(diameterConversionUnitsChanged()), this, SIGNAL(diameterConversionUnitsChanged()));
-        connect(curVideo, SIGNAL(conversionPixelsChanged()), this, SIGNAL(conversionPixelsChanged()));
+        connect(curVideo, SIGNAL(diameterConversionChanged()), this, SIGNAL(diameterConversionChanged()));
         connect(curVideo, SIGNAL(outputDirChanged()), this, SIGNAL(outputDirChanged()));
         connect(curVideo, SIGNAL(velocityConversionUnitsChanged()), this, SIGNAL(velocityConversionUnitsChanged()));
-        connect(curVideo, SIGNAL(velocityConversionPixelsChanged()), this, SIGNAL(velocityConversionPixelsChanged()));
+        connect(curVideo, SIGNAL(velocityConversionChanged()), this, SIGNAL(velocityConversionChanged()));
         connect(curVideo, SIGNAL(velocityTimeChanged()), this, SIGNAL(velocityTimeChanged()));
         emit logDataChanged();
         emit roiChanged();
@@ -364,11 +364,20 @@ int MCVPlayer::getPlaybackState()
     return QMediaPlayer::StoppedState;
 }
 
-void MCVPlayer::setSetupState(CameraTask::SetupState state)
+void MCVPlayer::setSetupState(int state)
 {
     if (curVideo) {
-        curVideo->setSetupState(state);
+        curVideo->setSetupState(CameraTask::SetupState(state));
     }
+}
+
+int MCVPlayer::getSetupState()
+{
+    if (curVideo) {
+        return curVideo->getSetupState();
+    }
+    qDebug() << "No curVideo, returning setup state ALL";
+    return CameraTask::SetupState::ALL;
 }
 
 void MCVPlayer::setEndFrame(int frame)
@@ -459,18 +468,18 @@ void MCVPlayer::setDiameterConversionUnits(QString diameterUnits)
     }
 }
 
-double MCVPlayer::getConversionPixels()
+double MCVPlayer::getDiameterConversion()
 {
     if (curVideo) {
-        return curVideo->getConversionPixels();
+        return curVideo->getDiameterConversion();
     }
     return 1.0;
 }
 
-void MCVPlayer::setConversionPixels(double diameterConversionPixels)
+void MCVPlayer::setDiameterConversion(double diameterConversion)
 {
     if (curVideo) {
-        curVideo->setConversionPixels(diameterConversionPixels);
+        curVideo->setDiameterConversion(diameterConversion);
     }
 }
 
@@ -504,18 +513,18 @@ void MCVPlayer::setVelocityConversionUnits(QString velocityConversionUnits)
     }
 }
 
-double MCVPlayer::getVelocityConversionPixels()
+double MCVPlayer::getVelocityConversion()
 {
     if (curVideo) {
-        return curVideo->getVelocityConversionPixels();
+        return curVideo->getVelocityConversion();
     }
     return 1.0;
 }
 
-void MCVPlayer::setVelocityConversionPixels(double velocityConversionPixels)
+void MCVPlayer::setVelocityConversion(double velocityConversion)
 {
     if (curVideo) {
-        curVideo->setVelocityConversionPixels(velocityConversionPixels);
+        curVideo->setVelocityConversion(velocityConversion);
     }
 }
 

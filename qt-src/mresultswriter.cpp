@@ -36,7 +36,7 @@ std::unique_ptr<QFile> MResultsWriter::open()
 MDiameterWriter::MDiameterWriter(QString name, MLogMetaData &attachedMetaData)
     : MResultsWriter(name, attachedMetaData)
 {
-    conversion = metaData.getPixels() > 0 ? 1.0 / metaData.getPixels() : 1;
+    conversion = metaData.getDiameterScalePixelHeight() > 0 ? metaData.getDiameterScaleConversion() / metaData.getDiameterScalePixelHeight() : 1;
 }
 
 QString MDiameterWriter::getHeader() const
@@ -50,10 +50,11 @@ QString MDiameterWriter::getHeader() const
 
 std::vector<QString> MDiameterWriter::getMetaDataHeader() const
 {
-    QString conversion = QString("") + QString::number(metaData.getPixels()) + " pixels = 1 " + metaData.getUnits();
+    double invertedConversion = (conversion == 0 ? 1 : 1 / conversion);
+    QString conversionString = QString("") + QString::number(invertedConversion) + " pixels = 1 " + metaData.getUnits();
     QString version = "MAUI version " + MRemoteInterface::getDisplayVersion();
     return std::vector<QString> { metaData.getFileName(), metaData.getFilePath(),
-                metaData.getTimestamp(), conversion, version};
+                metaData.getTimestamp(), conversionString, version};
 }
 
 QString MDiameterWriter::getEmptyEntry() const
@@ -81,7 +82,7 @@ QString MDiameterWriter::getEntry(const MDataEntry &entry, int index) const
 MVelocityWriter::MVelocityWriter(QString name, MLogMetaData &attachedMetaData)
     : MResultsWriter(name, attachedMetaData)
 {
-    conversion = metaData.getVelocityPixels() > 0 ? 1.0 / metaData.getVelocityPixels() : 1;
+    conversion = metaData.getVelocityScalePixelHeight() > 0 ? metaData.getVelocityScaleConversion() / metaData.getVelocityScalePixelHeight() : 1;
 }
 
 QString MVelocityWriter::getHeader() const
@@ -97,10 +98,11 @@ QString MVelocityWriter::getHeader() const
 
 std::vector<QString> MVelocityWriter::getMetaDataHeader() const
 {
-    QString conversion = QString("") + QString::number(metaData.getVelocityPixels()) + " pixels = 1 " + metaData.getVelocityUnits();
+    double invertedConversion = (conversion == 0 ? 1 : 1/conversion);
+    QString conversionString = QString("") + QString::number(invertedConversion) + " pixels = 1 " + metaData.getVelocityUnits();
     QString version = "MAUI version " + MRemoteInterface::getDisplayVersion();
     return std::vector<QString> {metaData.getFileName(), metaData.getFilePath(),
-                metaData.getTimestamp(), conversion, version };
+                metaData.getTimestamp(), conversionString, version };
 }
 
 QString MVelocityWriter::getEmptyEntry() const
@@ -186,8 +188,10 @@ QString MCombinedWriter::getHeader() const
 
 std::vector<QString> MCombinedWriter::getMetaDataHeader() const
 {
-    QString conversionDiameter = QString("") + QString::number(metaData.getPixels()) + " pixels = 1 " + metaData.getUnits();
-    QString conversionVelocity = QString("") + QString::number(metaData.getVelocityPixels()) + " pixels = 1 " + metaData.getVelocityUnits();
+    double invertedVConversion = vWriter.getVelocityConversion() > 0 ? 1 / vWriter.getVelocityConversion() : 1;
+    double invertedDConversion = dWriter.getDiameterConversion() > 0 ? 1 / dWriter.getDiameterConversion() : 1;
+    QString conversionDiameter = QString("") + QString::number(invertedDConversion) + " pixels = 1 " + metaData.getUnits();
+    QString conversionVelocity = QString("") + QString::number(invertedVConversion) + " pixels = 1 " + metaData.getVelocityUnits();
     QString version = "MAUI version " + MRemoteInterface::getDisplayVersion();
     return std::vector<QString> {metaData.getFileName(), metaData.getFilePath(),
                 metaData.getTimestamp(), conversionDiameter, conversionVelocity, version};

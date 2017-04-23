@@ -22,7 +22,7 @@
 CameraTask::CameraTask(MVideoCapture* camera, QVideoFrame* videoFrame,
                        unsigned char* cvImageBuf, int width, int height)
     : running(true), camera(camera), videoFrame(videoFrame),cvImageBuf(cvImageBuf),
-    width(width), height(height), curPlayState(Paused), curSetupState(NORMAL_ROI),
+    width(width), height(height), curPlayState(Paused), curSetupState(ALL),
     curFrame(-1), frameToSeekTo(-1), startFrame(0), endFrame(0), autoRecomputeROI(false),
     doneInit(false), cameraFrame(nullptr), cachedFrameIsDirty(true), doProcessOutputVideo(true)
 {
@@ -706,7 +706,6 @@ bool CameraTask::initializeVelocityROI(mwArray *velocityCurrentROI, mwArray *vel
 
         int velocityXLocation = getFirst(velocityXLocationMat, -1);
         int videoType = getFirst(videoTypeMat, -1);
-        qDebug() << "velocityXLocation: " << velocityXLocation << " videoType " << videoType;
 
         int indexOfFirstMovingFrame = 1; // for type 2 videos this is always 1
         if (videoType == 1 && findFirstFrame) {
@@ -979,6 +978,11 @@ bool MCameraThread::doGetProcessOutputVideo()
 void MCameraThread::doSetSetupState(CameraTask::SetupState state)
 {
     emit setSetupState(state);
+}
+
+int MCameraThread::doGetSetupState()
+{
+    return task->getSetupState();
 }
 
 void MCameraThread::doSetNewTopPoints(QList<MPoint> points)

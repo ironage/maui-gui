@@ -11,6 +11,19 @@ Item {
     property string scale: scaleInput.acceptableInput ? scaleInput.text : 1
     property string time: time.acceptableInput ? time.text : 1
 
+    function changeScale(newScale) {
+        scaleInput.text = newScale
+    }
+    function changeTime(newTime) {
+        time.text = newTime
+    }
+    function changeToUnits(newUnits) {
+        var pos = scaleUnits.find(newUnits)
+        if (pos >= 0) {
+            scaleUnits.currentIndex = pos
+        }
+    }
+
     Rectangle {
         id: background
         border.width: Style.border_width

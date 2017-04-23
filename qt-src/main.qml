@@ -227,7 +227,6 @@ ApplicationWindow {
                 Layout.bottomMargin: Style.v_padding * 2
                 width: leftPanel.headerWidth
                 enabled: window.controlsEnabled
-                onCheckedChanged: m_video.configureComputationState()
             }
 
             MPaneVelocityDetect {
@@ -236,7 +235,6 @@ ApplicationWindow {
                 Layout.bottomMargin: Style.v_padding * 2
                 width: leftPanel.headerWidth
                 enabled: window.controlsEnabled
-                onCheckedChanged: m_video.configureComputationState()
             }
 
             MSummaryPane {
@@ -284,11 +282,13 @@ ApplicationWindow {
                 progress_max: m_video_control.end_percent
                 recomputeROIMode: roi.visible
                 conversionUnits: wallDetectionPane.conversionUnits
-                conversionPixels: m_video.video_height <= 0 ? 1 : (scale.mappedBottomValue - scale.mappedTopValue) / wallDetectionPane.scale
+                diameterConversion: wallDetectionPane.scale
                 outputDir: outputPane.outputDirectory
                 velocityConversionUnits: velocityDetectionPane.conversionUnits
-                velocityConversionPixels: m_video.video_height <= 0 ? 1 : (velocityVerticalScale.mappedBottomValue - velocityVerticalScale.mappedTopValue) / velocityDetectionPane.scale
+                velocityConversion: velocityDetectionPane.scale
                 velocityTime: velocityDetectionPane.time
+                // See CameraTask::SetupState for interpretation of these values
+                setupState: (wallDetectionPane.checked ? 1 : 0) * 1 + (velocityDetectionPane.checked ? 1 : 0) * 2
 
                 onProgressChanged: {
                     if (summaryPane.isPlaying) {
@@ -348,6 +348,15 @@ ApplicationWindow {
                     velocityVerticalScale.parentLayoutChanged()
                     velocityHorizontalScale.changeMappedPoints(m_video.velocityScaleHorizontal.y, m_video.velocityScaleHorizontal.x, m_video.velocityScaleHorizontal.x + m_video.velocityScaleHorizontal.width)
                     velocityHorizontalScale.parentLayoutChanged()
+
+                    wallDetectionPane.changeToUnits(m_video.conversionUnits)
+                    wallDetectionPane.changeScale(m_video.diameterConversion)
+                    velocityDetectionPane.changeToUnits(m_video.velocityConversionUnits)
+                    velocityDetectionPane.changeScale(m_video.velocityConversion)
+                    velocityDetectionPane.changeTime(m_video.velocityTime)
+
+                    wallDetectionPane.checked = ((m_video.setupState & 1) > 0)
+                    velocityDetectionPane.checked = ((m_video.setupState & 2) > 0)
                 }
                 onVideoLoaded: {
                     if (inputPane.isLoadingNewVideos) {
@@ -355,7 +364,6 @@ ApplicationWindow {
                         summaryPane.fileName = readableName
                         inputPane.addFile(success, fullName, dir, readableName)
                     }
-                    configureComputationState()
                 }
                 onVideoFinished: {
                     window.controlsEnabled = true
@@ -395,12 +403,6 @@ ApplicationWindow {
 //                    roi.mappedBR = Qt.point(roi.mappedXY.x + roi.mappedWH.x, roi.mappedXY.y + roi.mappedWH.y)
 //                    roi.parentLayoutChanged()
 //                }
-
-                function configureComputationState() {
-                    var state = 0 // CameraTask::SetupState::NONE
-                    state = (wallDetectionPane.checked ? 1 : 0) * 1 + (velocityDetectionPane.checked ? 1 : 0) * 2
-                    m_video.setSetupState(state)
-                }
 
                 onPlayback_stateChanged: {
                     if (playback_state === MediaPlayer.PausedState

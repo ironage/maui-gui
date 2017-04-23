@@ -16,6 +16,7 @@ Item {
     property double progress_min: 0.0
     property double progress_max: 1.0
     property alias playback_state: cv_player.playbackState
+    property alias setupState: cv_player.setupState
     property alias video_width: cv_player.size.width
     property alias video_height: cv_player.size.height
     property alias roiMapping: cv_player.roi
@@ -30,10 +31,10 @@ Item {
     property alias videoRect: output.sourceRect
     property alias doProcessOutputVideo: cv_player.doProcessOutputVideo
     property alias conversionUnits: cv_player.conversionUnits
-    property alias conversionPixels: cv_player.conversionPixels
+    property alias diameterConversion: cv_player.diameterConversion
     property alias outputDir: cv_player.outputDir
     property alias velocityConversionUnits: cv_player.velocityConversionUnits
-    property alias velocityConversionPixels: cv_player.velocityConversionPixels
+    property alias velocityConversion: cv_player.velocityConversion
     property alias velocityTime: cv_player.velocityTime
 
     signal videoFinished(int state)

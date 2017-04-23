@@ -38,6 +38,7 @@ class MCVPlayer : public QObject
     Q_PROPERTY(int duration READ getNumFrames NOTIFY videoPropertiesChanged)
     Q_PROPERTY(int position READ getCurFrame WRITE setCurFrame NOTIFY curFrameChanged)
     Q_PROPERTY(int playbackState READ getPlaybackState NOTIFY playbackStateChanged)
+    Q_PROPERTY(int setupState READ getSetupState WRITE setSetupState NOTIFY videoControlInfoChanged)
     Q_PROPERTY(QRect roi READ getROI WRITE setROI NOTIFY roiChanged)
     Q_PROPERTY(QRect velocityROI READ getVelocityROI WRITE setVelocityROI NOTIFY velocityROIChanged)
     Q_PROPERTY(QRect diameterScale READ getDiameterScale WRITE setDiameterScale NOTIFY videoControlInfoChanged)
@@ -50,10 +51,10 @@ class MCVPlayer : public QObject
     Q_PROPERTY(bool doProcessOutputVideo READ getProcessOutputVideo WRITE setProcessOutputVideo NOTIFY processOutputVideoChanged)
 
     Q_PROPERTY(QString conversionUnits READ getDiameterConversionUnits WRITE setDiameterConversionUnits NOTIFY diameterConversionUnitsChanged)
-    Q_PROPERTY(double conversionPixels READ getConversionPixels WRITE setConversionPixels NOTIFY conversionPixelsChanged)
+    Q_PROPERTY(double diameterConversion READ getDiameterConversion WRITE setDiameterConversion NOTIFY diameterConversionChanged)
     Q_PROPERTY(QString outputDir READ getOutputDir WRITE setOutputDir NOTIFY outputDirChanged)
     Q_PROPERTY(QString velocityConversionUnits READ getVelocityConversionUnits WRITE setVelocityConversionUnits NOTIFY velocityConversionUnitsChanged)
-    Q_PROPERTY(double velocityConversionPixels READ getVelocityConversionPixels WRITE setVelocityConversionPixels NOTIFY velocityConversionPixelsChanged)
+    Q_PROPERTY(double velocityConversion READ getVelocityConversion WRITE setVelocityConversion NOTIFY velocityConversionChanged)
     Q_PROPERTY(double velocityTime READ getVelocityTime WRITE setVelocityTime NOTIFY velocityTimeChanged)
 public:
     MCVPlayer();
@@ -89,7 +90,8 @@ public slots:
     void setRecomputeROIMode(bool mode);
     void setCurFrame(int newFrame);
     int getPlaybackState();
-    void setSetupState(CameraTask::SetupState state);
+    void setSetupState(int state);
+    int getSetupState();
     void play();
     void continueProcessing();
     void stop();
@@ -109,14 +111,14 @@ public slots:
     MLogMetaData getLogMetaData() const;
     QString getDiameterConversionUnits();
     void setDiameterConversionUnits(QString diameterUnits);
-    double getConversionPixels();
-    void setConversionPixels(double diameterConversionPixels);
+    double getDiameterConversion();
+    void setDiameterConversion(double diameterConversion);
     QString getOutputDir();
     void setOutputDir(QString outputDir);
     QString getVelocityConversionUnits();
     void setVelocityConversionUnits(QString velocityConversionUnits);
-    double getVelocityConversionPixels();
-    void setVelocityConversionPixels(double velocityConversionPixels);
+    double getVelocityConversion();
+    void setVelocityConversion(double velocityConversion);
     double getVelocityTime();
     void setVelocityTime(double velocityTime);
     void addVideoFile(QString file);
@@ -139,10 +141,10 @@ signals:
     void processOutputVideoChanged();
     void videoLoaded(bool success, QUrl fullName, QString name, QString extension, QString dir);
     void diameterConversionUnitsChanged();
-    void conversionPixelsChanged();
+    void diameterConversionChanged();
     void outputDirChanged();
     void velocityConversionUnitsChanged();
-    void velocityConversionPixelsChanged();
+    void velocityConversionChanged();
     void velocityTimeChanged();
     void videoControlInfoChanged();
 private:

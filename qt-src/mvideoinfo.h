@@ -56,6 +56,7 @@ public:
     void seek(int frame);
     int getPlaybackState();
     void setSetupState(CameraTask::SetupState state);
+    int getSetupState();
     void setEndFrame(int frame);
     void setStartFrame(int frame);
     bool getProcessOutputVideo();
@@ -65,14 +66,14 @@ public:
 
     QString getDiameterConversionUnits();
     void setDiameterConversionUnits(QString diameterUnits);
-    double getConversionPixels();
-    void setConversionPixels(double diameterConversionPixels);
+    double getDiameterConversion();
+    void setDiameterConversion(double diameterConversion);
     QString getOutputDir();
     void setOutputDir(QString outputDir);
     QString getVelocityConversionUnits();
     void setVelocityConversionUnits(QString velocityConversionUnits);
-    double getVelocityConversionPixels();
-    void setVelocityConversionPixels(double velocityConversionPixels);
+    double getVelocityConversion();
+    void setVelocityConversion(double velocityConversion);
     double getVelocityTime();
     void setVelocityTime(double velocityTime);
 
@@ -120,10 +121,10 @@ signals:
     void videoLoaded(bool success, QUrl fullName, QString name, QString extension, QString dir);
     void initPointsChanged();
     void diameterConversionUnitsChanged();
-    void conversionPixelsChanged();
+    void diameterConversionChanged();
     void outputDirChanged();
     void velocityConversionUnitsChanged();
-    void velocityConversionPixelsChanged();
+    void velocityConversionChanged();
     void velocityTimeChanged();
 
 public slots:

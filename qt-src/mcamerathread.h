@@ -120,6 +120,7 @@ public slots:
     void setProcessOutputVideo(bool doProcess);
     bool getDoProcessOutputVideo() { return doProcessOutputVideo; }
     void setSetupState(CameraTask::SetupState state);
+    int getSetupState() { return curSetupState; }
     void setNewTopPoints(QList<MPoint> points);
     void setNewBottomPoints(QList<MPoint> points);
 signals:
@@ -166,6 +167,7 @@ public:
     void doSetProcessOutputVideo(bool process);
     bool doGetProcessOutputVideo();
     void doSetSetupState(CameraTask::SetupState state);
+    int doGetSetupState();
     void doSetNewTopPoints(QList<MPoint> points);
     void doSetNewBottomPoints(QList<MPoint> points);
 private:

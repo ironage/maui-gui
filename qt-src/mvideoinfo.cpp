@@ -46,11 +46,13 @@ void MVideoInfo::setVelocityROI(const QRect &newROI)
 
 void MVideoInfo::setDiameterScale(const QRect &newScale)
 {
+    logMetaData.setDiameterPixelHeight(newScale.height());
     diameterScale = newScale;
 }
 
 void MVideoInfo::setVelocityScaleVertical(const QRect &newScale)
 {
+    logMetaData.setVelocityPixelHeight(newScale.height());
     velocityScaleVertical = newScale;
 }
 
@@ -298,6 +300,16 @@ void MVideoInfo::setSetupState(CameraTask::SetupState state) {
     }
 }
 
+int MVideoInfo::getSetupState()
+{
+    QMutexLocker locker(&lock);
+    if (thread) {
+        return thread->doGetSetupState();
+    }
+    qDebug() << "returning default setup state";
+    return CameraTask::SetupState::ALL;
+}
+
 void MVideoInfo::setEndFrame(int frame)
 {
     QMutexLocker locker(&lock);
@@ -379,16 +391,16 @@ void MVideoInfo::setDiameterConversionUnits(QString diameterUnits)
     }
 }
 
-double MVideoInfo::getConversionPixels()
+double MVideoInfo::getDiameterConversion()
 {
-    return logMetaData.getPixels();
+    return logMetaData.getDiameterScaleConversion();
 }
 
-void MVideoInfo::setConversionPixels(double diameterConversionPixels)
+void MVideoInfo::setDiameterConversion(double diameterConversion)
 {
-    if (logMetaData.getPixels() != diameterConversionPixels) {
-        logMetaData.setPixels(diameterConversionPixels);
-        emit conversionPixelsChanged();
+    if (logMetaData.getDiameterScaleConversion() != diameterConversion) {
+        logMetaData.setDiameterConversion(diameterConversion);
+        emit diameterConversionChanged();
     }
 }
 
@@ -417,16 +429,16 @@ void MVideoInfo::setVelocityConversionUnits(QString velocityConversionUnits)
         emit velocityConversionUnitsChanged();
     }}
 
-double MVideoInfo::getVelocityConversionPixels()
+double MVideoInfo::getVelocityConversion()
 {
-    return logMetaData.getVelocityPixels();
+    return logMetaData.getVelocityScaleConversion();
 }
 
-void MVideoInfo::setVelocityConversionPixels(double velocityConversionPixels)
+void MVideoInfo::setVelocityConversion(double velocityConversion)
 {
-    if (logMetaData.getVelocityPixels() != velocityConversionPixels) {
-        logMetaData.setVelocityPixels(velocityConversionPixels);
-        emit velocityConversionPixelsChanged();
+    if (logMetaData.getVelocityScaleConversion() != velocityConversion) {
+        logMetaData.setVelocityConversion(velocityConversion);
+        emit velocityConversionChanged();
     }
 }
 
@@ -454,9 +466,9 @@ void MVideoInfo::refreshAll()
     emit sourceUpdated();
     emit initPointsChanged();
     emit diameterConversionUnitsChanged();
-    emit conversionPixelsChanged();
+    emit diameterConversionChanged();
     emit outputDirChanged();
     emit velocityConversionUnitsChanged();
-    emit velocityConversionPixelsChanged();
+    emit velocityConversionChanged();
     emit velocityTimeChanged();
 }

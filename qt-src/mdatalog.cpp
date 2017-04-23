@@ -7,6 +7,7 @@
 #include <QFile>
 #include <QTextStream>
 
+#include "mcamerathread.h"
 #include "mresultswriter.h"
 
 QDebug operator<<(QDebug debug, const VelocityResults &r)
@@ -74,10 +75,11 @@ void MDataLog::add(MDataEntry &&entry)
     entries[entry.getFrameNumber()] = std::move(entry);
 }
 
-void MDataLog::write(QString fileName)
+void MDataLog::write(QString fileName, int setupState)
 {
     metaData.touchWriteTime();
-    QString dataFileName     = fileName + "_data_"     + metaData.getWriteTime() + ".csv";
+
+    QString dataFileName     = fileName + "_diameter_"     + metaData.getWriteTime() + ".csv";
     QString velocityFileName = fileName + "_velocity_" + metaData.getWriteTime() + ".csv";
     QString combinedFileName = fileName + "_combined_" + metaData.getWriteTime() + ".csv";
 
@@ -85,7 +87,16 @@ void MDataLog::write(QString fileName)
     MVelocityWriter vWriter(velocityFileName, metaData);
     MCombinedWriter cWriter(combinedFileName, metaData);
 
-    std::vector<MResultsWriter*> writers = { &dWriter, &vWriter, &cWriter };
+    std::vector<MResultsWriter*> writers;
+    if (setupState & CameraTask::SetupState::NORMAL_ROI) {
+        writers.push_back(&dWriter);
+    }
+    if (setupState & CameraTask::SetupState::VELOCITY_ROI) {
+        writers.push_back(&vWriter);
+    }
+    if ((setupState & CameraTask::SetupState::NORMAL_ROI) && (setupState & CameraTask::SetupState::VELOCITY_ROI)) {
+        writers.push_back(&cWriter);
+    }
 
     for (MResultsWriter *writer : writers) {
         std::unique_ptr<QFile> file = writer->open();

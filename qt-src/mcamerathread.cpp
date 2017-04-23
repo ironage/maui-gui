@@ -658,7 +658,7 @@ double CameraTask::getFirst(mwArray &data, double defaultValue)
 void CameraTask::writeResults()
 {
     initializeOutput();
-    log.write(outputFileName);
+    log.write(outputFileName, curSetupState);
     if (doProcessOutputVideo) {
         processOutputVideo();
     }

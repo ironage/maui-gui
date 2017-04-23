@@ -263,6 +263,7 @@ void MCVPlayer::changeToVideoFile(QString fileUrl)
         emit logDataChanged();
         emit roiChanged();
         emit velocityROIChanged();
+        //emit processOutputVideoChanged();
 
         curVideo->refreshAll();
         emit videoControlInfoChanged();

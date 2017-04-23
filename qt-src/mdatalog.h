@@ -66,7 +66,7 @@ public:
     MDataLog();
     void initialize(MLogMetaData data);
     void add(MDataEntry &&entry);
-    void write(QString fileName);
+    void write(QString fileName, int setupState);
     void clear();
     MLogMetaData getMetaData() { return metaData; }
     const MDataEntry* get(int frame) const;

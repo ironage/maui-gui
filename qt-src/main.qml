@@ -254,7 +254,6 @@ ApplicationWindow {
                 onPlayClicked: {
                     remoteInterface.doneInitialVerify = false
                     remoteInterface.validateWithExistingCredentials()
-                    m_video.doProcessOutputVideo = outputPane.processOutputVideo
                 }
                 onContinueClicked: {
                     if (remoteInterface.requiresVerifyOnContinue) {
@@ -289,6 +288,7 @@ ApplicationWindow {
                 velocityTime: velocityDetectionPane.time
                 // See CameraTask::SetupState for interpretation of these values
                 setupState: (wallDetectionPane.checked ? 1 : 0) * 1 + (velocityDetectionPane.checked ? 1 : 0) * 2
+                doProcessOutputVideo: outputPane.processOutputVideo
 
                 onProgressChanged: {
                     if (summaryPane.isPlaying) {
@@ -354,6 +354,7 @@ ApplicationWindow {
                     velocityDetectionPane.changeToUnits(m_video.velocityConversionUnits)
                     velocityDetectionPane.changeScale(m_video.velocityConversion)
                     velocityDetectionPane.changeTime(m_video.velocityTime)
+                    outputPane.processOutputVideo = m_video.doProcessOutputVideo
 
                     wallDetectionPane.checked = ((m_video.setupState & 1) > 0)
                     velocityDetectionPane.checked = ((m_video.setupState & 2) > 0)

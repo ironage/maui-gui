@@ -89,11 +89,11 @@ QString MVelocityWriter::getHeader() const
 {
     QString units = metaData.getVelocityUnits();
     return QString("frame number,time(seconds),xLocation,"
-                   "max positive(pixels),avg positive(pixels),avg negative(pixels),max negative(pixels),"
-                   "max positive(" + units + "),"
-                   "avg positive(" + units + "),"
-                   "avg negative(" + units + "),"
-                   "max negative(" + units + ")");
+                   "peak positive(pixels),mean positive(pixels),mean negative(pixels),peak negative(pixels),"
+                   "peak positive(" + units + "),"
+                   "mean positive(" + units + "),"
+                   "mean negative(" + units + "),"
+                   "peak negative(" + units + ")");
 }
 
 std::vector<QString> MVelocityWriter::getMetaDataHeader() const
@@ -172,18 +172,18 @@ QString MCombinedWriter::getHeader() const
 {
     QString units = metaData.getVelocityUnits();
     return dWriter.getHeader() + ",velocity xLocation,"
-                                 "velocity max positive(pixels),"
-                                 "velocity avg positive(pixels),"
-                                 "velocity avg negative(pixels),"
-                                 "velocity max negative(pixels),"
-                                 "velocity max positive(" + units + "),"
-                                 "velocity avg positive(" + units + "),"
-                                 "velocity avg negative(" + units + "),"
-                                 "velocity max negative(" + units + "),"
-                                 "flow max positive(" + flowUnits + "),"
-                                 "flow avg positive(" + flowUnits + "),"
-                                 "flow avg negative(" + flowUnits + "),"
-                                 "flow max negative(" + flowUnits + ")";
+                                 "velocity peak positive(pixels),"
+                                 "velocity mean positive(pixels),"
+                                 "velocity mean negative(pixels),"
+                                 "velocity peak negative(pixels),"
+                                 "velocity peak positive(" + units + "),"
+                                 "velocity mean positive(" + units + "),"
+                                 "velocity mean negative(" + units + "),"
+                                 "velocity peak negative(" + units + "),"
+                                 "flow peak positive(" + flowUnits + "),"
+                                 "flow mean positive(" + flowUnits + "),"
+                                 "flow mean negative(" + flowUnits + "),"
+                                 "flow peak negative(" + flowUnits + ")";
 }
 
 std::vector<QString> MCombinedWriter::getMetaDataHeader() const

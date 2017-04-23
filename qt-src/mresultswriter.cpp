@@ -90,10 +90,13 @@ QString MVelocityWriter::getHeader() const
     QString units = metaData.getVelocityUnits();
     return QString("frame number,time(seconds),xLocation,"
                    "peak positive(pixels),mean positive(pixels),mean negative(pixels),peak negative(pixels),"
+                   "peak all(pixels), mean all(pixels),"
                    "peak positive(" + units + "),"
                    "mean positive(" + units + "),"
                    "mean negative(" + units + "),"
-                   "peak negative(" + units + ")");
+                   "peak negative(" + units + "),"
+                   "peak all(" + units + "),"
+                   "mean all(" + units + ")");
 }
 
 std::vector<QString> MVelocityWriter::getMetaDataHeader() const
@@ -107,7 +110,7 @@ std::vector<QString> MVelocityWriter::getMetaDataHeader() const
 
 QString MVelocityWriter::getEmptyEntry() const
 {
-    return QString(",,,,,,,,,,");
+    return QString(",,,,,,,,,,,,,,");
 }
 
 QString MVelocityWriter::getEntry(const MDataEntry &entry, int index) const
@@ -119,6 +122,8 @@ QString MVelocityWriter::getEntry(const MDataEntry &entry, int index) const
             && index < velocity.avgNegative.size()
             && index < velocity.maxNegative.size()) {
         double xAxisLocation = metaData.getVelocityXAxisLocation();
+        double peakAll = (xAxisLocation - velocity.maxPositive[index]) + (xAxisLocation - velocity.maxNegative[index]);
+        double meanAll = (xAxisLocation - velocity.avgPositive[index]) + (xAxisLocation - velocity.avgNegative[index]);
         return QString() + QString::number(entry.getFrameNumber()) + ","
                          + QString::number(entry.getTime()) + ","
                          + QString::number(velocity.xTrackingLocationIndividual[index]) + ","
@@ -126,10 +131,14 @@ QString MVelocityWriter::getEntry(const MDataEntry &entry, int index) const
                          + QString::number(xAxisLocation - velocity.avgPositive[index]) + ","
                          + QString::number(xAxisLocation - velocity.avgNegative[index]) + ","
                          + QString::number(xAxisLocation - velocity.maxNegative[index]) + ","
+                         + QString::number(peakAll) + ","
+                         + QString::number(meanAll) + ","
                          + QString::number((xAxisLocation - velocity.maxPositive[index]) * conversion) + ","
                          + QString::number((xAxisLocation - velocity.avgPositive[index]) * conversion) + ","
                          + QString::number((xAxisLocation - velocity.avgNegative[index]) * conversion) + ","
-                         + QString::number((xAxisLocation - velocity.maxNegative[index]) * conversion);
+                         + QString::number((xAxisLocation - velocity.maxNegative[index]) * conversion) + ","
+                         + QString::number(peakAll * conversion) + ","
+                         + QString::number(meanAll * conversion);
     } else {
         return QString();
     }
@@ -176,14 +185,20 @@ QString MCombinedWriter::getHeader() const
                                  "velocity mean positive(pixels),"
                                  "velocity mean negative(pixels),"
                                  "velocity peak negative(pixels),"
+                                 "velocity peak all(pixels),"
+                                 "velocity mean all(pixels),"
                                  "velocity peak positive(" + units + "),"
                                  "velocity mean positive(" + units + "),"
                                  "velocity mean negative(" + units + "),"
                                  "velocity peak negative(" + units + "),"
+                                 "velocity peak all(" + units + "),"
+                                 "velocity mean all(" + units + "),"
                                  "flow peak positive(" + flowUnits + "),"
                                  "flow mean positive(" + flowUnits + "),"
                                  "flow mean negative(" + flowUnits + "),"
-                                 "flow peak negative(" + flowUnits + ")";
+                                 "flow peak negative(" + flowUnits + "),"
+                                 "flow peak all(" + flowUnits + "),"
+                                 "flow mean all(" + flowUnits + ")";
 }
 
 std::vector<QString> MCombinedWriter::getMetaDataHeader() const
@@ -244,7 +259,7 @@ double MCombinedWriter::calculateFlow(double diameter, double velocity) const
 
 QString MCombinedWriter::getVelocityEmptyEntry() const
 {
-    return ",,,,,,,,,,,,,";
+    return ",,,,,,,,,,,,,,,,,,,";
 }
 
 QString MCombinedWriter::getVelocityEntry(const MDataEntry &entry, int index) const
@@ -265,6 +280,8 @@ QString MCombinedWriter::getVelocityEntry(const MDataEntry &entry, int index) co
         double avgNegV = (xAxisLocation - velocity.avgNegative[index]) * velocityConversion;
         double maxNegV = (xAxisLocation - velocity.maxNegative[index]) * velocityConversion;
 
+        double peakAll = (xAxisLocation - velocity.maxPositive[index]) + (xAxisLocation - velocity.maxNegative[index]);
+        double meanAll = (xAxisLocation - velocity.avgPositive[index]) + (xAxisLocation - velocity.avgNegative[index]);
 
         return QString() + ","
                          + QString::number(velocity.xTrackingLocationIndividual[index]) + ","
@@ -272,14 +289,20 @@ QString MCombinedWriter::getVelocityEntry(const MDataEntry &entry, int index) co
                          + QString::number(xAxisLocation - velocity.avgPositive[index]) + ","
                          + QString::number(xAxisLocation - velocity.avgNegative[index]) + ","
                          + QString::number(xAxisLocation - velocity.maxNegative[index]) + ","
+                         + QString::number(peakAll) + ","
+                         + QString::number(meanAll) + ","
                          + QString::number(maxPosV) + ","
                          + QString::number(avgPosV) + ","
                          + QString::number(avgNegV) + ","
                          + QString::number(maxNegV) + ","
+                         + QString::number(peakAll * velocityConversion) + ","
+                         + QString::number(meanAll * velocityConversion) + ","
                          + QString::number(calculateFlow(diameter, maxPosV)) + ","
                          + QString::number(calculateFlow(diameter, avgPosV)) + ","
                          + QString::number(calculateFlow(diameter, avgNegV)) + ","
-                         + QString::number(calculateFlow(diameter, maxNegV));
+                         + QString::number(calculateFlow(diameter, maxNegV)) + ","
+                         + QString::number(calculateFlow(diameter, peakAll * velocityConversion)) + ","
+                         + QString::number(calculateFlow(diameter, meanAll * velocityConversion));
     } else {
         return QString();
     }

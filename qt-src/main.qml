@@ -22,6 +22,11 @@ ApplicationWindow {
     title: "Measurements from Arterial Ultrasound Imaging (MAUI)"
     property bool controlsEnabled: true
 
+    onClosing: {
+        validationTimer.stop()
+        remoteInterface.finishSession();
+    }
+
     MFinishWindow {
         id: videoOutputProgress
         onCanceled: {
@@ -36,11 +41,6 @@ ApplicationWindow {
             if (visible) {
                 videoOutputProgress.close()
             }
-        }
-
-        onAccepted: {
-            validationTimer.stop()
-            remoteInterface.finishSession();
         }
     }
     MMessageWindow {
@@ -109,11 +109,6 @@ ApplicationWindow {
         onValidationSuccess: {
             if (!doneInitialVerify) {
                 doneInitialVerify = true
-
-                window.controlsEnabled = false
-
-                m_video.play()
-                summaryPane.setStartState("playing")
             } else if (requiresVerifyOnContinue) {
                 //summaryPane.doContinue()
             }
@@ -138,13 +133,10 @@ ApplicationWindow {
         triggeredOnStart: false
         interval: 30000
         repeat: false
-        running: false
+        running: true
         onTriggered: {
-            if (summaryPane.isPlaying) {
-                remoteInterface.validateWithExistingCredentials()
-            } else {
-                validationTimer.restart()
-            }
+            remoteInterface.validateWithExistingCredentials()
+            validationTimer.restart()
         }
     }
 
@@ -247,18 +239,17 @@ ApplicationWindow {
 
                 function doContinue() {
                     window.controlsEnabled = false
-
                     m_video.continueProcessing();
                 }
 
                 onPlayClicked: {
-                    remoteInterface.doneInitialVerify = false
-                    remoteInterface.validateWithExistingCredentials()
+                    window.controlsEnabled = false
+                    m_video.play()
                 }
                 onContinueClicked: {
                     if (remoteInterface.requiresVerifyOnContinue) {
-                        loginWindow.preset("", "")
-                        loginWindow.setMessage("Multiple user sessions have been detected.\nOnly one active session is allowed per account.")
+                        loginWindow.preset(username, password)
+                        loginWindow.setMessage("Please login to continue.")
                         loginWindow.show()
                     } else {
                         doContinue()

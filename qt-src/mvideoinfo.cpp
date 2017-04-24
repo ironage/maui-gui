@@ -112,7 +112,7 @@ void MVideoInfo::updateVideoSettings() {
         velocityScaleHorizontal = QRect(velocityROI.x() + (vW * 0.1), 0.9 * size.height(), vW - (vW * 0.1 * 2), 0);
 
         numFrames = camera->getProperty(CV_CAP_PROP_FRAME_COUNT); // returns zero for non-video files
-
+        curFrame = 0;
         //Create new buffers, camera accessor and thread
         allocateCvImage();
         allocateVideoFrame();
@@ -164,7 +164,7 @@ void MVideoInfo::update()
             qDebug() << "starting video at size: " << size;
 
             thread = new MCameraThread(camera,videoFrame,cvImageBuf,size.width(),size.height());
-            connect(thread, SIGNAL(imageReady(int)), this, SIGNAL(imageReady(int)));
+            connect(thread, SIGNAL(imageReady(int)), this, SLOT(imageReceived(int)));
             connect(thread, SIGNAL(initPointsDetected(QList<MPoint>,QList<MPoint>)), this, SLOT(initPointsReceived(QList<MPoint>,QList<MPoint>)));
             connect(thread, SIGNAL(videoFinished(CameraTask::ProcessingState)), this, SIGNAL(videoFinished(CameraTask::ProcessingState)));
             connect(thread, SIGNAL(outputProgress(int)), this, SIGNAL(outputProgress(int)));
@@ -230,6 +230,7 @@ void MVideoInfo::seek(int frame)
 {
     QMutexLocker locker(&lock);
     if (thread) {
+        curFrame = frame;
         thread->doSeek(frame);
     }
 }

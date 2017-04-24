@@ -43,7 +43,7 @@ QSize MCVPlayer::getSize() const
 void MCVPlayer::setSize(QSize size)
 {
     // FIXME: remove?
-    qDebug() << "cv player set size... to remove";
+    //qDebug() << "cv player set size... to remove";
 //    if(this->size.width() != size.width() || this->size.height() != size.height()){
 //       // this->size = size;
 //        //update();
@@ -233,6 +233,9 @@ void MCVPlayer::removeVideoFile(QString file)
 
 void MCVPlayer::changeToVideoFile(QString fileUrl)
 {
+    if (curVideo) {
+        curVideo->pause(); // temp fix
+    }
     for (int i = 0; i < videos.size(); ++i) {
         if (videos[i]) {
             videos[i]->disconnect(); // breaks all connections

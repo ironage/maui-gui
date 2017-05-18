@@ -248,7 +248,7 @@ ApplicationWindow {
                 }
                 onContinueClicked: {
                     if (remoteInterface.requiresVerifyOnContinue) {
-                        loginWindow.preset(username, password)
+                        loginWindow.preset(remoteInterface.username, remoteInterface.password)
                         loginWindow.setMessage("Please login to continue.")
                         loginWindow.show()
                     } else {
@@ -488,7 +488,7 @@ ApplicationWindow {
                 }
                 MScaleAdjuster {
                     id: scale
-                    visible: wallDetectionPane.checked && (m_video.source !== "")
+                    visible: wallDetectionPane.checked && (m_video.source !== "") && !summaryPane.isPlaying
                     text: "" + (m_video.video_height <= 0 ? "" : (scale.mappedBottomValue - scale.mappedTopValue) + " pixels = ") + wallDetectionPane.scale + " " + wallDetectionPane.conversionUnits
                     onViewPointsChanged: {
                         var scaleTop = m_video.viewPointToVideoPoint(Qt.point(hValue, topValue))
@@ -536,7 +536,7 @@ ApplicationWindow {
                 }
                 MScaleAdjuster {
                     id: velocityVerticalScale
-                    visible: velocityDetectionPane.checked && (m_video.source !== "")
+                    visible: velocityDetectionPane.checked && (m_video.source !== "") && !summaryPane.isPlaying
                     text: "" + (m_video.video_height <= 0 ? "" : (velocityVerticalScale.mappedBottomValue - velocityVerticalScale.mappedTopValue) + " pixels = ") + velocityDetectionPane.scale + " " + velocityDetectionPane.conversionUnits
                     scaleColor: Style.ui_color_dark_lblue
                     scaleHighlightColor: Style.ui_color_bright_lblue
@@ -554,7 +554,7 @@ ApplicationWindow {
                 }
                 MScaleAdjusterHorizontal {
                     id: velocityHorizontalScale
-                    visible: velocityDetectionPane.checked && (m_video.source !== "")
+                    visible: velocityDetectionPane.checked && (m_video.source !== "") && !summaryPane.isPlaying
                     text: "" + (m_video.video_height <= 0 ? "" : (velocityHorizontalScale.mappedRightValue - velocityHorizontalScale.mappedLeftValue) + " pixels = ") + velocityDetectionPane.time + (velocityDetectionPane.time === "1" ? " second" : " seconds")
                     scaleColor: Style.ui_color_dark_lblue
                     scaleHighlightColor: Style.ui_color_bright_lblue

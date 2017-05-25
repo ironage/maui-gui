@@ -554,7 +554,8 @@ ApplicationWindow {
                 }
                 MScaleAdjusterHorizontal {
                     id: velocityHorizontalScale
-                    visible: velocityDetectionPane.checked && (m_video.source !== "") && !summaryPane.isPlaying
+                    //visible: velocityDetectionPane.checked && (m_video.source !== "") && !summaryPane.isPlaying
+                    visible: false // disabled for now
                     text: "" + (m_video.video_height <= 0 ? "" : (velocityHorizontalScale.mappedRightValue - velocityHorizontalScale.mappedLeftValue) + " pixels = ") + velocityDetectionPane.time + (velocityDetectionPane.time === "1" ? " second" : " seconds")
                     scaleColor: Style.ui_color_dark_lblue
                     scaleHighlightColor: Style.ui_color_bright_lblue

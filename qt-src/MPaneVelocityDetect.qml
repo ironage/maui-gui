@@ -5,7 +5,9 @@ import "." // Custom Style
 
 Item {
     id: root
-    height: scaleInput.height + time.height + header.height + (3 * Style.v_padding)
+    // use below height to enable horizontal scale again
+    //height: scaleInput.height + time.height + header.height + (3 * Style.v_padding)
+    height: scaleInput.height + header.height + (2 * Style.v_padding)
     property alias checked: enabledCheckbox.checked
     property alias conversionUnits: scaleUnits.currentText
     property string scale: scaleInput.acceptableInput ? scaleInput.text : 1
@@ -68,6 +70,7 @@ Item {
             }
             RowLayout {
                 id: row2
+                visible: false // disabled for now
                 MTextInput {
                     id: time
                     text: "1"

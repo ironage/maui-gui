@@ -36,6 +36,7 @@ Item {
     property alias velocityConversionUnits: cv_player.velocityConversionUnits
     property alias velocityConversion: cv_player.velocityConversion
     property alias velocityTime: cv_player.velocityTime
+    property alias setupForAllVideos: cv_player.setupAllVideos
 
     signal videoFinished(int state)
     signal outputProgress(int progress)

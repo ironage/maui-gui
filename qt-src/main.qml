@@ -199,8 +199,9 @@ ApplicationWindow {
             }
 
             MCheckbox {
-                id: enabledCheckbox
+                id: syncVideoSettingsCheckbox
                 text: "Remember Initialization Settings"
+                checked: false
                 textFontSizeMode: Text.Fit
                 textMinPixelSize: 8
                 textBoxWidth: leftPanel.headerWidth - checkboxWidth - middlePadding - Style.h_padding
@@ -294,6 +295,7 @@ ApplicationWindow {
                 // See CameraTask::SetupState for interpretation of these values
                 setupState: (wallDetectionPane.checked ? 1 : 0) * 1 + (velocityDetectionPane.checked ? 1 : 0) * 2
                 doProcessOutputVideo: outputPane.processOutputVideo
+                setupForAllVideos: syncVideoSettingsCheckbox.checked
 
                 onProgressChanged: {
                     if (summaryPane.isPlaying) {

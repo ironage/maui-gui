@@ -49,6 +49,7 @@ class MCVPlayer : public QObject
     Q_PROPERTY(QQmlListProperty<MPoint> initBottomPoints READ getBottomPoints NOTIFY initPointsChanged)
     Q_PROPERTY(MLogMetaData logInfo READ getLogMetaData NOTIFY logDataChanged)
     Q_PROPERTY(bool doProcessOutputVideo READ getProcessOutputVideo WRITE setProcessOutputVideo NOTIFY processOutputVideoChanged)
+    Q_PROPERTY(bool setupAllVideos MEMBER m_setupAllVideos NOTIFY setupAllVideosChanged)
 
     Q_PROPERTY(QString conversionUnits READ getDiameterConversionUnits WRITE setDiameterConversionUnits NOTIFY diameterConversionUnitsChanged)
     Q_PROPERTY(double diameterConversion READ getDiameterConversion WRITE setDiameterConversion NOTIFY diameterConversionChanged)
@@ -147,12 +148,14 @@ signals:
     void velocityConversionChanged();
     void velocityTimeChanged();
     void videoControlInfoChanged();
+    void setupAllVideosChanged();
 private:
     QAbstractVideoSurface *m_surface;
     QVideoSurfaceFormat m_format;
     std::vector<MVideoInfo*> videos;
     MVideoInfo *curVideo;
     MInitThread initThread;
+    bool m_setupAllVideos;
 
     void allocateCvImage();
     void allocateVideoFrame();

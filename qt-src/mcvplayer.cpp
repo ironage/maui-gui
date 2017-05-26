@@ -77,8 +77,16 @@ QRect MCVPlayer::getROI() const
 
 void MCVPlayer::setROI(const QRect &newROI)
 {
-    if (curVideo) {
-        curVideo->setROI(newROI);
+    if (m_setupAllVideos) {
+        for (MVideoInfo* v : videos) {
+            if (v) {
+                v->setROI(newROI);
+            }
+        }
+    } else {
+        if (curVideo) {
+            curVideo->setROI(newROI);
+        }
     }
 }
 
@@ -92,8 +100,16 @@ QRect MCVPlayer::getVelocityROI() const
 
 void MCVPlayer::setVelocityROI(const QRect &newROI)
 {
-    if (curVideo) {
-        curVideo->setVelocityROI(newROI);
+    if (m_setupAllVideos) {
+        for (MVideoInfo* v : videos) {
+            if (v) {
+                v->setVelocityROI(newROI);
+            }
+        }
+    } else {
+        if (curVideo) {
+            curVideo->setVelocityROI(newROI);
+        }
     }
 }
 
@@ -107,8 +123,16 @@ QRect MCVPlayer::getDiameterScale() const
 
 void MCVPlayer::setDiameterScale(const QRect &newScale)
 {
-    if (curVideo) {
-        curVideo->setDiameterScale(newScale);
+    if (m_setupAllVideos) {
+        for (MVideoInfo* v : videos) {
+            if (v) {
+                v->setDiameterScale(newScale);
+            }
+        }
+    } else {
+        if (curVideo) {
+            curVideo->setDiameterScale(newScale);
+        }
     }
 }
 
@@ -122,8 +146,16 @@ QRect MCVPlayer::getVelocityScaleVertical() const
 
 void MCVPlayer::setVelocityScaleVertical(const QRect &newScale)
 {
-    if (curVideo) {
-        curVideo->setVelocityScaleVertical(newScale);
+    if (m_setupAllVideos) {
+        for (MVideoInfo* v : videos) {
+            if (v) {
+                v->setVelocityScaleVertical(newScale);
+            }
+        }
+    } else {
+        if (curVideo) {
+            curVideo->setVelocityScaleVertical(newScale);
+        }
     }
 }
 
@@ -137,8 +169,16 @@ QRect MCVPlayer::getVelocityScaleHorizontal() const
 
 void MCVPlayer::setVelocityScaleHorizontal(const QRect &newScale)
 {
-    if (curVideo) {
-        curVideo->setVelocityScaleHorizontal(newScale);
+    if (m_setupAllVideos) {
+        for (MVideoInfo* v : videos) {
+            if (v) {
+                v->setVelocityScaleHorizontal(newScale);
+            }
+        }
+    } else {
+        if (curVideo) {
+            curVideo->setVelocityScaleHorizontal(newScale);
+        }
     }
 }
 
@@ -370,8 +410,16 @@ int MCVPlayer::getPlaybackState()
 
 void MCVPlayer::setSetupState(int state)
 {
-    if (curVideo) {
-        curVideo->setSetupState(CameraTask::SetupState(state));
+    if (m_setupAllVideos) {
+        for (MVideoInfo* v : videos) {
+            if (v) {
+                v->setSetupState(CameraTask::SetupState(state));
+            }
+        }
+    } else {
+        if (curVideo) {
+            curVideo->setSetupState(CameraTask::SetupState(state));
+        }
     }
 }
 
@@ -413,8 +461,16 @@ bool MCVPlayer::getProcessOutputVideo()
 
 void MCVPlayer::setProcessOutputVideo(bool process)
 {
-    if (curVideo) {
-        curVideo->setProcessOutputVideo(process);
+    if (m_setupAllVideos) {
+        for (MVideoInfo* v : videos) {
+            if (v) {
+                v->setProcessOutputVideo(process);
+            }
+        }
+    } else {
+        if (curVideo) {
+            curVideo->setProcessOutputVideo(process);
+        }
     }
 }
 
@@ -467,8 +523,16 @@ QString MCVPlayer::getDiameterConversionUnits()
 
 void MCVPlayer::setDiameterConversionUnits(QString diameterUnits)
 {
-    if (curVideo) {
-        curVideo->setDiameterConversionUnits(diameterUnits);
+    if (m_setupAllVideos) {
+        for (MVideoInfo* v : videos) {
+            if (v) {
+                v->setDiameterConversionUnits(diameterUnits);
+            }
+        }
+    } else {
+        if (curVideo) {
+            curVideo->setDiameterConversionUnits(diameterUnits);
+        }
     }
 }
 
@@ -482,8 +546,16 @@ double MCVPlayer::getDiameterConversion()
 
 void MCVPlayer::setDiameterConversion(double diameterConversion)
 {
-    if (curVideo) {
-        curVideo->setDiameterConversion(diameterConversion);
+    if (m_setupAllVideos) {
+        for (MVideoInfo* v : videos) {
+            if (v) {
+                v->setDiameterConversion(diameterConversion);
+            }
+        }
+    } else {
+        if (curVideo) {
+            curVideo->setDiameterConversion(diameterConversion);
+        }
     }
 }
 
@@ -497,8 +569,16 @@ QString MCVPlayer::getOutputDir()
 
 void MCVPlayer::setOutputDir(QString outputDir)
 {
-    if (curVideo) {
-        curVideo->setOutputDir(outputDir);
+    if (m_setupAllVideos) {
+        for (MVideoInfo* v : videos) {
+            if (v) {
+                v->setOutputDir(outputDir);
+            }
+        }
+    } else {
+        if (curVideo) {
+            curVideo->setOutputDir(outputDir);
+        }
     }
 }
 
@@ -512,8 +592,16 @@ QString MCVPlayer::getVelocityConversionUnits()
 
 void MCVPlayer::setVelocityConversionUnits(QString velocityConversionUnits)
 {
-    if (curVideo) {
-        curVideo->setVelocityConversionUnits(velocityConversionUnits);
+    if (m_setupAllVideos) {
+        for (MVideoInfo* v : videos) {
+            if (v) {
+                v->setVelocityConversionUnits(velocityConversionUnits);
+            }
+        }
+    } else {
+        if (curVideo) {
+            curVideo->setVelocityConversionUnits(velocityConversionUnits);
+        }
     }
 }
 
@@ -527,8 +615,16 @@ double MCVPlayer::getVelocityConversion()
 
 void MCVPlayer::setVelocityConversion(double velocityConversion)
 {
-    if (curVideo) {
-        curVideo->setVelocityConversion(velocityConversion);
+    if (m_setupAllVideos) {
+        for (MVideoInfo* v : videos) {
+            if (v) {
+                v->setVelocityConversion(velocityConversion);
+            }
+        }
+    } else {
+        if (curVideo) {
+            curVideo->setVelocityConversion(velocityConversion);
+        }
     }
 }
 
@@ -542,7 +638,15 @@ double MCVPlayer::getVelocityTime()
 
 void MCVPlayer::setVelocityTime(double velocityTime)
 {
-    if (curVideo) {
-        curVideo->setVelocityTime(velocityTime);
+    if (m_setupAllVideos) {
+        for (MVideoInfo* v : videos) {
+            if (v) {
+                v->setVelocityTime(velocityTime);
+            }
+        }
+    } else {
+        if (curVideo) {
+            curVideo->setVelocityTime(velocityTime);
+        }
     }
 }

@@ -170,7 +170,7 @@ ApplicationWindow {
         spacing: 1
         Column {
             id: leftPanel
-            property int headerWidth: 220
+            property int headerWidth: 240
             Layout.alignment: Qt.AlignTop
             Layout.topMargin: Style.h_padding
             Layout.leftMargin: Style.h_padding
@@ -181,7 +181,7 @@ ApplicationWindow {
                 Layout.leftMargin: Style.h_padding
                 Layout.bottomMargin: Style.v_padding * 2
                 width: leftPanel.headerWidth
-                height: 150
+                height: 180
                 enabled: window.controlsEnabled
                 onVideoSelected: {
                     m_video.addVideo(path)
@@ -196,6 +196,20 @@ ApplicationWindow {
                 onClearVideo: {
                     m_video.changeToVideo("")
                 }
+            }
+
+            MCheckbox {
+                id: enabledCheckbox
+                text: "Remember Initialization Settings"
+                textFontSizeMode: Text.Fit
+                textMinPixelSize: 8
+                textBoxWidth: leftPanel.headerWidth - checkboxWidth - middlePadding - Style.h_padding
+                middlePadding: Style.h_padding / 2
+                checkboxWidth: 18
+                checkboxHeight: checkboxWidth
+                Layout.leftMargin: Style.h_padding
+                Layout.bottomMargin: Style.v_padding * 2
+                anchors.horizontalCenter: leftPanel.horizontalCenter
             }
 
             MPaneOutput {

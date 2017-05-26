@@ -32,6 +32,10 @@ Item {
     property alias checkboxHeight: canvas.height
     property alias middlePadding: middlePadding.width
     property alias text: mText.text
+    property alias textBoxWidth: mText.width
+    property alias textFont: mText.font
+    property alias textFontSizeMode: mText.fontSizeMode
+    property alias textMinPixelSize: mText.minimumPixelSize
     signal clicked()
 
     onCurBgColorChanged: canvas.requestPaint()

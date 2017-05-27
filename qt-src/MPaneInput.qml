@@ -37,11 +37,12 @@ Item {
 
     function removeFromList(index) {
         if (index < listModel.count) {
+            var oldPath = listModel.get(listView.currentIndex).path
+            root.videoRemoved(oldPath)
             if (listModel.count == 1) {
                 listModel.remove(index)
                 clearVideo()
             } else {
-                var oldPath = listModel.get(listView.currentIndex).path
                 var newSelection = listView.currentIndex
                 if (listView.currentIndex > index) {
                     newSelection = listView.currentIndex - 1

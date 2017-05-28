@@ -458,9 +458,10 @@ void MVideoInfo::setVelocityTime(double velocityTime)
 void MVideoInfo::refreshAll()
 {
     emit sizeChanged();
-    emit imageReady(curFrame);
     emit sourceChanged();
     emit sourceUpdated();
+    emit videoPropertiesChanged();
+    emit imageReady(curFrame);
     emit initPointsChanged();
     emit diameterConversionUnitsChanged();
     emit diameterConversionChanged();

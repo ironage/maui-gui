@@ -319,8 +319,6 @@ ApplicationWindow {
                     m_video_control.start_percent = 0 // do this last so cur frame is start
                 }
                 function updateOverlaysFromStoredData() {
-                    m_video_control.moveTo(m_video.progress)
-
                     roi.mappedXY = Qt.point(roiMapping.x, roiMapping.y)
                     roi.mappedWH = Qt.point(roiMapping.width, roiMapping.height)
                     roi.mappedBR = Qt.point(roi.mappedXY.x + roi.mappedWH.x, roi.mappedXY.y + roi.mappedWH.y)
@@ -338,10 +336,13 @@ ApplicationWindow {
                     velocityHorizontalScale.parentLayoutChanged()
                 }
                 onContentRectChanged: updateOverlaysFromStoredData()
-                onVideoRectChanged: updateOverlaysFromStoredData()
+                onVideoRectChanged: {
+                    updateOverlaysFromStoredData()
+                }
                 onVideoControlInfoChanged: {
                     updateOverlaysFromStoredData()
 
+                    m_video_control.moveTo(m_video.progress)
                     wallDetectionPane.changeToUnits(m_video.conversionUnits)
                     wallDetectionPane.changeScale(m_video.diameterConversion)
                     velocityDetectionPane.changeToUnits(m_video.velocityConversionUnits)

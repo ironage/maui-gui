@@ -125,11 +125,10 @@ void MRemoteInterface::replyFinished(QNetworkReply *reply)
         }
         emit validationFailed(message);
     } else {
-        qDebug() << "reply success: ";
-        qDebug() << reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt();
-        qDebug() << reply->header(QNetworkRequest::ContentLengthHeader).toULongLong();
+        qDebug() << "reply success: " << reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt();
+        //qDebug() << reply->header(QNetworkRequest::ContentLengthHeader).toULongLong();
         QByteArray replyBody = reply->readAll();
-        qDebug() << "body: " << replyBody;
+        //qDebug() << "body: " << replyBody;
         QJsonDocument jsonDoc = QJsonDocument::fromJson(replyBody);
         if (!jsonDoc.isNull()) {
             QJsonObject response = jsonDoc.object();
@@ -200,7 +199,7 @@ void MRemoteInterface::validate(QString username, QString password, QString meth
     request.setUrl(QUrl(settings.getBaseUrl() + "welcome/verify/"));
     request.setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
     QString nonceQString = MSettings::getRandomString(16);
-    qDebug() << "sending nonce: " << nonceQString;
+    //qDebug() << "sending nonce: " << nonceQString;
     std::string stdNonce = nonceQString.toStdString();
     QByteArray nonce = QByteArray::fromRawData(stdNonce.c_str(), nonceQString.size());
 
@@ -212,7 +211,7 @@ void MRemoteInterface::validate(QString username, QString password, QString meth
     json.insert("nonce", encryptForServer(nonceQString, sharedKey));
     json.insert("jump", encryptForServer("Abyssus abyssum invocat", nonce, sharedKey));
 
-    qDebug() << "json request: " << json;
+    //qDebug() << "json request: " << json;
     transactionActive = true;
     networkManager.post(request, QJsonDocument(json).toJson());
 }

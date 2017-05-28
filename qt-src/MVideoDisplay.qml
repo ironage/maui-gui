@@ -17,8 +17,8 @@ Item {
     property double progress_max: 1.0
     property alias playback_state: cv_player.playbackState
     property alias setupState: cv_player.setupState
-    property alias video_width: cv_player.size.width
-    property alias video_height: cv_player.size.height
+    property alias videoWidth: cv_player.size.width
+    property alias videoHeight: cv_player.size.height
     property alias roiMapping: cv_player.roi
     property alias velocityROIMapping: cv_player.velocityROI
     property alias diameterScale: cv_player.diameterScale
@@ -109,6 +109,7 @@ Item {
         onOutputProgress: m_root.outputProgress(progress)
         onVideoLoaded: m_root.videoLoaded(success, fullName, name, extension, dir)
         onVideoControlInfoChanged: m_root.videoControlInfoChanged()
+        onVideoPropertiesChanged: m_root.videoControlInfoChanged()
     }
 
     VideoOutput {

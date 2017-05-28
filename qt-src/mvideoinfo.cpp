@@ -97,7 +97,6 @@ void MVideoInfo::updateVideoSettings() {
         int videoWidth = camera->getProperty(CV_CAP_PROP_FRAME_WIDTH);
         int videoHeight = camera->getProperty(CV_CAP_PROP_FRAME_HEIGHT);
         size = QSize(videoWidth, videoHeight);
-        emit sizeChanged();
 
         double dW = size.width() / 3;
         double dH = size.height() / 3;
@@ -116,10 +115,6 @@ void MVideoInfo::updateVideoSettings() {
         //Create new buffers, camera accessor and thread
         allocateCvImage();
         allocateVideoFrame();
-
-        emit roiChanged();
-        emit velocityROIChanged();
-        emit videoPropertiesChanged();
     }
 }
 
@@ -175,6 +170,10 @@ void MVideoInfo::update()
             locker.unlock(); // for seek
             emit sourceChanged();
             emit sourceUpdated();
+            emit sizeChanged();
+            emit roiChanged();
+            emit velocityROIChanged();
+            emit videoPropertiesChanged();
             seek(0);
             qDebug() << "Opened file: " << sourceFile;
             logMetaData.setFileName(sourceUrl.toString());
@@ -459,10 +458,7 @@ void MVideoInfo::setVelocityTime(double velocityTime)
 void MVideoInfo::refreshAll()
 {
     emit sizeChanged();
-    emit videoPropertiesChanged();
     emit imageReady(curFrame);
-    emit roiChanged();
-    emit velocityROIChanged();
     emit sourceChanged();
     emit sourceUpdated();
     emit initPointsChanged();

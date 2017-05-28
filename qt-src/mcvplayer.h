@@ -162,7 +162,7 @@ private:
 private slots:
     void imageReceived(int frameNumber);
     void initPointsReceived(QList<MPoint> top, QList<MPoint> bottom);
-    void onVideoPropertiesChanged();
+    void videoInitialized();
 };
 
 Q_DECLARE_METATYPE(QQmlListProperty<MPoint>)

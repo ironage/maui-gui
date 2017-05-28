@@ -237,12 +237,12 @@ void MCVPlayer::initPointsReceived(QList<MPoint> top, QList<MPoint> bottom)
     }
 }
 
-void MCVPlayer::onVideoPropertiesChanged()
+void MCVPlayer::videoInitialized()
 {
-    if(m_surface && curVideo) {
-        if(m_surface->isActive())
+    if (m_surface && curVideo) {
+        if (m_surface->isActive())
             m_surface->stop();
-        if(!m_surface->start(QVideoSurfaceFormat(curVideo->getSize(), curVideo->getVideoFormat())))
+        if (!m_surface->start(QVideoSurfaceFormat(curVideo->getSize(), curVideo->getVideoFormat())))
             qDebug() << "Could not start QAbstractVideoSurface, error: %d" << m_surface->error();
     }
     emit videoPropertiesChanged();
@@ -258,17 +258,18 @@ void MCVPlayer::addVideoFile(QString file) {
 
 void MCVPlayer::removeVideoFile(QString file)
 {
-    for (int i = 0; i < videos.size(); ++i) {
-        if (videos[i] && videos[i]->getSourceUrl() == QUrl(file)) {
-            if (curVideo && curVideo->getSourceUrl() == videos[i]->getSourceUrl()) {
+    for (std::vector<MVideoInfo*>::iterator it = videos.begin(); it != videos.end(); ++it) {
+        if ((*it) && (*it)->getSourceUrl().toLocalFile() == QUrl(file).toLocalFile()) {
+            if (curVideo && curVideo->getSourceUrl() == (*it)->getSourceUrl()) {
                 curVideo = nullptr;
             }
-            auto toRemove = videos.erase(videos.begin() + i);
-            delete (*toRemove);
+            MVideoInfo *toDelete = (*it);
+            videos.erase(it);
+            delete toDelete;
             return;
         }
     }
-    qDebug() << "Could not find video to remove: " << file;
+    qDebug() << "Could not find video to remove: " << file << "List size: " << videos.size();
 }
 
 void MCVPlayer::changeToVideoFile(QString fileUrl)
@@ -279,13 +280,16 @@ void MCVPlayer::changeToVideoFile(QString fileUrl)
     for (int i = 0; i < videos.size(); ++i) {
         if (videos[i]) {
             videos[i]->disconnect(); // breaks all connections
-            if (videos[i]->getSourceUrl() == QUrl(fileUrl)) {
-                curVideo = videos[i];
-            }
+        }
+    }
+    for (int i = 0; i < videos.size(); ++i) {
+        if (videos[i] && videos[i]->getSourceUrl() == QUrl(fileUrl)) {
+            curVideo = videos[i];
+            break;
         }
     }
     if (curVideo) {
-        connect(curVideo, SIGNAL(videoPropertiesChanged()), this, SLOT(onVideoPropertiesChanged()));
+        connect(curVideo, SIGNAL(videoPropertiesChanged()), this, SLOT(videoInitialized()));
         connect(curVideo, SIGNAL(imageReady(int)), this, SLOT(imageReceived(int)));
         connect(curVideo, SIGNAL(roiChanged()), this, SIGNAL(roiChanged()));
         connect(curVideo, SIGNAL(velocityROIChanged()), this, SIGNAL(velocityROIChanged()));
@@ -304,12 +308,11 @@ void MCVPlayer::changeToVideoFile(QString fileUrl)
         connect(curVideo, SIGNAL(velocityConversionChanged()), this, SIGNAL(velocityConversionChanged()));
         connect(curVideo, SIGNAL(velocityTimeChanged()), this, SIGNAL(velocityTimeChanged()));
         emit logDataChanged();
-        emit roiChanged();
-        emit velocityROIChanged();
-        //emit processOutputVideoChanged();
 
         curVideo->refreshAll();
         emit videoControlInfoChanged();
+    } else {
+        emit sourceChanged(); // refreshes to black display with source==""
     }
 }
 

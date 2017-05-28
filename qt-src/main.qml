@@ -318,7 +318,9 @@ ApplicationWindow {
                     m_video_control.end_percent = 1
                     m_video_control.start_percent = 0 // do this last so cur frame is start
                 }
-                onContentRectChanged: {
+                function updateOverlaysFromStoredData() {
+                    m_video_control.moveTo(m_video.progress)
+
                     roi.mappedXY = Qt.point(roiMapping.x, roiMapping.y)
                     roi.mappedWH = Qt.point(roiMapping.width, roiMapping.height)
                     roi.mappedBR = Qt.point(roi.mappedXY.x + roi.mappedWH.x, roi.mappedXY.y + roi.mappedWH.y)
@@ -335,26 +337,10 @@ ApplicationWindow {
                     velocityHorizontalScale.changeMappedPoints(m_video.velocityScaleHorizontal.y, m_video.velocityScaleHorizontal.x, m_video.velocityScaleHorizontal.x + m_video.velocityScaleHorizontal.width)
                     velocityHorizontalScale.parentLayoutChanged()
                 }
-                onVideoRectChanged: {
-                    roi.parentLayoutChanged()
-                    velocityROI.parentLayoutChanged()
-                }
+                onContentRectChanged: updateOverlaysFromStoredData()
+                onVideoRectChanged: updateOverlaysFromStoredData()
                 onVideoControlInfoChanged: {
-                    roi.mappedXY = Qt.point(m_video.roiMapping.x, m_video.roiMapping.y)
-                    roi.mappedWH = Qt.point(m_video.roiMapping.width, m_video.roiMapping.height)
-                    roi.mappedBR = Qt.point(m_video.roiMapping.x + m_video.roiMapping.width, m_video.roiMapping.y + m_video.roiMapping.height)
-                    roi.parentLayoutChanged()
-                    velocityROI.mappedXY  = Qt.point(m_video.velocityROIMapping.x, m_video.velocityROIMapping.y)
-                    velocityROI.mappedWH = Qt.point(m_video.velocityROIMapping.width, m_video.velocityROIMapping.height)
-                    velocityROI.mappedBR = Qt.point(m_video.velocityROIMapping.x + m_video.velocityROIMapping.width, m_video.velocityROIMapping.y + m_video.velocityROIMapping.height)
-                    velocityROI.parentLayoutChanged()
-
-                    scale.changeMappedPoints(m_video.diameterScale.x, m_video.diameterScale.y,  m_video.diameterScale.y + m_video.diameterScale.height)
-                    scale.parentLayoutChanged()
-                    velocityVerticalScale.changeMappedPoints(m_video.velocityScaleVertical.x, m_video.velocityScaleVertical.y, m_video.velocityScaleVertical.y + m_video.velocityScaleVertical.height)
-                    velocityVerticalScale.parentLayoutChanged()
-                    velocityHorizontalScale.changeMappedPoints(m_video.velocityScaleHorizontal.y, m_video.velocityScaleHorizontal.x, m_video.velocityScaleHorizontal.x + m_video.velocityScaleHorizontal.width)
-                    velocityHorizontalScale.parentLayoutChanged()
+                    updateOverlaysFromStoredData()
 
                     wallDetectionPane.changeToUnits(m_video.conversionUnits)
                     wallDetectionPane.changeScale(m_video.diameterConversion)
@@ -505,7 +491,7 @@ ApplicationWindow {
                 MScaleAdjuster {
                     id: scale
                     visible: wallDetectionPane.checked && (m_video.source !== "") && !summaryPane.isPlaying
-                    text: "" + (m_video.video_height <= 0 ? "" : (scale.mappedBottomValue - scale.mappedTopValue) + " pixels = ") + wallDetectionPane.scale + " " + wallDetectionPane.conversionUnits
+                    text: "" + (m_video.videoHeight <= 0 ? "" : (scale.mappedBottomValue - scale.mappedTopValue) + " pixels = ") + wallDetectionPane.scale + " " + wallDetectionPane.conversionUnits
                     onViewPointsChanged: {
                         var scaleTop = m_video.viewPointToVideoPoint(Qt.point(hValue, topValue))
                         var scaleBottom = m_video.viewPointToVideoPoint(Qt.point(hValue, bottomValue))
@@ -553,7 +539,7 @@ ApplicationWindow {
                 MScaleAdjuster {
                     id: velocityVerticalScale
                     visible: velocityDetectionPane.checked && (m_video.source !== "") && !summaryPane.isPlaying
-                    text: "" + (m_video.video_height <= 0 ? "" : (velocityVerticalScale.mappedBottomValue - velocityVerticalScale.mappedTopValue) + " pixels = ") + velocityDetectionPane.scale + " " + velocityDetectionPane.conversionUnits
+                    text: "" + (m_video.videoHeight <= 0 ? "" : (velocityVerticalScale.mappedBottomValue - velocityVerticalScale.mappedTopValue) + " pixels = ") + velocityDetectionPane.scale + " " + velocityDetectionPane.conversionUnits
                     scaleColor: Style.ui_color_dark_lblue
                     scaleHighlightColor: Style.ui_color_bright_lblue
                     onViewPointsChanged: {
@@ -572,7 +558,7 @@ ApplicationWindow {
                     id: velocityHorizontalScale
                     //visible: velocityDetectionPane.checked && (m_video.source !== "") && !summaryPane.isPlaying
                     visible: false // disabled for now
-                    text: "" + (m_video.video_height <= 0 ? "" : (velocityHorizontalScale.mappedRightValue - velocityHorizontalScale.mappedLeftValue) + " pixels = ") + velocityDetectionPane.time + (velocityDetectionPane.time === "1" ? " second" : " seconds")
+                    text: "" + (m_video.videoHeight <= 0 ? "" : (velocityHorizontalScale.mappedRightValue - velocityHorizontalScale.mappedLeftValue) + " pixels = ") + velocityDetectionPane.time + (velocityDetectionPane.time === "1" ? " second" : " seconds")
                     scaleColor: Style.ui_color_dark_lblue
                     scaleHighlightColor: Style.ui_color_bright_lblue
                     onViewPointsChanged: {

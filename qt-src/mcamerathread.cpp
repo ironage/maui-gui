@@ -903,9 +903,9 @@ void MCameraThread::start()
 
 void MCameraThread::stop()
 {
-    if(task != NULL)
+    if (task != NULL) {
         task->stop();
-    workerThread.wait(1000);
+    }
     workerThread.quit();
     workerThread.wait();
 }

@@ -65,7 +65,7 @@ mwArray* opencvConvertToMX(cv::Mat& m) {
     for (int i = 0; i < rows; i++) {
         for (int j = 0; j < cols; j++) {
             //        [i*cols+j]  row vs col order is reversed from cv::Mat to mwArray
-            dataBuffer[j * rows + i] = m.at<uchar>(i, j);
+            dataBuffer[j * rows + i] = double(m.at<unsigned char>(i, j)) / 255.0f;
         }
     }
     T->SetData(dataBuffer, cols * rows);

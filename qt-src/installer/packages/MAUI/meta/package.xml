@@ -2,8 +2,8 @@
 <Package>
     <DisplayName>The MAUI Graphical User Interface</DisplayName>
     <Description>Install MAUI.</Description>
-    <Version>1.4.5-1</Version>
-    <ReleaseDate>2016-06-02</ReleaseDate>
+    <Version>1.4.6-1</Version>
+    <ReleaseDate>2016-06-12</ReleaseDate>
     <Licenses>
         <License name="MAUI License Agreement" file="license.txt" />
     </Licenses>

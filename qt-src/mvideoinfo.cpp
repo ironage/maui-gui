@@ -32,9 +32,9 @@ MVideoInfo::~MVideoInfo()
     }
 }
 
-void MVideoInfo::setVelocityROI(const QRect &newROI)
+void MVideoInfo::setVelocityROI(const QRect &newROI, bool forceUpdate)
 {
-    if (velocityROI != newROI) {
+    if (velocityROI != newROI || forceUpdate) {
         velocityROI = newROI;
         QMutexLocker locker(&lock);
         if (thread) {
@@ -42,6 +42,11 @@ void MVideoInfo::setVelocityROI(const QRect &newROI)
         }
         emit velocityROIChanged();
     }
+}
+
+void MVideoInfo::cacheVelocityROI(const QRect &newROI)
+{
+    velocityROI = newROI;
 }
 
 void MVideoInfo::setDiameterScale(const QRect &newScale)
@@ -80,9 +85,9 @@ void MVideoInfo::setRecomputeROIMode(bool mode)
     }
 }
 
-void MVideoInfo::setROI(const QRect &newROI)
+void MVideoInfo::setROI(const QRect &newROI, bool forceUpdate)
 {
-    if (roi != newROI) {
+    if (roi != newROI || forceUpdate) {
         roi = newROI;
         QMutexLocker locker(&lock);
         if (thread) {
@@ -90,6 +95,11 @@ void MVideoInfo::setROI(const QRect &newROI)
         }
         emit roiChanged();
     }
+}
+
+void MVideoInfo::cacheROI(const QRect &newROI)
+{
+    roi = newROI;
 }
 
 void MVideoInfo::updateVideoSettings() {
@@ -457,6 +467,8 @@ void MVideoInfo::setVelocityTime(double velocityTime)
 
 void MVideoInfo::refreshAll()
 {
+    setROI(roi, true); // could need to update to cached version
+    setVelocityROI(velocityROI, true);
     emit sizeChanged();
     emit sourceChanged();
     emit sourceUpdated();

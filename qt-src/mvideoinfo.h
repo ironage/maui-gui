@@ -22,8 +22,10 @@ public:
     MVideoInfo(QUrl path);
     ~MVideoInfo();
 
-    void setROI(const QRect &newROI);
-    void setVelocityROI(const QRect &newROI);
+    void setROI(const QRect &newROI, bool forceUpdate = false);
+    void cacheROI(const QRect &newROI);
+    void setVelocityROI(const QRect &newROI, bool forceUpdate = false);
+    void cacheVelocityROI(const QRect &newROI);
     void setDiameterScale(const QRect &newScale);
     void setVelocityScaleVertical(const QRect &newScale);
     void setVelocityScaleHorizontal(const QRect &newScale);

@@ -81,7 +81,11 @@ void MCVPlayer::setROI(const QRect &newROI)
     if (m_setupAllVideos) {
         for (MVideoInfo* v : videos) {
             if (v) {
-                v->setROI(newROI);
+                if (v == curVideo) {
+                    v->setROI(newROI);
+                } else {
+                    v->cacheROI(newROI);
+                }
             }
         }
     } else {
@@ -104,7 +108,11 @@ void MCVPlayer::setVelocityROI(const QRect &newROI)
     if (m_setupAllVideos) {
         for (MVideoInfo* v : videos) {
             if (v) {
-                v->setVelocityROI(newROI);
+                if (v == curVideo) {
+                    v->setVelocityROI(newROI);
+                } else {
+                    v->cacheVelocityROI(newROI);
+                }
             }
         }
     } else {

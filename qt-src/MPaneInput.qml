@@ -16,6 +16,7 @@ Item {
     signal videoRemoved(string path)
     signal displayVideo(string path)
     signal clearVideo()
+    signal openingInputDialog()
 
     function addFile(success, fullUrl, folder, displayName) {
         if (success) {
@@ -31,7 +32,6 @@ Item {
     function setCurrentProgress(progress) {
         if (listView.currentIndex < listModel.count) {
             listModel.get(listView.currentIndex).percentComplete = progress
-            //console.log("setting progress: " + progress + " new percent: " + listModel.get(listView.currentIndex).percentComplete)
         }
     }
 
@@ -160,6 +160,7 @@ Item {
             v_padding: 0
             text: "+"
             onClicked: {
+                root.openingInputDialog()
                 videoSelectDialog.open()
             }
         }

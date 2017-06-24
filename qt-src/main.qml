@@ -123,10 +123,6 @@ ApplicationWindow {
             newVersionMessage.show()
             summaryPane.setStartState("ready")
         }
-        Component.onCompleted: {
-            var previousFolder = remoteInterface.getLocalSetting("directory_in")
-            inputPane.setFolder(previousFolder)
-        }
     }
     Timer {
         id: validationTimer
@@ -186,6 +182,10 @@ ApplicationWindow {
                 onVideoSelected: {
                     m_video.addVideo(path)
                     remoteInterface.setLocalSetting("directory_in", folder)
+                }
+                onOpeningInputDialog: {
+                    var previousFolder = remoteInterface.getLocalSetting("directory_in")
+                    inputPane.setFolder(previousFolder)
                 }
                 onVideoRemoved: {
                     m_video.removeVideo(path)

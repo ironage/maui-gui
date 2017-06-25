@@ -120,8 +120,7 @@ ApplicationWindow {
             console.log("session complete")
         }
         onValidationNewVersionAvailable: {
-            newVersionMessage.show()
-            summaryPane.setStartState("ready")
+            settingsPane.updateAvailable()
         }
     }
     Timer {
@@ -139,10 +138,9 @@ ApplicationWindow {
     MText {
         id: disclaimer
         width: leftPanel.headerWidth
-        height: 80
         anchors.left: parent.left
         anchors.leftMargin: Style.h_padding
-        anchors.bottom: parent.bottom
+        anchors.bottom: settingsPane.top
         anchors.bottomMargin: Style.v_padding
         text: "Please reference the Measurements from Arterial Ultrasound Imaging (MAUI) software from Hedgehog Medical Inc. in your publications."
         style: Text.Normal
@@ -151,14 +149,19 @@ ApplicationWindow {
         wrapMode: Text.WordWrap
     }
 
-    MText {
-        id: versionString
-        text: " v" + remoteInterface.getDisplayVersion() + "  "
-        style: Text.Normal
-        color: Style.ui_color_dark_dblue
-        font.pixelSize: 12
+    MSettingsPane {
+        id: settingsPane
+        version: remoteInterface.getDisplayVersion()
+        anchors.leftMargin: Style.h_padding
+        anchors.bottomMargin: Style.v_padding
         anchors.bottom: parent.bottom
         anchors.left: parent.left
+        width: leftPanel.headerWidth
+        onUserClicked: {
+            loginWindow.preset(remoteInterface.username, remoteInterface.password)
+            loginWindow.setMessage("Current user account details:")
+            loginWindow.show()
+        }
     }
 
     RowLayout {

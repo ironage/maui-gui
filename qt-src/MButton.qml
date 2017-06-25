@@ -1,9 +1,14 @@
-import QtQuick 2.0
+import QtQuick 2.5
+import QtQuick.Layouts 1.3
 import "."
 
 Item {
     id: m_root
     property alias text: m_text.text
+    property alias textColor: m_text.color
+    property alias textStyleColor: m_text.styleColor
+    property alias textStyle: m_text.style
+    property alias textFont: m_text.font
 
     property int h_padding: Style.h_padding
     property int v_padding: Style.v_padding
@@ -14,10 +19,13 @@ Item {
     property color highlight_color: Style.ui_component_highlight
     property color disabled_color: Style.ui_color_dark_grey
 
+    property alias imageSource: image.source
+    property alias imageSourceSize: image.sourceSize
+
     signal clicked();
 
-    width: m_text.implicitWidth + (2 * h_padding)
-    height: m_text.implicitHeight + (2 * v_padding)
+    width: m_text.implicitWidth + image.width + (2 * h_padding)
+    height: (m_text.implicitHeight > image.height ? m_text.implicitHeight : image.height) + (2 * v_padding)
 
     function enable() {
         m_rect.state = ""
@@ -35,9 +43,18 @@ Item {
         anchors.fill: parent
         color: m_root.color
 
-        MText {
-            id: m_text
+        RowLayout {
             anchors.centerIn: parent
+            Image {
+                id: image
+                smooth: true
+                width: sourceSize.width
+                height: sourceSize.height
+            }
+
+            MText {
+                id: m_text
+            }
         }
         MouseArea {
             id: m_area
@@ -54,7 +71,7 @@ Item {
             },
             State {
                 name: "pressed"
-                PropertyChanges { target: m_rect; color: m_root.selected_color}
+                PropertyChanges { target: m_rect; color: m_root.selected_color }
                 when: m_area.containsPress
             },
             State {

@@ -32,5 +32,11 @@
         <file>MExitButton.qml</file>
         <file>MScaleAdjusterHorizontal.qml</file>
         <file>MLineEstimate.qml</file>
+        <file>MSettingsPane.qml</file>
+        <file>icons/user.png</file>
+        <file>icons/cancel.png</file>
+        <file>icons/check.png</file>
+        <file>icons/download.png</file>
+        <file>icons/gear.png</file>
     </qresource>
 </RCC>

@@ -59,9 +59,7 @@ ApplicationWindow {
     MLoginWindow {
         id: loginWindow
         onVerifyAccount: remoteInterface.validateRequest(username, password)
-        onClosing: {
-            summaryPane.cancelValidation()
-        }
+        onChangeAccount: remoteInterface.changeExistingCredentials(username, password)
     }
 
     MRemoteInterface {
@@ -69,33 +67,43 @@ ApplicationWindow {
         property bool doneInitialVerify: false
         property bool requiresVerifyOnContinue: false
         onNoExistingCredentials: {
-            loginWindow.preset(username, password)
+            if (loginWindow.active === false) {
+                loginWindow.preset(username, password)
+            }
             loginWindow.setMessage("Please login to continue.")
             loginWindow.show()
         }
         onValidationNoConnection: {
-            loginWindow.preset(username, password)
+            if (loginWindow.active === false) {
+                loginWindow.preset(username, password)
+            }
             loginWindow.setMessage("Connection failure.\nPlease check your internet connection and try again.")
             loginWindow.show()
-            summaryPane.setStartState("ready")
+            summaryPane.doStop()
         }
         onValidationFailed: {
-            loginWindow.preset(username, password)
+            if (loginWindow.active === false) {
+                loginWindow.preset(username, password)
+            }
             loginWindow.setMessage("Login failed.\n" + failureReason)
             loginWindow.show()
-            summaryPane.setStartState("ready")
+            summaryPane.doStop()
         }
         onValidationBadCredentials: {
-            loginWindow.preset(username, password)
+            if (loginWindow.active === false) {
+                loginWindow.preset(username, password)
+            }
             loginWindow.setMessage("Your username and password did not match.\nPlease try again.")
             loginWindow.show()
-            summaryPane.setStartState("ready")
+            summaryPane.doStop()
         }
         onValidationAccountExpired: {
-            loginWindow.preset(username, password)
+            if (loginWindow.active === false) {
+                loginWindow.preset(username, password)
+            }
             loginWindow.setMessage("Your account has expired.\nPlease renew your account at hedgehogmedical.com")
             loginWindow.show()
-            summaryPane.setStartState("ready")
+            summaryPane.doStop()
         }
         onMultipleSessionsDetected: {
             summaryPane.pauseIfPlaying()
@@ -160,7 +168,7 @@ ApplicationWindow {
         onUserClicked: {
             loginWindow.preset(remoteInterface.username, remoteInterface.password)
             loginWindow.setMessage("Current user account details:")
-            loginWindow.show()
+            loginWindow.showForChange()
         }
     }
 
@@ -258,6 +266,11 @@ ApplicationWindow {
                 function doContinue() {
                     window.controlsEnabled = false
                     m_video.continueProcessing();
+                }
+                function doStop() {
+                    window.controlsEnabled = true
+                    m_video.pause()
+                    setStartState("ready")
                 }
 
                 onPlayClicked: {

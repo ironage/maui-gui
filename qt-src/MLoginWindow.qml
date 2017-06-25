@@ -15,6 +15,7 @@ Window {
     modality: Qt.WindowModal
     flags: Qt.Dialog | Qt.CustomizeWindowHint | Qt.WindowTitleHint | Qt.WindowCloseButtonHint & (~Qt.WindowContextHelpButtonHint)
     title: "Login"
+    property bool setForNextCheck: false
     property int textSize: 11
 
     onVisibilityChanged: {
@@ -22,8 +23,17 @@ Window {
             usernameInput.forceActiveFocus()
         }
     }
+    onClosing: {
+        setForNextCheck = false
+    }
 
     signal verifyAccount(string username, string password)
+    signal changeAccount(string username, string password)
+
+    function showForChange() {
+        setForNextCheck = true
+        show()
+    }
 
     function setMessage(newMessage) {
         message.text = newMessage
@@ -40,9 +50,14 @@ Window {
         } else if (passwordInput.text.length <= 0) {
             message.text = "Password field cannot be blank!"
         } else {
-            verifyAccount(usernameInput.text, passwordInput.text)
+            if (setForNextCheck === true) {
+                changeAccount(usernameInput.text, passwordInput.text)
+            } else {
+                verifyAccount(usernameInput.text, passwordInput.text)
+            }
             windowRoot.close()
         }
+        setForNextCheck = false // reset on every close
     }
 
     Text {

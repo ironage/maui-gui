@@ -24,10 +24,6 @@ Item {
         start.state = newState
     }
 
-    function cancelValidation() {
-        //FIXME: remove
-    }
-
     MButton {
         id: start
         text: "Start"

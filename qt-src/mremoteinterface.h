@@ -33,6 +33,7 @@ signals:
 public slots:
     static QString getDisplayVersion();
     void validateRequest(QString username, QString password);
+    void changeExistingCredentials(QString username, QString password);
     void validateWithExistingCredentials();
     void finishSession();
     void doUpdate();

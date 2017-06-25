@@ -71,6 +71,14 @@ void MRemoteInterface::validateRequest(QString username, QString password)
     validate(username, password, "verify");
 }
 
+void MRemoteInterface::changeExistingCredentials(QString username, QString password)
+{
+    settings.setUsername(username);
+    settings.setPassword(password);
+    emit usernameChanged();
+    emit passwordChanged();
+}
+
 void MRemoteInterface::finishSession()
 {
     QString u = settings.getUsername();
@@ -108,6 +116,7 @@ void MRemoteInterface::replyFinished(QNetworkReply *reply)
 {
     transactionActive = false;
     if (!reply) return;
+    reply->deleteLater();
 
     qDebug() << "reply code: " + QString::number(reply->error());
     if (reply->error()) {
@@ -140,12 +149,14 @@ void MRemoteInterface::replyFinished(QNetworkReply *reply)
             QJsonValue version = response.value("version");
             if (softwareVersion.isUndefined()) {
                 emit validationFailed("Could not read the software version.\nInstalling the latest version may fix this problem.");
+                return;
             } else if (softwareVersion.toDouble() > CURRENT_VERSION) {
                 emit validationNewVersionAvailable("Version " + QString::number(softwareVersion.toDouble()) +
                                       " of this software is available!"
                                       "\nPlease download the latest version to continue."
                                       "\nYou currently are running version " + getDisplayVersion());
-            } else if (jump.isUndefined() || !jump.isArray()
+            }
+            if (jump.isUndefined() || !jump.isArray()
                        || nonce.isUndefined() || !nonce.isArray()
                        || status.isUndefined() || !status.isArray()
                        || name.isUndefined() || !name.isArray()
@@ -153,42 +164,41 @@ void MRemoteInterface::replyFinished(QNetworkReply *reply)
                 emit validationFailed("Unexpected response from the server!"
                                       "\nTry updating the software to the latest version."
                                       "\nYou currently are running version " + getDisplayVersion());
+                return;
+            }
+
+            QByteArray nonceR = fromJsonArray(nonce.toArray());
+            QBlowfish bf(sharedKey);
+            bf.setPaddingEnabled(true);
+            nonceR = bf.decrypted(nonceR);
+            if (nonceR.isEmpty()) {
+                emit validationFailed("Could not read server encryption details.");
             } else {
-                QByteArray nonceR = fromJsonArray(nonce.toArray());
-                QBlowfish bf(sharedKey);
-                bf.setPaddingEnabled(true);
-                nonceR = bf.decrypted(nonceR);
-                if (nonceR.isEmpty()) {
-                    emit validationFailed("Could not read server encryption details.");
+                QString nameR = decryptFromServer(fromJsonArray(name.toArray()), sharedKey, nonceR);
+                QString statusR = decryptFromServer(fromJsonArray(status.toArray()), sharedKey, nonceR);
+                QString jumpR = decryptFromServer(fromJsonArray(jump.toArray()), sharedKey, nonceR);
+                if (nameR != settings.getUsername() || jumpR != "Omnia cum pretio") {
+                    emit validationFailed("Encryption failure.");
+                } else if (statusR == "invalid") {
+                    emit validationBadCredentials();
+                } else if (statusR == "expired") {
+                    emit validationAccountExpired();
+                } else if (statusR == "multiple_sessions") {
+                    emit multipleSessionsDetected();
+                } else if (statusR == "valid") {
+                    emit validationSuccess();
+                } else if (statusR == "finished") {
+                    emit sessionFinished();
                 } else {
-                    QString nameR = decryptFromServer(fromJsonArray(name.toArray()), sharedKey, nonceR);
-                    QString statusR = decryptFromServer(fromJsonArray(status.toArray()), sharedKey, nonceR);
-                    QString jumpR = decryptFromServer(fromJsonArray(jump.toArray()), sharedKey, nonceR);
-                    if (nameR != settings.getUsername() || jumpR != "Omnia cum pretio") {
-                        emit validationFailed("Encryption failure.");
-                    } else if (statusR == "invalid") {
-                        emit validationBadCredentials();
-                    } else if (statusR == "expired") {
-                        emit validationAccountExpired();
-                    } else if (statusR == "multiple_sessions") {
-                        emit multipleSessionsDetected();
-                    } else if (statusR == "valid") {
-                        emit validationSuccess();
-                    } else if (statusR == "finished") {
-                        emit sessionFinished();
-                    } else {
-                        emit validationFailed("Unexpected response from the server!"
-                                              "\nTry updating the software to the latest version."
-                                              "\nYou currently are running version " + getDisplayVersion());
-                    }
+                    emit validationFailed("Unexpected response from the server!"
+                                          "\nTry updating the software to the latest version."
+                                          "\nYou currently are running version " + getDisplayVersion());
                 }
             }
         } else {
             emit validationFailed("Could not parse server response.");
         }
     }
-
-    reply->deleteLater();
 }
 
 void MRemoteInterface::validate(QString username, QString password, QString method)

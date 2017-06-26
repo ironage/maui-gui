@@ -3,16 +3,21 @@
 
 #include "msettings.h"
 
-
+#include <QJsonObject>
 #include <QNetworkAccessManager>
+#include <QNetworkReply>
+#include <QNetworkRequest>
 #include <QObject>
 #include <QTimer>
+#include <QQueue>
 
 class MRemoteInterface : public QObject
 {
     Q_OBJECT
     Q_PROPERTY(QString username READ getUsername NOTIFY usernameChanged)
     Q_PROPERTY(QString password READ getPassword NOTIFY passwordChanged)
+    Q_PROPERTY(QString softwareVersion READ getSoftwareVersion NOTIFY softwareVersionChanged)
+    Q_PROPERTY(QString releaseNotes READ getChangelog NOTIFY changelogChanged)
 public:
     explicit MRemoteInterface(QObject *parent = 0);
     const static double CURRENT_VERSION;
@@ -30,6 +35,8 @@ signals:
 
     void usernameChanged();
     void passwordChanged();
+    void softwareVersionChanged();
+    void changelogChanged();
 public slots:
     static QString getDisplayVersion();
     void validateRequest(QString username, QString password);
@@ -39,21 +46,44 @@ public slots:
     void doUpdate();
     void setLocalSetting(QString key, QString value);
     QString getLocalSetting(QString key);
+    void requestChangelog();
 
     QString getUsername();
     QString getPassword();
+    QString getSoftwareVersion();
+    QString getChangelog();
 private slots:
     void replyFinished(QNetworkReply *reply);
     void die();
+    void processNextRequest();
 
 private:
+    enum RequestType {
+        NONE,
+        VERIFY,
+        VERSION,
+        CHANGELOG
+    };
+    struct Request {
+        Request(RequestType t, QNetworkRequest r, QJsonObject j) : type(t), request(r), postData(j) {}
+        RequestType type;
+        QNetworkRequest request;
+        QJsonObject postData;
+        bool active = false;
+    };
     void validate(QString username, QString password, QString method);
+    void handleVerifyResponse(QByteArray &data);
+    void handleVersionResponse(QByteArray &data);
+    void handleChangelogResponse(QByteArray &data);
+    void processLatestVersion(QJsonValue &version);
     static QJsonArray encryptForServer(QString value, QByteArray key, QByteArray key2 = "");
     static QString decryptFromServer(QByteArray value, QByteArray key, QByteArray key2 = "");
     MSettings settings;
     QNetworkAccessManager networkManager;
-    bool transactionActive;
     QTimer killTimer;
+    QString avaliableVersion;
+    QString changelog;
+    QQueue<Request> requestQueue;
 };
 
 #endif // MREMOTEINTERFACE_H

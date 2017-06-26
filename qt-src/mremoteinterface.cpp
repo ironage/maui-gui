@@ -7,10 +7,8 @@
 #include <QDebug>
 #include <QJsonArray>
 #include <QJsonDocument>
-#include <QJsonObject>
-#include <QNetworkReply>
-#include <QNetworkRequest>
 #include <QProcess>
+#include <QTimer>
 
 static QByteArray sharedKey = "6mC4zR5SVzug3uiB9L42I164Wn640wt1";
 const double MRemoteInterface::CURRENT_VERSION = 4.6;
@@ -31,8 +29,9 @@ QByteArray fromJsonArray(QJsonArray ja) {
     return ba;
 }
 
-MRemoteInterface::MRemoteInterface(QObject *parent) : QObject(parent), transactionActive(false)
+MRemoteInterface::MRemoteInterface(QObject *parent) : QObject(parent), changelog("Fetching changes...")
 {
+    avaliableVersion = "Checking...";
     connect(&networkManager, SIGNAL(finished(QNetworkReply*)),this, SLOT(replyFinished(QNetworkReply*)));
 }
 
@@ -49,6 +48,19 @@ void MRemoteInterface::setLocalSetting(QString key, QString value)
 QString MRemoteInterface::getLocalSetting(QString key)
 {
     return settings.getRaw(key);
+}
+
+void MRemoteInterface::requestChangelog()
+{
+    QNetworkRequest request;
+    request.setUrl(QUrl(settings.getBaseUrl() + "welcome/changelog/"));
+    request.setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
+
+    QJsonObject json;
+    json.insert("request", "changelog");
+
+    requestQueue.enqueue(Request(RequestType::CHANGELOG, request, json));
+    processNextRequest();
 }
 
 void MRemoteInterface::validateWithExistingCredentials()
@@ -112,9 +124,20 @@ QString MRemoteInterface::getPassword()
     return settings.getPassword();
 }
 
+QString MRemoteInterface::getSoftwareVersion()
+{
+    return avaliableVersion;
+}
+
+QString MRemoteInterface::getChangelog() {
+    return changelog;
+}
+
 void MRemoteInterface::replyFinished(QNetworkReply *reply)
 {
-    transactionActive = false;
+    QTimer::singleShot(0, this, SLOT(processNextRequest())); // queue up the next request after this
+    if (requestQueue.isEmpty()) return;
+    Request request = requestQueue.dequeue();
     if (!reply) return;
     reply->deleteLater();
 
@@ -137,74 +160,29 @@ void MRemoteInterface::replyFinished(QNetworkReply *reply)
         qDebug() << "reply success: " << reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt();
         //qDebug() << reply->header(QNetworkRequest::ContentLengthHeader).toULongLong();
         QByteArray replyBody = reply->readAll();
-        //qDebug() << "body: " << replyBody;
-        QJsonDocument jsonDoc = QJsonDocument::fromJson(replyBody);
-        if (!jsonDoc.isNull()) {
-            QJsonObject response = jsonDoc.object();
-            QJsonValue softwareVersion = response.value("software_version");
-            QJsonValue jump = response.value("jump");
-            QJsonValue nonce = response.value("nonce");
-            QJsonValue status = response.value("status");
-            QJsonValue name = response.value("username");
-            QJsonValue version = response.value("version");
-            if (softwareVersion.isUndefined()) {
-                emit validationFailed("Could not read the software version.\nInstalling the latest version may fix this problem.");
-                return;
-            } else if (softwareVersion.toDouble() > CURRENT_VERSION) {
-                emit validationNewVersionAvailable("Version " + QString::number(softwareVersion.toDouble()) +
-                                      " of this software is available!"
-                                      "\nPlease download the latest version to continue."
-                                      "\nYou currently are running version " + getDisplayVersion());
-            }
-            if (jump.isUndefined() || !jump.isArray()
-                       || nonce.isUndefined() || !nonce.isArray()
-                       || status.isUndefined() || !status.isArray()
-                       || name.isUndefined() || !name.isArray()
-                       || version.isUndefined()) {
-                emit validationFailed("Unexpected response from the server!"
-                                      "\nTry updating the software to the latest version."
-                                      "\nYou currently are running version " + getDisplayVersion());
-                return;
-            }
-
-            QByteArray nonceR = fromJsonArray(nonce.toArray());
-            QBlowfish bf(sharedKey);
-            bf.setPaddingEnabled(true);
-            nonceR = bf.decrypted(nonceR);
-            if (nonceR.isEmpty()) {
-                emit validationFailed("Could not read server encryption details.");
-            } else {
-                QString nameR = decryptFromServer(fromJsonArray(name.toArray()), sharedKey, nonceR);
-                QString statusR = decryptFromServer(fromJsonArray(status.toArray()), sharedKey, nonceR);
-                QString jumpR = decryptFromServer(fromJsonArray(jump.toArray()), sharedKey, nonceR);
-                if (nameR != settings.getUsername() || jumpR != "Omnia cum pretio") {
-                    emit validationFailed("Encryption failure.");
-                } else if (statusR == "invalid") {
-                    emit validationBadCredentials();
-                } else if (statusR == "expired") {
-                    emit validationAccountExpired();
-                } else if (statusR == "multiple_sessions") {
-                    emit multipleSessionsDetected();
-                } else if (statusR == "valid") {
-                    emit validationSuccess();
-                } else if (statusR == "finished") {
-                    emit sessionFinished();
-                } else {
-                    emit validationFailed("Unexpected response from the server!"
-                                          "\nTry updating the software to the latest version."
-                                          "\nYou currently are running version " + getDisplayVersion());
-                }
-            }
-        } else {
-            emit validationFailed("Could not parse server response.");
+        //qDebug() << "reply: " << replyBody;
+        switch (request.type) {
+        case RequestType::VERIFY:
+            handleVerifyResponse(replyBody);
+            break;
+        case RequestType::VERSION:
+            handleVersionResponse(replyBody);
+            break;
+        case RequestType::CHANGELOG:
+            handleChangelogResponse(replyBody);
+            break;
+        case RequestType::NONE:
+            qDebug() << "Error: cannot handle response of NONE!";
+            break;
+        default:
+            qDebug() << "Unhandled default network response!";
+            break;
         }
     }
 }
 
 void MRemoteInterface::validate(QString username, QString password, QString method)
 {
-    if (transactionActive) return; // concurrent access is not supported and probably not needed
-
     QNetworkRequest request;
     request.setUrl(QUrl(settings.getBaseUrl() + "welcome/verify/"));
     request.setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
@@ -221,9 +199,110 @@ void MRemoteInterface::validate(QString username, QString password, QString meth
     json.insert("nonce", encryptForServer(nonceQString, sharedKey));
     json.insert("jump", encryptForServer("Abyssus abyssum invocat", nonce, sharedKey));
 
-    //qDebug() << "json request: " << json;
-    transactionActive = true;
-    networkManager.post(request, QJsonDocument(json).toJson());
+    requestQueue.enqueue(Request(RequestType::VERIFY, request, json));
+    processNextRequest();
+}
+
+void MRemoteInterface::handleVerifyResponse(QByteArray &data)
+{
+    //qDebug() << "body: " << data;
+    QJsonDocument jsonDoc = QJsonDocument::fromJson(data);
+    if (!jsonDoc.isNull()) {
+        QJsonObject response = jsonDoc.object();
+        QJsonValue softwareVersion = response.value("software_version");
+        QJsonValue jump = response.value("jump");
+        QJsonValue nonce = response.value("nonce");
+        QJsonValue status = response.value("status");
+        QJsonValue name = response.value("username");
+        QJsonValue version = response.value("version");
+        processLatestVersion(softwareVersion);
+        if (jump.isUndefined() || !jump.isArray()
+                   || nonce.isUndefined() || !nonce.isArray()
+                   || status.isUndefined() || !status.isArray()
+                   || name.isUndefined() || !name.isArray()
+                   || version.isUndefined()) {
+            emit validationFailed("Unexpected response from the server!"
+                                  "\nTry updating the software to the latest version."
+                                  "\nYou currently are running version " + getDisplayVersion());
+            return;
+        }
+
+        QByteArray nonceR = fromJsonArray(nonce.toArray());
+        QBlowfish bf(sharedKey);
+        bf.setPaddingEnabled(true);
+        nonceR = bf.decrypted(nonceR);
+        if (nonceR.isEmpty()) {
+            emit validationFailed("Could not read server encryption details.");
+        } else {
+            QString nameR = decryptFromServer(fromJsonArray(name.toArray()), sharedKey, nonceR);
+            QString statusR = decryptFromServer(fromJsonArray(status.toArray()), sharedKey, nonceR);
+            QString jumpR = decryptFromServer(fromJsonArray(jump.toArray()), sharedKey, nonceR);
+            if (nameR != settings.getUsername() || jumpR != "Omnia cum pretio") {
+                emit validationFailed("Encryption failure.");
+            } else if (statusR == "invalid") {
+                emit validationBadCredentials();
+            } else if (statusR == "expired") {
+                emit validationAccountExpired();
+            } else if (statusR == "multiple_sessions") {
+                emit multipleSessionsDetected();
+            } else if (statusR == "valid") {
+                emit validationSuccess();
+            } else if (statusR == "finished") {
+                emit sessionFinished();
+            } else {
+                emit validationFailed("Unexpected response from the server!"
+                                      "\nTry updating the software to the latest version."
+                                      "\nYou currently are running version " + getDisplayVersion());
+            }
+        }
+    } else {
+        emit validationFailed("Could not parse server response.");
+    }
+}
+
+void MRemoteInterface::handleVersionResponse(QByteArray &data)
+{
+    QJsonDocument jsonDoc = QJsonDocument::fromJson(data);
+    if (!jsonDoc.isNull()) {
+        QJsonObject response = jsonDoc.object();
+        QJsonValue softwareVersion = response.value("software_version");
+        processLatestVersion(softwareVersion);
+    } else {
+        qDebug() << "Could not parse server response (version response)."; // we consider this not fatal
+    }
+}
+
+void MRemoteInterface::handleChangelogResponse(QByteArray &data)
+{
+    QJsonDocument jsonDoc = QJsonDocument::fromJson(data);
+    if (!jsonDoc.isNull()) {
+        QJsonObject response = jsonDoc.object();
+        QJsonValue softwareVersion = response.value("software_version");
+        QJsonValue log = response.value("changelog");
+        processLatestVersion(softwareVersion);
+        if (log.isUndefined()) {
+            changelog = "Error: could not read changelog from server.";
+        } else {
+            changelog = log.toString();
+        }
+        emit changelogChanged();
+    } else {
+        qDebug() << "Could not parse server response (changelog response)."; // we consider this not fatal
+    }
+}
+
+void MRemoteInterface::processLatestVersion(QJsonValue &version)
+{
+    if (version.isUndefined()) {
+        qDebug() << "Could not read the software version (from changelog request)";
+    } else if (version.toDouble() > CURRENT_VERSION) {
+        emit validationNewVersionAvailable("Version " + QString::number(version.toDouble()) +
+                              " of this software is available!"
+                              "\nPlease download the latest version to continue."
+                              "\nYou currently are running version " + getDisplayVersion());
+    }
+    avaliableVersion = QString::number(version.toDouble());
+    emit softwareVersionChanged();
 }
 
 QJsonArray MRemoteInterface::encryptForServer(QString value, QByteArray key, QByteArray key2)
@@ -256,4 +335,13 @@ QString MRemoteInterface::decryptFromServer(QByteArray value, QByteArray key, QB
         value = bf.decrypted(value);
     }
     return QString::fromStdString(value.toStdString());
+}
+
+void MRemoteInterface::processNextRequest()
+{
+    if (requestQueue.isEmpty()) return;
+    Request &request = requestQueue.head();
+    if (request.active) return; // already in progress, we'll queue up the next request when it's finished
+    request.active = true;
+    networkManager.post(request.request, QJsonDocument(request.postData).toJson());
 }

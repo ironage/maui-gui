@@ -38,5 +38,6 @@
         <file>icons/check.png</file>
         <file>icons/download.png</file>
         <file>icons/gear.png</file>
+        <file>MUpgradeWindow.qml</file>
     </qresource>
 </RCC>

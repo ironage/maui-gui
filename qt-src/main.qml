@@ -47,13 +47,13 @@ ApplicationWindow {
         id: videoFinishedError
         title: "Video Processing Error!"
     }
-    MMessageWindow {
-        id: newVersionMessage
-        title: "Update Available!"
-        text: "A new version of MAUI is available for download!\nWould you like to perform the update now?";
-        onAccepted: {
-            remoteInterface.doUpdate()
-        }
+
+    MUpgradeWindow {
+        id: updateWindow
+        currentVersion: remoteInterface.getDisplayVersion()
+        availableVersion: remoteInterface.softwareVersion
+        changelog: remoteInterface.releaseNotes
+        onStartUpdate: remoteInterface.doUpdate()
     }
 
     MLoginWindow {
@@ -114,6 +114,9 @@ ApplicationWindow {
             loginWindow.setMessage("Multiple user sessions have been detected.\nOnly one active session is allowed per account.")
             loginWindow.show()
         }
+        onChangelogChanged: {
+            settingsPane.shouldRequestChangeset = false
+        }
         onValidationSuccess: {
             if (!doneInitialVerify) {
                 doneInitialVerify = true
@@ -165,10 +168,18 @@ ApplicationWindow {
         anchors.bottom: parent.bottom
         anchors.left: parent.left
         width: leftPanel.headerWidth
+        property bool shouldRequestChangeset: true
+
         onUserClicked: {
             loginWindow.preset(remoteInterface.username, remoteInterface.password)
             loginWindow.setMessage("Current user account details:")
             loginWindow.showForChange()
+        }
+        onVersionClicked: {
+            if (shouldRequestChangeset) {
+                remoteInterface.requestChangelog()
+            }
+            updateWindow.show()
         }
     }
 

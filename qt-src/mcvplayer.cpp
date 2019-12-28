@@ -9,7 +9,7 @@
 
 MCVPlayer::MCVPlayer() : QObject(),
     m_format(QSize(50, 50), QVideoFrame::Format_ARGB32),
-    m_surface(NULL),
+    m_surface(nullptr),
     curVideo(nullptr),
     m_setupAllVideos(false)
 {
@@ -25,7 +25,7 @@ MCVPlayer::MCVPlayer() : QObject(),
 MCVPlayer::~MCVPlayer()
 {
     curVideo = nullptr;
-    for (int i = 0; i < videos.size(); ++i) {
+    for (size_t i = 0; i < videos.size(); ++i) {
         delete videos[i];
     }
     videos.clear();
@@ -286,12 +286,12 @@ void MCVPlayer::changeToVideoFile(QString fileUrl)
     if (curVideo) {
         curVideo->pause(); // temp fix
     }
-    for (int i = 0; i < videos.size(); ++i) {
+    for (size_t i = 0; i < videos.size(); ++i) {
         if (videos[i]) {
             videos[i]->disconnect(); // breaks all connections
         }
     }
-    for (int i = 0; i < videos.size(); ++i) {
+    for (size_t i = 0; i < videos.size(); ++i) {
         if (videos[i] && videos[i]->getSourceUrl() == QUrl(fileUrl)) {
             curVideo = videos[i];
             break;

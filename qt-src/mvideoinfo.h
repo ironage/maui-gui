@@ -4,6 +4,7 @@
 #include <QDir>
 #include <QFileInfo>
 #include <QList>
+#include <QMutex>
 #include <QObject>
 #include <QRect>
 #include <QSize>
@@ -47,8 +48,8 @@ public:
     QRect getVelocityScaleVertical() const { return velocityScaleVertical; }
     QRect getVelocityScaleHorizontal() const { return velocityScaleHorizontal; }
     bool getRecomputeROIMode() const { return recomputeROIMode; }
-    QList<MPoint*> getTopPoints() { return topPoints; }
-    QList<MPoint*> getBottomPoints() { return bottomPoints; }
+    QList<MPoint*>& getTopPoints() { return topPoints; }
+    QList<MPoint*>& getBottomPoints() { return bottomPoints; }
     MLogMetaData getLogMetaData() const { return logMetaData; }
 
     void play();
@@ -98,15 +99,15 @@ private:
     QList<MPoint*> topPoints;
     QList<MPoint*> bottomPoints;
     QMutex lock; // protects camera and thread from race conditions
-    MVideoCapture* camera = NULL;
-    MCameraThread* thread = NULL;
+    MVideoCapture* camera = nullptr;
+    MCameraThread* thread = nullptr;
     bool stopped;
     MLogMetaData logMetaData;
     const QVideoFrame::PixelFormat VIDEO_OUTPUT_FORMAT = QVideoFrame::PixelFormat::Format_ARGB32;
 
     cv::Mat cvImage;
-    unsigned char* cvImageBuf = NULL;
-    QVideoFrame* videoFrame = NULL;
+    unsigned char* cvImageBuf = nullptr;
+    QVideoFrame* videoFrame = nullptr;
     void allocateCvImage();
     void allocateVideoFrame();
 signals:

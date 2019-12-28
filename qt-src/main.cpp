@@ -8,6 +8,9 @@
 int main(int argc, char *argv[])
 {
     QGuiApplication app(argc, argv);
+    app.setOrganizationName("Hedgehog Medical");
+    app.setOrganizationDomain("hedgehogmedical.com");
+    app.setApplicationName("MAUI");
 
     qmlRegisterType<MCVPlayer>("com.maui.custom", 1, 0, "MCVPlayer");
     qmlRegisterType<MPoint>("com.maui.custom", 1, 0, "MPoint");

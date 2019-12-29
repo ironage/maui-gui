@@ -19,7 +19,7 @@ class MRemoteInterface : public QObject
     Q_PROPERTY(QString softwareVersion READ getSoftwareVersion NOTIFY softwareVersionChanged)
     Q_PROPERTY(QString releaseNotes READ getChangelog NOTIFY changelogChanged)
 public:
-    explicit MRemoteInterface(QObject *parent = 0);
+    explicit MRemoteInterface(QObject *parent = nullptr);
     const static double CURRENT_VERSION;
 
 signals:

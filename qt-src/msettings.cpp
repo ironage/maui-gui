@@ -83,9 +83,10 @@ void MSettings::newSalt()
 
 QString MSettings::getBaseUrl()
 {
-    QString stored = settings.value("baseUrl", "").toString();
+    // changed from v4.7 "baseUrl" to baseUrlSecure to use https
+    QString stored = settings.value("baseUrlSecure", "").toString();
     if (stored.isEmpty()) {
-        stored = "http://www.hedgehogmedical.com/users/";
+        stored = "https://www.hedgehogmedical.com/users/";
         settings.setValue("baseUrl", stored);
     }
     return stored;

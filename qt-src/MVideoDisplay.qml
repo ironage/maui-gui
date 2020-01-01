@@ -15,7 +15,8 @@ Item {
     property alias duration: cv_player.duration
     property double progress_min: 0.0
     property double progress_max: 1.0
-    property alias playback_state: cv_player.playbackState
+    property alias playbackState: cv_player.playbackState
+    property alias processingMillisecondsSinceStart: cv_player.processingMillisecondsSinceStart
     property alias setupState: cv_player.setupState
     property alias videoWidth: cv_player.size.width
     property alias videoHeight: cv_player.size.height

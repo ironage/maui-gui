@@ -376,6 +376,7 @@ void MCVPlayer::play()
 {
     if (curVideo) {
         curVideo->play();
+        emit playbackStateChanged();
     }
 }
 
@@ -383,6 +384,7 @@ void MCVPlayer::continueProcessing()
 {
     if (curVideo) {
         curVideo->continueProcessing();
+        emit playbackStateChanged();
     }
 }
 
@@ -390,6 +392,7 @@ void MCVPlayer::pause()
 {
     if (curVideo) {
         curVideo->pause();
+        emit playbackStateChanged();
     }
 }
 
@@ -397,6 +400,7 @@ void MCVPlayer::stop()
 {
     if (curVideo) {
         curVideo->stop();
+        emit playbackStateChanged();
     }
 }
 
@@ -442,6 +446,15 @@ int MCVPlayer::getSetupState()
     }
     qDebug() << "No curVideo, returning setup state ALL";
     return CameraTask::SetupState::ALL;
+}
+
+int MCVPlayer::getprocessingMillisecondsSinceStart()
+{
+    if (curVideo) {
+        return curVideo->getprocessingMillisecondsSinceStart();
+    }
+    qDebug() << "No curVideo, returning default seconds since start 0";
+    return 0;
 }
 
 void MCVPlayer::setEndFrame(int frame)

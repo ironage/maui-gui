@@ -24,7 +24,7 @@ CameraTask::CameraTask(MVideoCapture* camera, QVideoFrame* videoFrame,
     : running(true), camera(camera), videoFrame(videoFrame),cvImageBuf(cvImageBuf),
     width(width), height(height), curPlayState(Paused), curSetupState(ALL),
     curFrame(-1), frameToSeekTo(-1), startFrame(0), endFrame(0), autoRecomputeROI(false),
-    doneInit(false), cameraFrame(nullptr), cachedFrameIsDirty(true), doProcessOutputVideo(true)
+    doneInit(false), cameraFrame(nullptr), cachedFrameIsDirty(true), doProcessOutputVideo(true), processingMillisecondsSinceStart(0)
 {
     qRegisterMetaType<CameraTask::ProcessingState>();
     qRegisterMetaType<CameraTask::SetupState>();
@@ -193,12 +193,13 @@ void CameraTask::doWork()
 {
 
 #if defined(SHOW_FRAMERATE) && !defined(ANDROID)
-    QElapsedTimer timer;
     float fps = 0.0f;
+#endif
+    QElapsedTimer timer;
     int millisElapsed = 0;
     int millis;
     timer.start();
-#endif
+    bool accumulateProcessingTime = false;
 
     if(videoFrame)
         videoFrame->map(QAbstractVideoBuffer::ReadOnly);
@@ -213,7 +214,7 @@ void CameraTask::doWork()
     if(videoFrame)
         screenImage = cv::Mat(height,width,CV_8UC4,videoFrame->bits());
 
-    while(running && videoFrame != NULL && camera != NULL) {
+    while(running && videoFrame != nullptr && camera != nullptr) {
          QCoreApplication::processEvents();
 
         switch (curPlayState) {
@@ -287,7 +288,10 @@ void CameraTask::doWork()
 
                 }
             } else if (curPlayState == PlayState::Playing) {
+                accumulateProcessingTime = true;
                 if (!doneInit) {
+                    processingMillisecondsSinceStart = 0;
+                    timer.restart();
                     if (curSetupState & SetupState::NORMAL_ROI) {
                         if (topPoints.empty() || bottomPoints.empty()) {
                             emit videoFinished(CameraTask::ProcessingState::AUTO_INIT_FAILED);
@@ -381,6 +385,19 @@ void CameraTask::doWork()
             memcpy(cvImageBuf,cameraFrame,height*width*3);
         }
 
+        millis = int(timer.restart());
+        millisElapsed += millis;
+        if (accumulateProcessingTime) {
+            processingMillisecondsSinceStart += millis;
+        }
+#if defined(SHOW_FRAMERATE) && !defined(ANDROID)
+        fps = CAM_FPS_RATE*fps + (1.0f - CAM_FPS_RATE)*(1000.0f/millis);
+        if (millisElapsed >= CAM_FPS_PRINT_PERIOD) {
+            qDebug("Camera is running at %f FPS",fps);
+            millisElapsed = 0;
+        }
+#endif
+
         emit imageReady(curFrame);
 
         if (curPlayState == PlayState::Playing && curFrame >= endFrame) {
@@ -388,16 +405,6 @@ void CameraTask::doWork()
             camera->setProperty(CV_CAP_PROP_POS_FRAMES, endFrame);
             writeResults();
         }
-
-#if defined(SHOW_FRAMERATE) && !defined(ANDROID)
-        millis = (int)timer.restart();
-        millisElapsed += millis;
-        fps = CAM_FPS_RATE*fps + (1.0f - CAM_FPS_RATE)*(1000.0f/millis);
-        if (millisElapsed >= CAM_FPS_PRINT_PERIOD) {
-            qDebug("Camera is running at %f FPS",fps);
-            millisElapsed = 0;
-        }
-#endif
     }
 }
 
@@ -529,6 +536,11 @@ void CameraTask::setNewBottomPoints(QList<MPoint> points)
     }
 //    qDebug() << "bottomPoints after: ";
 //    printPoints(bottomPoints);
+}
+
+int CameraTask::getprocessingMillisecondsSinceStart()
+{
+    return processingMillisecondsSinceStart;
 }
 
 void CameraTask::notifyInitPoints(mwArray topWall, mwArray bottomWall, QPoint offset)
@@ -982,7 +994,18 @@ void MCameraThread::doSetSetupState(CameraTask::SetupState state)
 
 int MCameraThread::doGetSetupState()
 {
-    return task->getSetupState();
+    if (task) {
+        return task->getSetupState();
+    }
+    return CameraTask::SetupState::NONE;
+}
+
+int MCameraThread::doGetprocessingMillisecondsSinceStart()
+{
+    if (task) {
+        return task->getprocessingMillisecondsSinceStart();
+    }
+    return 0;
 }
 
 void MCameraThread::doSetNewTopPoints(QList<MPoint> points)

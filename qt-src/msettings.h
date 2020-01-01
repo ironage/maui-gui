@@ -12,6 +12,7 @@ public:
     QString getUUID();
     static QString getRandomString(int length);
     QString getBaseUrl();
+    bool getMetricsEnabled();
     void setUsername(QString name);
     void setPassword(QString pw);
     void setRaw(QString key, QString value);

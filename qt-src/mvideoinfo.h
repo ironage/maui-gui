@@ -60,6 +60,7 @@ public:
     int getPlaybackState();
     void setSetupState(CameraTask::SetupState state);
     int getSetupState();
+    int getprocessingMillisecondsSinceStart();
     void setEndFrame(int frame);
     void setStartFrame(int frame);
     bool getProcessOutputVideo();

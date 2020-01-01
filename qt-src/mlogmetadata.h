@@ -20,7 +20,7 @@ class MLogMetaData : public QObject
     Q_PROPERTY(double velocityPixelHeight MEMBER velocityScalePixelHeight NOTIFY propertiesChanged)
     Q_PROPERTY(double velocityTime MEMBER velocityXSeconds NOTIFY propertiesChanged)
 public:
-    explicit MLogMetaData(QObject *parent = 0);
+    explicit MLogMetaData(QObject *parent = nullptr);
     MLogMetaData(const MLogMetaData& other);
 
     QString getFileName() const { return fileName; }

@@ -39,6 +39,7 @@ class MCVPlayer : public QObject
     Q_PROPERTY(int position READ getCurFrame WRITE setCurFrame NOTIFY curFrameChanged)
     Q_PROPERTY(int playbackState READ getPlaybackState NOTIFY playbackStateChanged)
     Q_PROPERTY(int setupState READ getSetupState WRITE setSetupState NOTIFY videoControlInfoChanged)
+    Q_PROPERTY(int processingMillisecondsSinceStart READ getprocessingMillisecondsSinceStart NOTIFY curFrameChanged)
     Q_PROPERTY(QRect roi READ getROI WRITE setROI NOTIFY roiChanged)
     Q_PROPERTY(QRect velocityROI READ getVelocityROI WRITE setVelocityROI NOTIFY velocityROIChanged)
     Q_PROPERTY(QRect diameterScale READ getDiameterScale WRITE setDiameterScale NOTIFY videoControlInfoChanged)
@@ -93,6 +94,7 @@ public slots:
     int getPlaybackState();
     void setSetupState(int state);
     int getSetupState();
+    int getprocessingMillisecondsSinceStart();
     void play();
     void continueProcessing();
     void stop();

@@ -320,6 +320,16 @@ int MVideoInfo::getSetupState()
     return CameraTask::SetupState::ALL;
 }
 
+int MVideoInfo::getprocessingMillisecondsSinceStart()
+{
+    QMutexLocker locker(&lock);
+    if (thread) {
+        return thread->doGetprocessingMillisecondsSinceStart();
+    }
+    qDebug() << "returning default processing seconds since start";
+    return 0;
+}
+
 void MVideoInfo::setEndFrame(int frame)
 {
     QMutexLocker locker(&lock);

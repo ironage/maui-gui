@@ -133,6 +133,9 @@ ApplicationWindow {
         onValidationNewVersionAvailable: {
             settingsPane.updateAvailable()
         }
+        function logMetricsEvent(event) {
+            remoteInterface.videoStateChange(event, m_video.readSrcExtension, m_video.frameIndex, m_video.processingMillisecondsSinceStart, m_video.source, m_video.setupState)
+        }
     }
     Timer {
         id: validationTimer
@@ -287,6 +290,7 @@ ApplicationWindow {
                 onPlayClicked: {
                     window.controlsEnabled = false
                     m_video.play()
+                    remoteInterface.logMetricsEvent("start")
                 }
                 onContinueClicked: {
                     if (remoteInterface.requiresVerifyOnContinue) {
@@ -295,11 +299,13 @@ ApplicationWindow {
                         loginWindow.show()
                     } else {
                         doContinue()
+                        remoteInterface.logMetricsEvent("continue")
                     }
                 }
                 onPauseClicked: {
                     window.controlsEnabled = true
                     m_video.pause()
+                    remoteInterface.logMetricsEvent("pause")
                 }
             }
         }
@@ -392,6 +398,7 @@ ApplicationWindow {
                     if (state === 0) { // MCVPlayer.SUCCESS
                         summaryPane.setStartState("ready")
                         videoFinishedSuccess.show()
+                        remoteInterface.logMetricsEvent("finish")
                     } else if (state === 1) { // MCVPlayer.AUTO_INIT_FAILED
                         summaryPane.setStartState("paused")
                         videoFinishedError.text = "Could not find initial points on the start frame!"
@@ -426,11 +433,9 @@ ApplicationWindow {
 //                    roi.parentLayoutChanged()
 //                }
 
-                onPlayback_stateChanged: {
-                    if (playback_state === MediaPlayer.PausedState
-                            || playback_state === MediaPlayer.StoppedState) {
-                        summaryPane.setStartState("ready")
-                    }
+                onPlaybackStateChanged: {
+                    // the triggers are correct here, but due to the threaded nature of the video processing
+                    // the incorrect state may be reported here
                 }
 
                 MROI {

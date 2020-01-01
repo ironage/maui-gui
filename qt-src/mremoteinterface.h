@@ -11,6 +11,29 @@
 #include <QTimer>
 #include <QQueue>
 
+struct Metric
+{
+    Metric(QString inEvent, QString inExtension, int inFrameIndex, int inDuration, QString inSource, int setupState)
+        : event(inEvent)
+        , extension(inExtension)
+        , frameIndex(inFrameIndex)
+        , duration(inDuration)
+        , source(inSource)
+        , created(QDateTime::currentDateTimeUtc())
+        , process(processFromSetupState(setupState))
+    {
+    }
+    QString event;
+    QString extension;
+    int frameIndex;
+    int duration;
+    QString source;
+    QDateTime created;
+    QString process;
+private:
+    QString processFromSetupState(int setupState);
+};
+
 class MRemoteInterface : public QObject
 {
     Q_OBJECT
@@ -42,6 +65,8 @@ public slots:
     void validateRequest(QString username, QString password);
     void changeExistingCredentials(QString username, QString password);
     void validateWithExistingCredentials();
+    void videoStateChange(QString playbackState, QString readSrcExtension, int frameIndex, int duration, QString source, int setupState);
+
     void finishSession();
     void doUpdate();
     void setLocalSetting(QString key, QString value);
@@ -84,6 +109,7 @@ private:
     QString avaliableVersion;
     QString changelog;
     QQueue<Request> requestQueue;
+    QQueue<Metric> metrics;
 };
 
 #endif // MREMOTEINTERFACE_H

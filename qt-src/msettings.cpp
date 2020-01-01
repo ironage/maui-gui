@@ -89,7 +89,13 @@ QString MSettings::getBaseUrl()
         stored = "https://www.hedgehogmedical.com/users/";
         settings.setValue("baseUrl", stored);
     }
+    // stored = "http://localhost:8000/"; // FIXME: local dev
     return stored;
+}
+
+bool MSettings::getMetricsEnabled()
+{
+    return settings.value("metricsEnabled", true).toBool();
 }
 
 void MSettings::setUsername(QString name)

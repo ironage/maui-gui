@@ -1,8 +1,10 @@
 #include "mremoteinterface.h"
+#include "mcamerathread.h"
 
 #include "qblowfish.h"
 
 #include <QCoreApplication>
+#include <QCryptographicHash>
 #include <QByteArray>
 #include <QDebug>
 #include <QJsonArray>
@@ -12,6 +14,20 @@
 
 static QByteArray sharedKey = "6mC4zR5SVzug3uiB9L42I164Wn640wt1";
 const double MRemoteInterface::CURRENT_VERSION = 4.7;
+
+QString Metric::processFromSetupState(int setupState)
+{
+    if (setupState == CameraTask::SetupState::NONE) {
+        return "none";
+    } else if (setupState == CameraTask::SetupState::NORMAL_ROI) {
+        return "diameter";
+    } else if (setupState == CameraTask::SetupState::VELOCITY_ROI) {
+        return "velocity";
+    } else if (setupState == (CameraTask::SetupState::NORMAL_ROI & CameraTask::SetupState::VELOCITY_ROI)) {
+        return "diameter and velocity";
+    }
+    return QString("unknown ") + QString::number(setupState);
+}
 
 QJsonArray toJsonArray(QByteArray ba) {
     QJsonArray array;
@@ -72,6 +88,11 @@ void MRemoteInterface::validateWithExistingCredentials()
     } else {
         validate(u, p, "verify");
     }
+}
+
+void MRemoteInterface::videoStateChange(QString playbackState, QString readSrcExtension, int frameIndex, int duration, QString source, int setupState)
+{
+    metrics.enqueue(Metric(playbackState, readSrcExtension, frameIndex, duration, source, setupState));
 }
 
 void MRemoteInterface::validateRequest(QString username, QString password)
@@ -187,17 +208,36 @@ void MRemoteInterface::validate(QString username, QString password, QString meth
     request.setUrl(QUrl(settings.getBaseUrl() + "welcome/verify/"));
     request.setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
     QString nonceQString = MSettings::getRandomString(16);
-    //qDebug() << "sending nonce: " << nonceQString;
     std::string stdNonce = nonceQString.toStdString();
     QByteArray nonce = QByteArray::fromRawData(stdNonce.c_str(), nonceQString.size());
 
     QJsonObject json;
     json.insert("username", encryptForServer(username, nonce, sharedKey));
     json.insert("password", encryptForServer(password, nonce, sharedKey));
-    json.insert("version", 1);
+    json.insert("version", 2);
     json.insert("request", encryptForServer(method, nonce, sharedKey));
     json.insert("nonce", encryptForServer(nonceQString, sharedKey));
     json.insert("jump", encryptForServer("Abyssus abyssum invocat", nonce, sharedKey));
+
+    json.insert("metrics_version", 1);
+    QJsonArray json_metrics;
+
+    if (settings.getMetricsEnabled()) {
+        while(!metrics.empty()) {
+            Metric m = metrics.dequeue();
+            QJsonObject mjson;
+            mjson.insert("event", m.event);
+            mjson.insert("type", m.extension);
+            mjson.insert("frames", m.frameIndex);
+            mjson.insert("process", m.process);
+            mjson.insert("processing_milliseconds", m.duration);
+            mjson.insert("timestamp", m.created.toSecsSinceEpoch()); // utc
+            mjson.insert("name_hash", // sha3_256 is 64 long
+                         QString::fromLocal8Bit(QCryptographicHash::hash(m.source.toLocal8Bit(), QCryptographicHash::Sha3_256).toBase64()));
+            json_metrics.append(mjson);
+        }
+    }
+    json.insert("metrics", json_metrics);
 
     requestQueue.enqueue(Request(RequestType::VERIFY, request, json));
     processNextRequest();
@@ -237,6 +277,10 @@ void MRemoteInterface::handleVerifyResponse(QByteArray &data)
             QString nameR = decryptFromServer(fromJsonArray(name.toArray()), sharedKey, nonceR);
             QString statusR = decryptFromServer(fromJsonArray(status.toArray()), sharedKey, nonceR);
             QString jumpR = decryptFromServer(fromJsonArray(jump.toArray()), sharedKey, nonceR);
+            if (version.toInt() >= 2) {
+                QString metricsResponse = response.value("stats").toString();
+                qDebug() << "metrics response: " << metricsResponse;
+            }
             if (nameR != settings.getUsername() || jumpR != "Omnia cum pretio") {
                 emit validationFailed("Encryption failure.");
             } else if (statusR == "invalid") {

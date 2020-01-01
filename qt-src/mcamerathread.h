@@ -85,6 +85,7 @@ private:
     unsigned char* cameraFrame;
     bool cachedFrameIsDirty;
     bool doProcessOutputVideo;
+    int processingMillisecondsSinceStart;
     void convertUVsp2UVp(unsigned char* __restrict srcptr, unsigned char* __restrict dstptr, int stride);
 
     enum MatlabArrays {
@@ -123,6 +124,7 @@ public slots:
     int getSetupState() { return curSetupState; }
     void setNewTopPoints(QList<MPoint> points);
     void setNewBottomPoints(QList<MPoint> points);
+    int getprocessingMillisecondsSinceStart();
 signals:
     void imageReady(int);
     void initPointsDetected(QList<MPoint>, QList<MPoint>);
@@ -168,6 +170,7 @@ public:
     bool doGetProcessOutputVideo();
     void doSetSetupState(CameraTask::SetupState state);
     int doGetSetupState();
+    int doGetprocessingMillisecondsSinceStart();
     void doSetNewTopPoints(QList<MPoint> points);
     void doSetNewBottomPoints(QList<MPoint> points);
 private:

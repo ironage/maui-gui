@@ -109,7 +109,7 @@ void MDataLog::write(QString fileName, int setupState)
         size_t maxLines = std::max(header.size(), entries.size()) + 1; // + 1 is for top line header
         std::map<int, MDataEntry>::iterator curData = entries.begin();
         int velocityIndex = 0;
-        for (int i = 0; i < maxLines || curData != entries.end();) {
+        for (size_t i = 0; i < maxLines || curData != entries.end();) {
             QString curLine;
             if (i < header.size()) {
                 curLine += header[i];

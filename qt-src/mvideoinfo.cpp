@@ -4,11 +4,11 @@
 #include <QMediaPlayer>
 
 MVideoInfo::MVideoInfo(QUrl path)
-    : QObject(nullptr),
-      numFrames(0),
-      sourceUrl(path),
-      recomputeROIMode(false),
-      stopped(true)
+    : QObject(nullptr)
+    ,  sourceUrl(path)
+    ,  numFrames(0)
+    ,  recomputeROIMode(false)
+    ,  stopped(true)
 {
     qDebug() << "source file set: " << sourceUrl.toLocalFile();
     sourceFile = sourceUrl.toLocalFile();
@@ -104,8 +104,8 @@ void MVideoInfo::cacheROI(const QRect &newROI)
 
 void MVideoInfo::updateVideoSettings() {
     if (camera) {
-        int videoWidth = camera->getProperty(CV_CAP_PROP_FRAME_WIDTH);
-        int videoHeight = camera->getProperty(CV_CAP_PROP_FRAME_HEIGHT);
+        int videoWidth = int(camera->getProperty(CV_CAP_PROP_FRAME_WIDTH));
+        int videoHeight = int(camera->getProperty(CV_CAP_PROP_FRAME_HEIGHT));
         size = QSize(videoWidth, videoHeight);
 
         double dW = size.width() / 3;
@@ -120,7 +120,7 @@ void MVideoInfo::updateVideoSettings() {
         velocityScaleVertical = QRect(0.9 * size.width(), velocityROI.y() + 0.1 * vH, 0, vH - (vH * 0.1 * 4));
         velocityScaleHorizontal = QRect(velocityROI.x() + (vW * 0.1), 0.9 * size.height(), vW - (vW * 0.1 * 2), 0);
 
-        numFrames = camera->getProperty(CV_CAP_PROP_FRAME_COUNT); // returns zero for non-video files
+        numFrames = int(camera->getProperty(CV_CAP_PROP_FRAME_COUNT)); // returns zero for non-video files
         curFrame = 0;
         //Create new buffers, camera accessor and thread
         allocateCvImage();
@@ -151,15 +151,15 @@ void MVideoInfo::update()
     QMutexLocker locker(&lock);
     //Destroy old thread, camera accessor and buffers
     delete thread;
-    thread = NULL;
+    thread = nullptr;
     delete camera;
-    camera = NULL;
+    camera = nullptr;
     if (videoFrame && videoFrame->isMapped())
         videoFrame->unmap();
     delete videoFrame;
-    videoFrame = NULL;
+    videoFrame = nullptr;
     delete[] cvImageBuf;
-    cvImageBuf = NULL;
+    cvImageBuf = nullptr;
 
     camera = new MVideoCapture();
     //Open newly created device

@@ -41,15 +41,8 @@ QSize MCVPlayer::getSize() const
     return QSize();
 }
 
-void MCVPlayer::setSize(QSize size)
+void MCVPlayer::setSize(QSize /*size*/)
 {
-    // FIXME: remove?
-    //qDebug() << "cv player set size... to remove";
-//    if(this->size.width() != size.width() || this->size.height() != size.height()){
-//       // this->size = size;
-//        //update();
-//      //  emit sizeChanged();
-//    }
 }
 
 int MCVPlayer::getNumFrames() const
@@ -222,10 +215,6 @@ void MCVPlayer::setVideoSurface(QAbstractVideoSurface *surface)
     m_surface = surface;
     if (m_surface) {
         m_surface->start(m_format);
-        //FIXME: check if needed
-//        if (curVideo) {
-//            curVideo->update();
-//        }
     }
 }
 

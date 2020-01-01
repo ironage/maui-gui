@@ -74,7 +74,7 @@ public slots:
     QString getSourceExtension();
     QString getSourceName();
     QSize getSize() const;
-    void setSize(QSize size);
+    void setSize(QSize);
     int getNumFrames() const;
     int getCurFrame() const;
     QRect getROI() const;

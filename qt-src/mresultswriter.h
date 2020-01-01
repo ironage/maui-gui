@@ -15,7 +15,7 @@ public:
     virtual QString getHeader() const = 0;
     virtual std::vector<QString> getMetaDataHeader() const = 0;
     virtual QString getEmptyEntry() const = 0;
-    virtual QString getEntry(const MDataEntry &entry, int index) const = 0;
+    virtual QString getEntry(const MDataEntry &entry, size_t index) const = 0;
     template<typename T> QString getString(T value) const;
 protected:
     QString filename;
@@ -28,7 +28,7 @@ public:
     QString getHeader() const override;
     std::vector<QString> getMetaDataHeader() const override;
     QString getEmptyEntry() const override;
-    QString getEntry(const MDataEntry &entry, int index) const override;
+    QString getEntry(const MDataEntry &entry, size_t index) const override;
     double getDiameterConversion() const { return conversion; }
 private:
     QString getILTPixels(); // intima-intima, computed
@@ -42,7 +42,7 @@ public:
     QString getHeader() const override;
     std::vector<QString> getMetaDataHeader() const override;
     QString getEmptyEntry() const override;
-    QString getEntry(const MDataEntry &entry, int index) const override;
+    QString getEntry(const MDataEntry &entry, size_t index) const override;
     double getVelocityConversion() const { return conversion; }
 private:
     double conversion;
@@ -54,7 +54,7 @@ public:
     QString getHeader() const override;
     std::vector<QString> getMetaDataHeader() const override;
     QString getEmptyEntry() const override;
-    QString getEntry(const MDataEntry &entry, int index) const override;
+    QString getEntry(const MDataEntry &entry, size_t index) const override;
 private:
     enum FlowUnits {
         CM_PER_SECOND,
@@ -63,7 +63,7 @@ private:
     };
     double calculateFlow(double diameter, double velocity) const;
     QString getVelocityEmptyEntry() const;
-    QString getVelocityEntry(const MDataEntry &entry, int index) const;
+    QString getVelocityEntry(const MDataEntry &entry, size_t index) const;
     MVelocityWriter vWriter;
     MDiameterWriter dWriter;
     FlowUnits velocityConversionType;

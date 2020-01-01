@@ -62,7 +62,7 @@ QString MDiameterWriter::getEmptyEntry() const
     return QString(",,,,,,,,,");
 }
 
-QString MDiameterWriter::getEntry(const MDataEntry &entry, int index) const
+QString MDiameterWriter::getEntry(const MDataEntry &entry, size_t index) const
 {
     if (index) { return QString(); } // empty for all but index 0
     return QString() + QString::number(entry.getFrameNumber()) + ","
@@ -113,7 +113,7 @@ QString MVelocityWriter::getEmptyEntry() const
     return QString(",,,,,,,,,,,,,,");
 }
 
-QString MVelocityWriter::getEntry(const MDataEntry &entry, int index) const
+QString MVelocityWriter::getEntry(const MDataEntry &entry, size_t index) const
 {
     const VelocityResults &velocity = entry.getVelocity();
     if (index >= 0
@@ -155,7 +155,7 @@ MCombinedWriter::MCombinedWriter(QString name, MLogMetaData &attachedMetaData)
     } else if (diameterUnits.compare("mm", Qt::CaseInsensitive) == 0) {
         diameterToCMConversion = 0.10;
     } else {
-        if (!diameterUnits.compare("cm", Qt::CaseInsensitive) == 0) {
+        if (diameterUnits.compare("cm", Qt::CaseInsensitive) != 0) {
             qDebug() << "Unknown diameter units! assuming cm! " << diameterUnits;
         }
         diameterToCMConversion = 1;
@@ -169,7 +169,7 @@ MCombinedWriter::MCombinedWriter(QString name, MLogMetaData &attachedMetaData)
         flowUnits = "mL/min";
         velocityConversionType = CM_PER_SECOND;
     } else {
-        if (!velocityUnits.compare("mm/s", Qt::CaseInsensitive) == 0) {
+        if (velocityUnits.compare("mm/s", Qt::CaseInsensitive) != 0) {
             qDebug() << "unhandled flow units! defaulting to mm/s!" << velocityUnits;
         }
         flowUnits = "mL/min";
@@ -217,7 +217,7 @@ QString MCombinedWriter::getEmptyEntry() const
     return dWriter.getEmptyEntry() + getVelocityEmptyEntry();
 }
 
-QString MCombinedWriter::getEntry(const MDataEntry &entry, int index) const
+QString MCombinedWriter::getEntry(const MDataEntry &entry, size_t index) const
 {
     QString velocityEntry = getVelocityEntry(entry, index);
     QString diameterEntry = dWriter.getEntry(entry, 0);
@@ -262,14 +262,13 @@ QString MCombinedWriter::getVelocityEmptyEntry() const
     return ",,,,,,,,,,,,,,,,,,,";
 }
 
-QString MCombinedWriter::getVelocityEntry(const MDataEntry &entry, int index) const
+QString MCombinedWriter::getVelocityEntry(const MDataEntry &entry, size_t index) const
 {
     const VelocityResults &velocity = entry.getVelocity();
-    if (index >= 0
-            && index < velocity.maxPositive.size()
-            && index < velocity.avgPositive.size()
-            && index < velocity.avgNegative.size()
-            && index < velocity.maxNegative.size()) {
+    if (    index < velocity.maxPositive.size()
+         && index < velocity.avgPositive.size()
+         && index < velocity.avgNegative.size()
+         && index < velocity.maxNegative.size()) {
         double xAxisLocation = metaData.getVelocityXAxisLocation();
         double velocityConversion = vWriter.getVelocityConversion();
         double diameterConversion = dWriter.getDiameterConversion();

@@ -21,10 +21,24 @@
 
 CameraTask::CameraTask(MVideoCapture* camera, QVideoFrame* videoFrame,
                        unsigned char* cvImageBuf, int width, int height)
-    : running(true), camera(camera), videoFrame(videoFrame),cvImageBuf(cvImageBuf),
-    width(width), height(height), curPlayState(Paused), curSetupState(ALL),
-    curFrame(-1), frameToSeekTo(-1), startFrame(0), endFrame(0), autoRecomputeROI(false),
-    doneInit(false), cameraFrame(nullptr), cachedFrameIsDirty(true), doProcessOutputVideo(true), processingMillisecondsSinceStart(0)
+    : curPlayState(Paused)
+    , curSetupState(ALL)
+    , width(width)
+    , height(height)
+    , camera(camera)
+    , running(true)
+    , videoFrame(videoFrame)
+    , cvImageBuf(cvImageBuf)
+    , curFrame(-1)
+    , frameToSeekTo(-1)
+    , startFrame(0)
+    , endFrame(0)
+    , autoRecomputeROI(false)
+    , doneInit(false)
+    , cameraFrame(nullptr)
+    , cachedFrameIsDirty(true)
+    , doProcessOutputVideo(true)
+    , processingMillisecondsSinceStart(0)
 {
     qRegisterMetaType<CameraTask::ProcessingState>();
     qRegisterMetaType<CameraTask::SetupState>();
@@ -58,14 +72,14 @@ void printMatVector(mwArray &data)
 }
 
 mwArray* opencvConvertToMX(cv::Mat& m) {
-    int rows = m.rows;
-    int cols = m.cols;
+    mwSize rows = mwSize(m.rows);
+    mwSize cols = mwSize(m.cols);
     mwArray *T = new mwArray(rows, cols, mxDOUBLE_CLASS);
     mxDouble *dataBuffer = new mxDouble[cols * rows]; // TODO: allocation on size change only
-    for (int i = 0; i < rows; i++) {
-        for (int j = 0; j < cols; j++) {
+    for (size_t i = 0; i < rows; i++) {
+        for (size_t j = 0; j < cols; j++) {
             //        [i*cols+j]  row vs col order is reversed from cv::Mat to mwArray
-            dataBuffer[j * rows + i] = double(m.at<unsigned char>(i, j)) / 255.0f;
+            dataBuffer[j * rows + i] = double(m.at<unsigned char>(int(i), int(j))) / 255.0;
         }
     }
     T->SetData(dataBuffer, cols * rows);
@@ -90,7 +104,7 @@ std::vector<cv::Point> convertMWArray(mwArray &points, QPoint offset) {
         size_t numPoints = numElements / 2;
         mxInt32 *data = new mxInt32[numElements];
         points.GetData(data, numElements);
-        for (int i = 0; i < numPoints; ++i) {
+        for (size_t i = 0; i < numPoints; ++i) {
             result.emplace_back(cv::Point(data[i] + offset.x(), data[numPoints + i] + offset.y()));
         }
         delete [] data;
@@ -152,7 +166,7 @@ void CameraTask::drawOverlay(int frame, cv::Mat& mat) {
                 && vr.avgNegative.size() == num_results
                 && vr.maxNegative.size() == num_results
                 && vr.maxPositive.size() == num_results) {
-            for (int i = 0; i < num_results; i++) {
+            for (size_t i = 0; i < num_results; i++) {
                 cv::Point avgPositive = makeSafePoint(vr.xTrackingLocationIndividual[i], vr.avgPositive[i], velocityOffset);
                 cv::circle(mat, avgPositive, radius, weakColor, thickness);
                 cv::Point maxPositive = makeSafePoint(vr.xTrackingLocationIndividual[i], vr.maxPositive[i], velocityOffset);
@@ -227,13 +241,12 @@ void CameraTask::doWork()
             break;
         case PlayState::Seeking:
             camera->setProperty(CV_CAP_PROP_POS_FRAMES, frameToSeekTo);
-            // fall through
+            break;
         case PlayState::Playing:
-        default:
-            break; // switch
+            break;
         }
 
-        curFrame = camera->getProperty(CV_CAP_PROP_POS_FRAMES); // opencv frame is 0 indexed
+        curFrame = int(camera->getProperty(CV_CAP_PROP_POS_FRAMES)); // opencv frame is 0 indexed
         if (curPlayState == PlayState::AutoInitCurFrame
                 || curPlayState == PlayState::AutoInitVelocityInFrame
                 || curPlayState == PlayState::RedrawCurFrame) {
@@ -382,7 +395,7 @@ void CameraTask::doWork()
 
         //Export camera image
         if (cvImageBuf) {
-            memcpy(cvImageBuf,cameraFrame,height*width*3);
+            memcpy(cvImageBuf, cameraFrame, size_t(height*width*3));
         }
 
         millis = int(timer.restart());
@@ -393,7 +406,7 @@ void CameraTask::doWork()
 #if defined(SHOW_FRAMERATE) && !defined(ANDROID)
         fps = CAM_FPS_RATE*fps + (1.0f - CAM_FPS_RATE)*(1000.0f/millis);
         if (millisElapsed >= CAM_FPS_PRINT_PERIOD) {
-            qDebug("Camera is running at %f FPS",fps);
+            qDebug("Camera is running at %f FPS", double(fps));
             millisElapsed = 0;
         }
 #endif
@@ -517,7 +530,7 @@ void CameraTask::setNewTopPoints(QList<MPoint> points)
     // points come in raw, need to adjust to roi
     QPointF offset(roi.x(), roi.y());
     for (int i = 0; i < points.size(); ++i) {
-        setPoint(points[i] - offset, matlabArrays[TOP_STRONG_POINTS], i);
+        setPoint(points[i] - offset, matlabArrays[TOP_STRONG_POINTS], size_t(i));
         // topPoints is the accessor that has absolute coordinates
         topPoints[i].setX(points[i].x());
         topPoints[i].setY(points[i].y());
@@ -529,7 +542,7 @@ void CameraTask::setNewBottomPoints(QList<MPoint> points)
     // points come in raw, need to adjust to roi
     QPointF offset(roi.x(), roi.y());
     for (int i = 0; i < points.size(); ++i) {
-        setPoint(points[i] - offset, matlabArrays[BOTTOM_STRONG_POINTS], i);
+        setPoint(points[i] - offset, matlabArrays[BOTTOM_STRONG_POINTS], size_t(i));
         // bottomPoints is the accessor that has absolute coordinates
         bottomPoints[i].setX(points[i].x());
         bottomPoints[i].setY(points[i].y());
@@ -551,7 +564,7 @@ void CameraTask::notifyInitPoints(mwArray topWall, mwArray bottomWall, QPoint of
     if (topSize % 2 == 0) {  // Assuming two dimensions
         mxInt32 *topData = new mxInt32[topSize];
         topWall.GetData(topData, topSize);
-        for (int i = 0; i < topSize / 2; ++i) {
+        for (size_t i = 0; i < topSize / 2; ++i) {
             MPoint p(topData[i] + offset.x(), topData[(topSize/2) + i] + offset.y());
             topPoints.push_back(p);
         }
@@ -561,7 +574,7 @@ void CameraTask::notifyInitPoints(mwArray topWall, mwArray bottomWall, QPoint of
     if (bottomSize % 2 == 0) {  // Assuming two dimensions
         mxInt32 *bottomData = new mxInt32[bottomSize];
         bottomWall.GetData(bottomData, bottomSize);
-        for (int i = 0; i < bottomSize / 2; ++i) {
+        for (size_t i = 0; i < bottomSize / 2; ++i) {
             MPoint p(bottomData[i] + offset.x(), bottomData[(bottomSize/2) + i] + offset.y());
             bottomPoints.push_back(p);
         }
@@ -592,8 +605,8 @@ cv::Rect CameraTask::getCVROI(QRect rect)
 
 void CameraTask::drawLine(cv::Mat &dest, const std::vector<cv::Point>& points, cv::Scalar color, int thickness)
 {
-    int numPoints = int(points.size());
-    for (int i = 0; i < numPoints - 1; ++i) {
+    size_t numPoints = points.size();
+    for (size_t i = 0; i < numPoints - 1; ++i) {
         cv::line(dest, points[i], points[i+1], color, thickness, CV_AA); // antialised line of thickness 1
     }
 }
@@ -625,8 +638,8 @@ void CameraTask::processOutputVideo() {
     qDebug() << "opening output video: " << QString::fromStdString(outputName) << " success ? " << success << " (ex: " << ex << ")";
 
     //Assuming desktop, RGB camera image and RGBA QVideoFrame
-    while(running && camera != NULL && doProcessOutputVideo) {
-        curFrame = camera->getProperty(CV_CAP_PROP_POS_FRAMES); // opencv frame is 0 indexed
+    while(running && camera != nullptr && doProcessOutputVideo) {
+        curFrame = int(camera->getProperty(CV_CAP_PROP_POS_FRAMES)); // opencv frame is 0 indexed
 
         if (!camera->grabFrame()) {
             break;
@@ -765,7 +778,7 @@ VelocityResults CameraTask::getVelocityFromFrame(mwArray *velocityCurrentROI,
     VelocityResults results;
     try {
         mwArray frameNumMat(1, 1, mxDOUBLE_CLASS);
-        double frameNumberData [] = { frame };
+        double frameNumberData [] = { static_cast<double>(frame) };
         frameNumMat.SetData(frameNumberData, 1);
 
         mwArray xAxisLocationMat(1, 1, mxDOUBLE_CLASS);
@@ -915,7 +928,7 @@ void MCameraThread::start()
 
 void MCameraThread::stop()
 {
-    if (task != NULL) {
+    if (task != nullptr) {
         task->stop();
     }
     workerThread.quit();

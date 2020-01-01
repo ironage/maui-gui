@@ -8,7 +8,7 @@ class MInitTask : public QObject
 {
     Q_OBJECT
 public:
-    MInitTask(QObject *parent = 0) : QObject(parent) {}
+    MInitTask(QObject *parent = nullptr) : QObject(parent) {}
     enum InitStats {
         SUCCESS,
         FAILURE_IN_AUTO_INIT,
@@ -25,14 +25,14 @@ class MInitThread : public QObject
 {
     Q_OBJECT
 public:
-    explicit MInitThread(QObject *parent = 0);
+    explicit MInitThread(QObject *parent = nullptr);
     virtual ~MInitThread();
     void init();
 signals:
     void initFinished(MInitTask::InitStats status);
 private:
     QThread workerThread;
-    MInitTask* task = NULL;
+    MInitTask* task = nullptr;
 };
 
 Q_DECLARE_METATYPE(MInitTask::InitStats)

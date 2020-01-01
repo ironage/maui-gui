@@ -14,8 +14,8 @@ class MPoint : public QObject
     Q_PROPERTY(double x READ x WRITE setX NOTIFY xChanged)
     Q_PROPERTY(double y READ y WRITE setY NOTIFY yChanged)
 public:
-    explicit MPoint(QObject *parent = 0);
-    explicit MPoint(double x, double y, QObject *parent = 0);
+    explicit MPoint(QObject *parent = nullptr);
+    explicit MPoint(double x, double y, QObject *parent = nullptr);
     MPoint(const MPoint& other);
     MPoint(const QPointF& p);
     MPoint operator-(const MPoint& other) { return MPoint(mx - other.mx, my - other.my); }

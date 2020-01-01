@@ -175,7 +175,7 @@ public:
     void doSetNewBottomPoints(QList<MPoint> points);
 private:
     QThread workerThread;
-    CameraTask* task = NULL;
+    CameraTask* task = nullptr;
 signals:
     void imageReady(int frameNumber);
     void videoFinished(CameraTask::ProcessingState state);

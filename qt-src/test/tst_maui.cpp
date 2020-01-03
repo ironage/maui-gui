@@ -176,7 +176,7 @@ void waitForEventLoop(int max_wait_ms = 1000)
     }, max_wait_ms);
 }
 
-void verifyResults(QString baselinePath, QString resultsPath)
+void verifyResults(QString baselinePath, QString resultsPath, bool isCombinedResults)
 {
     QFile baselineFile(baselinePath);
     QFile resultsFile(resultsPath);
@@ -194,7 +194,12 @@ void verifyResults(QString baselinePath, QString resultsPath)
         QString baselineText = inBaseline.readLine();
         QString resultsText = inResults.readLine();
 
-        if (lineCount > 4) {
+        size_t linesUsedForMetadata = isCombinedResults ? 5 : 4;
+        size_t versionLine = isCombinedResults ? 5 : 4;
+        size_t allMatchingLine1 = isCombinedResults ? 3 : 3;
+        size_t allMatchingLine2 = isCombinedResults ? 4 : 3;
+
+        if (lineCount > linesUsedForMetadata) {
             QCOMPARE(baselineText, resultsText);
         } else {
             // only compare after the first column
@@ -202,9 +207,9 @@ void verifyResults(QString baselinePath, QString resultsPath)
             QStringList resultParts = resultsText.split(",");
             QVERIFY(baselineParts.size() > 1);
             QVERIFY(resultParts.size() > 1);
-            if (lineCount == 3) {
+            if (lineCount == allMatchingLine1 || lineCount == allMatchingLine2) {
                 QCOMPARE(baselineParts[0], resultParts[0]); // unit conversion matches
-            } else if (lineCount == 4) {
+            } else if (lineCount == versionLine) {
                 QCOMPARE(resultParts[0], "MAUI version " + QString::number(MRemoteInterface::CURRENT_VERSION));
             }
             baselineParts.pop_front();
@@ -214,6 +219,7 @@ void verifyResults(QString baselinePath, QString resultsPath)
         ++lineCount;
     }
     QVERIFY(inResults.atEnd());
+    qDebug() << "verified " << lineCount << " lines match the baseline exactly";
 }
 
 struct ResultsComparison
@@ -231,6 +237,10 @@ struct ResultsComparison
     bool generateOutputVideo = false;
     int startFrame = -1;
     int endFrame = -1;
+    QRect velocityROI = QRect();
+    QRect velocityScale = QRect();
+    double velocityConversion = 1;
+    QString velocityUnits = "cm/s";
 };
 
 void MAUI::test_diameterVideo1()
@@ -283,6 +293,47 @@ void MAUI::test_diameterVideo1()
             119
         });
 
+    comparisons.push_back(
+        {
+            QFINDTESTDATA(videoDir + "velocityType1.AVI"),
+            QFINDTESTDATA(baselineDir + "velocityType1_velocity_baseline.csv"),
+            QSize(1024, 768),
+            303,
+            "velocityType1",
+            "AVI",
+            QRect(),
+            QRect(),
+            1.0,
+            "cm",
+            false,
+            -1,
+            -1,
+            QRect(159, 363, 593, 145),
+            QRect(925, 370, 0, 94),
+            50.0,
+            "cm/s"
+        });
+    comparisons.push_back(
+        {
+            QFINDTESTDATA(videoDir + "velocityType2.avi"),
+            QFINDTESTDATA(baselineDir + "velocityType2_combined.csv"),
+            QSize(1280, 1024),
+            76,
+            "velocityType2",
+            "avi",
+            QRect(816, 184, 44, 104),
+            QRect(1351, 27, 0, 270),
+            4,
+            "cm",
+            false,
+            -1,
+            -1,
+            QRect(560, 465, 688, 112),
+            QRect(1415, 345, 0, 70),
+            100,
+            "cm/s"
+        });
+
 
     for (ResultsComparison& test : comparisons) {
         // load a video
@@ -306,9 +357,19 @@ void MAUI::test_diameterVideo1()
         QCOMPARE(player.getCurFrame(), 0);
         QCOMPARE(player.getPlaybackState(), QMediaPlayer::PausedState);
         QCOMPARE(player.getSetupState(), CameraTask::SetupState::ALL);
-        player.setSetupState(CameraTask::SetupState::NORMAL_ROI);
+
+        bool computeDiameter = !test.roi.isNull();
+        bool computeVelocity = !test.velocityROI.isNull();
+        CameraTask::SetupState stateToSet = CameraTask::SetupState::NONE;
+        if (computeDiameter) {
+            stateToSet = CameraTask::SetupState(stateToSet | CameraTask::SetupState::NORMAL_ROI);
+        }
+        if (computeVelocity) {
+            stateToSet = CameraTask::SetupState(stateToSet | CameraTask::SetupState::VELOCITY_ROI);
+        }
+        player.setSetupState(stateToSet);
         waitForEventLoop();
-        QCOMPARE(player.getSetupState(), CameraTask::SetupState::NORMAL_ROI);
+        QCOMPARE(player.getSetupState(), stateToSet);
 
         QTemporaryDir dir;
         QVERIFY(dir.isValid());
@@ -326,23 +387,35 @@ void MAUI::test_diameterVideo1()
         if (test.endFrame >= 0) {
             player.setEndFrame(test.endFrame);
         }
-        player.setROI(test.roi);
-        QCOMPARE(player.getROI(), test.roi);
-        player.setRecomputeROIMode(true);
-        QVERIFY(player.getRecomputeROIMode());
+        if (computeDiameter) {
+            player.setROI(test.roi);
+            QCOMPARE(player.getROI(), test.roi);
+            player.setRecomputeROIMode(true);
+            QVERIFY(player.getRecomputeROIMode());
+            player.setDiameterScale(test.diameterScale);
+            QCOMPARE(player.getDiameterScale(), test.diameterScale);
+            player.setDiameterConversionUnits(test.diameterUnits);
+            QCOMPARE(player.getDiameterConversionUnits(), test.diameterUnits);
+            player.setDiameterConversion(test.diameterConversion);
+            QCOMPARE(player.getDiameterConversion(), test.diameterConversion);
+            pointsChanged.wait(MAX_COMPUTE_POINTS_TIME);
+            QVERIFY(pointsChanged.count() > 0);
+        }
+        if (computeVelocity) {
+            player.setVelocityROI(test.velocityROI);
+            QCOMPARE(player.getVelocityROI(), test.velocityROI);
+            player.setVelocityScaleVertical(test.velocityScale);
+            QCOMPARE(player.getVelocityScaleVertical(), test.velocityScale);
+            player.setVelocityConversion(test.velocityConversion);
+            QCOMPARE(player.getVelocityConversion(), test.velocityConversion);
+            player.setVelocityConversionUnits(test.velocityUnits);
+            QCOMPARE(player.getVelocityConversionUnits(), test.velocityUnits);
+        }
         player.setProcessOutputVideo(test.generateOutputVideo);
         QTest::qWaitFor([&]() {
             return player.getProcessOutputVideo() == test.generateOutputVideo;
         }, 1000);
         QCOMPARE(player.getProcessOutputVideo(), test.generateOutputVideo);
-        player.setDiameterScale(test.diameterScale);
-        QCOMPARE(player.getDiameterScale(), test.diameterScale);
-        player.setDiameterConversionUnits(test.diameterUnits);
-        QCOMPARE(player.getDiameterConversionUnits(), test.diameterUnits);
-        player.setDiameterConversion(test.diameterConversion);
-        QCOMPARE(player.getDiameterConversion(), test.diameterConversion);
-        pointsChanged.wait(MAX_COMPUTE_POINTS_TIME);
-        QVERIFY(pointsChanged.count() > 0);
         QSignalSpy finished(&player, SIGNAL(videoFinished(CameraTask::ProcessingState)));
         QSignalSpy output(&player, SIGNAL(outputProgress(int)));
 
@@ -351,7 +424,6 @@ void MAUI::test_diameterVideo1()
         QCOMPARE(finished.count(), 1);
         QList<QVariant> finishedArgs = finished.takeFirst(); // first signal
         QCOMPARE(finishedArgs.at(0).toInt(), CameraTask::ProcessingState::SUCCESS);
-        qDebug() << "processed success!";
         if (test.generateOutputVideo) {
             QTest::qWaitFor([&]() {
                 if (output.count() > 0) {
@@ -367,8 +439,8 @@ void MAUI::test_diameterVideo1()
         QStringList aviMatches = outputDir.entryList().filter(QRegExp(".*avi$"));
         QStringList csvMatches = outputDir.entryList().filter(QRegExp(".*csv$"));
         QCOMPARE(aviMatches.length(), (test.generateOutputVideo ? 1 : 0));
-        QCOMPARE(csvMatches.length(), 1);
-        verifyResults(test.baselinePath, outputDir.absoluteFilePath(csvMatches[0]));
+        QVERIFY(csvMatches.length() >= 1); // combined outputs 3 csv files
+        verifyResults(test.baselinePath, outputDir.absoluteFilePath(csvMatches[0]), computeDiameter && computeVelocity);
         player.removeVideoFile(inputUrl.toString());
     }
 }

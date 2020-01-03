@@ -348,6 +348,7 @@ void MVideoInfo::setStartFrame(int frame)
 
 bool MVideoInfo::getProcessOutputVideo()
 {
+    QMutexLocker locker(&lock);
     if (thread) {
         return thread->doGetProcessOutputVideo();
     }
@@ -356,6 +357,7 @@ bool MVideoInfo::getProcessOutputVideo()
 
 void MVideoInfo::setProcessOutputVideo(bool process)
 {
+    QMutexLocker locker(&lock);
     if (thread) {
         thread->doSetProcessOutputVideo(process);
     }
@@ -367,7 +369,7 @@ QList<MPoint> convertList(const QVariant& newPoints) {
         QList<QVariant> points = newPoints.toList();
         for (QVariant v : points) {
             if (!v.canConvert<QPointF>()) {
-                qDebug() << "Cannot convert vaniant to QPointF. Skipping" << v;
+                qDebug() << "Cannot convert variant to QPointF. Skipping" << v;
                 continue;
             }
             list.append(MPoint(v.toPointF()));

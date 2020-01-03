@@ -151,6 +151,7 @@ signals:
     void velocityTimeChanged();
     void videoControlInfoChanged();
     void setupAllVideosChanged();
+    void initFinished(MInitTask::InitStats status);
 private:
     QAbstractVideoSurface *m_surface;
     QVideoSurfaceFormat m_format;

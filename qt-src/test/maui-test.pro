@@ -7,13 +7,14 @@ CONFIG += c++11
 # and MATLAB_INCLUDE environment variables to include director
 # of the respective installations on your computer
 
+MAUI_SRC = "$$PWD/.."
+#message($$MAUI_SRC)
+
 OPENCV_INCLUDE_PATH = "$$(OPENCV_INCLUDE)"
 OPENCV_LIBS = "$$(OPENCV_DIR)\build\x64\vc14\lib"
 MATLAB_INCLUDE_PATH = "$$(MATLAB_INCLUDE)"
-MATLAB_LIBS = "$$PWD/libs/"
+MATLAB_LIBS = "$$MAUI_SRC/libs/"
 
-MAUI_SRC = "$$PWD/.."
-message($$MAUI_SRC)
 
 CONFIG += qt console warn_on depend_includepath testcase
 CONFIG -= app_bundle
@@ -21,7 +22,6 @@ CONFIG -= app_bundle
 TEMPLATE = app
 
 SOURCES +=  tst_maui.cpp
-
 
 # MAUI CONFIG BELOW
 LIBS += -L"$$OPENCV_LIBS"
@@ -34,6 +34,8 @@ LIBS += -llibmat -llibmx -lmclbase -llibmwservices -lmclcommain  -lmclxlmain
 
 LIBS += -lkernel32 -luser32 -lgdi32 -lwinspool
 LIBS += -lcomdlg32 -ladvapi32 -lshell32 -lole32 -loleaut32 -luuid -lodbc32 -lodbccp32
+
+#message($$LIBS)
 
 INCLUDEPATH += "$$OPENCV_INCLUDE_PATH"
 INCLUDEPATH += "$$MATLAB_INCLUDE_PATH"

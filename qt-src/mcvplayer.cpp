@@ -463,6 +463,7 @@ void MCVPlayer::setStartFrame(int frame)
 void MCVPlayer::matlabInitFinished(MInitTask::InitStats status)
 {
     qDebug() << "init status recieved: " << status;
+    emit initFinished(status);
 }
 
 bool MCVPlayer::getProcessOutputVideo()

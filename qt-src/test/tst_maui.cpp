@@ -181,7 +181,6 @@ void verifyResults(QString baselinePath, QString resultsPath)
     QFile baselineFile(baselinePath);
     QFile resultsFile(resultsPath);
     qDebug() << "comparing baseline " << baselineFile.fileName() << " with results " << resultsFile.fileName();
-    qDebug() << "aka: " << baselinePath << " vs " << resultsPath;
     QVERIFY(baselineFile.exists());
     QVERIFY(resultsFile.exists());
     QVERIFY(baselineFile.open(QIODevice::ReadOnly | QIODevice::Text));
@@ -197,6 +196,20 @@ void verifyResults(QString baselinePath, QString resultsPath)
 
         if (lineCount > 4) {
             QCOMPARE(baselineText, resultsText);
+        } else {
+            // only compare after the first column
+            QStringList baselineParts = baselineText.split(",");
+            QStringList resultParts = resultsText.split(",");
+            QVERIFY(baselineParts.size() > 1);
+            QVERIFY(resultParts.size() > 1);
+            if (lineCount == 3) {
+                QCOMPARE(baselineParts[0], resultParts[0]); // unit conversion matches
+            } else if (lineCount == 4) {
+                QCOMPARE(resultParts[0], "MAUI version " + QString::number(MRemoteInterface::CURRENT_VERSION));
+            }
+            baselineParts.pop_front();
+            resultParts.pop_front();
+            QCOMPARE(baselineParts, resultParts);
         }
         ++lineCount;
     }
@@ -248,7 +261,8 @@ void MAUI::test_diameterVideo1()
             QRect(224, 136, 69, 301),
             QRect(852, 284, 0, 235),
             1.0,
-            "cm"
+            "cm",
+            false
         });
 
     for (ResultsComparison& test : comparisons) {
@@ -297,9 +311,7 @@ void MAUI::test_diameterVideo1()
         player.setDiameterConversion(test.diameterConversion);
         QCOMPARE(player.getDiameterConversion(), test.diameterConversion);
         pointsChanged.wait(MAX_COMPUTE_POINTS_TIME);
-        player.setNewTopPoints(QVariant::fromValue(player.getTopPoints()));
-        player.setNewBottomPoints(QVariant::fromValue(player.getBottomPoints()));
-        waitForEventLoop();
+        QVERIFY(pointsChanged.count() > 0);
         QSignalSpy finished(&player, SIGNAL(videoFinished(CameraTask::ProcessingState)));
         QSignalSpy output(&player, SIGNAL(outputProgress(int)));
 

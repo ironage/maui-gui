@@ -62,7 +62,6 @@ void MAUI::cleanupTestCase()
 
 void MAUI::test_remoteAuth()
 {
-    QSKIP("skipping auth tests");
     MRemoteInterface remote;
     QCOMPARE(remote.getSoftwareVersion(), "Checking...");
 
@@ -145,7 +144,6 @@ void MAUI::test_remoteAuth()
 // maybe check that django isn't caching or flushing something?
 void MAUI::test_remoteChangelog()
 {
-    QSKIP("skipping changelog test");
     MRemoteInterface remote;
     QString defaultChangelogText = "Fetching changes...";
     QCOMPARE(remote.getChangelog(), defaultChangelogText);

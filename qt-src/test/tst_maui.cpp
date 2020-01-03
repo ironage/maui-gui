@@ -203,8 +203,29 @@ void verifyResults(QString baselinePath, QString resultsPath)
     QVERIFY(inResults.atEnd());
 }
 
+struct ResultsComparison
+{
+    QString inputPath;
+    QString baselinePath;
+    QSize videoSize;
+    int numFrames;
+    QString videoName;
+    QString videoExtension;
+    QRect roi;
+    QRect diameterScale;
+    double diameterConversion;
+    QString diameterUnits;
+    bool generateOutputVideo = false;
+};
+
 void MAUI::test_diameterVideo1()
 {
+    const QString videoDir = "../../videos/";
+    const QString baselineDir = "../../videos/baseline/";
+    const int MAX_PROCESSING_WAIT_TIME = 30000;
+    const int MAX_OUTPUT_WRITE_TIME = 15000;
+    const int MAX_COMPUTE_POINTS_TIME = 2000;
+
     MCVPlayer player;
     // wait for the matlab initialization
     QSignalSpy init(&player, SIGNAL(initFinished(MInitTask::InitStats)));
@@ -215,82 +236,91 @@ void MAUI::test_diameterVideo1()
     QList<QVariant> initArgs = init.takeFirst(); // first signal
     QVERIFY(initArgs.at(0).toInt() == MInitTask::InitStats::SUCCESS);
 
-    // load a video
-    QString inputPath = QFINDTESTDATA("../../videos/sample01.avi");
-    QString  baselinePath = QFINDTESTDATA("../../videos/baseline/sample01_diameter_baseline.csv");
-    QUrl inputUrl = QUrl::fromLocalFile(inputPath);
-    QVERIFY(!inputPath.isEmpty());
-    QVERIFY(!baselinePath.isEmpty());
-    QSignalSpy load(&player, SIGNAL(videoLoaded(bool, QUrl, QString, QString, QString)));
-    player.addVideoFile(inputUrl.toString());
-    QTest::qWaitFor([&]() {
-        return load.count() > 0;
-    }, MAX_VIDEO_LOAD_TIMEOUT);
-    QCOMPARE(load.count(), 1);
-    QList<QVariant> args = load.takeFirst(); // first signal
-    QVERIFY(args.at(0).toBool() == true);
-    QVERIFY(args.at(1).toUrl() == inputUrl);
-    QCOMPARE(args.at(2).toString(), "sample01");
-    QCOMPARE(args.at(3).toString(), "avi");
-    QVERIFY(args.at(4).toString().endsWith("videos"));
-    QCOMPARE(player.getSize(), QSize(1024, 768));
-    QCOMPARE(player.getNumFrames(), 223);
-    QCOMPARE(player.getCurFrame(), 0);
-    QCOMPARE(player.getPlaybackState(), QMediaPlayer::PausedState);
-    QCOMPARE(player.getSetupState(), CameraTask::SetupState::ALL);
-    player.setSetupState(CameraTask::SetupState::NORMAL_ROI);
-    waitForEventLoop();
-    QCOMPARE(player.getSetupState(), CameraTask::SetupState::NORMAL_ROI);
+    std::vector<ResultsComparison> comparisons;
+    comparisons.push_back(
+        {
+            QFINDTESTDATA(videoDir + "sample01.avi"),
+            QFINDTESTDATA(baselineDir + "sample01_diameter_baseline.csv"),
+            QSize(1024, 768),
+            223,
+            "sample01",
+            "avi",
+            QRect(224, 136, 69, 301),
+            QRect(852, 284, 0, 235),
+            1.0,
+            "cm"
+        });
 
-    QTemporaryDir dir;
-    QVERIFY(dir.isValid());
-    player.setOutputDir(dir.path());
-    QCOMPARE(player.getOutputDir(), dir.path());
-    QDir outputDir(dir.path());
-    QVERIFY(outputDir.isEmpty());
+    for (ResultsComparison& test : comparisons) {
+        // load a video
+        QVERIFY(!test.inputPath.isEmpty());
+        QVERIFY(!test.baselinePath.isEmpty());
+        QUrl inputUrl = QUrl::fromLocalFile(test.inputPath);
+        QSignalSpy load(&player, SIGNAL(videoLoaded(bool, QUrl, QString, QString, QString)));
+        player.addVideoFile(inputUrl.toString());
+        QTest::qWaitFor([&]() {
+            return load.count() > 0;
+        }, MAX_VIDEO_LOAD_TIMEOUT);
+        QCOMPARE(load.count(), 1);
+        QList<QVariant> args = load.takeFirst(); // first signal
+        QVERIFY(args.at(0).toBool() == true);
+        QVERIFY(args.at(1).toUrl() == inputUrl);
+        QCOMPARE(args.at(2).toString(), test.videoName);
+        QCOMPARE(args.at(3).toString(), test.videoExtension);
+        QVERIFY(args.at(4).toString().endsWith("videos"));
+        QCOMPARE(player.getSize(), test.videoSize);
+        QCOMPARE(player.getNumFrames(), test.numFrames);
+        QCOMPARE(player.getCurFrame(), 0);
+        QCOMPARE(player.getPlaybackState(), QMediaPlayer::PausedState);
+        QCOMPARE(player.getSetupState(), CameraTask::SetupState::ALL);
+        player.setSetupState(CameraTask::SetupState::NORMAL_ROI);
+        waitForEventLoop();
+        QCOMPARE(player.getSetupState(), CameraTask::SetupState::NORMAL_ROI);
 
-    QRect roi = QRect(224, 136, 69, 301);
-    QRect diameterScale(852, 284, 0, 235);
-    double diameterConversion = 1.0;
-    QString diameterUnits = "cm";
-    const int MAX_PROCESSING_WAIT_TIME = 30000;
-    const int MAX_OUTPUT_WRITE_TIME = 15000;
-    const int MAX_COMPUTE_POINTS_TIME = 2000;
+        QTemporaryDir dir;
+        QVERIFY(dir.isValid());
+        player.setOutputDir(dir.path());
+        QCOMPARE(player.getOutputDir(), dir.path());
+        QDir outputDir(dir.path());
+        QVERIFY(outputDir.isEmpty());
 
-    QSignalSpy pointsChanged(&player, SIGNAL(initPointsChanged()));
-    player.setROI(roi);
-    QCOMPARE(player.getROI(), roi);
-    player.setDiameterScale(diameterScale);
-    QCOMPARE(player.getDiameterScale(), diameterScale);
-    player.setDiameterConversionUnits(diameterUnits);
-    QCOMPARE(player.getDiameterConversionUnits(), diameterUnits);
-    player.setDiameterConversion(diameterConversion);
-    QCOMPARE(player.getDiameterConversion(), diameterConversion);
-    pointsChanged.wait(MAX_COMPUTE_POINTS_TIME);
-    player.setNewTopPoints(QVariant::fromValue(player.getTopPoints()));
-    player.setNewBottomPoints(QVariant::fromValue(player.getBottomPoints()));
-    waitForEventLoop();
-    QSignalSpy finished(&player, SIGNAL(videoFinished(CameraTask::ProcessingState)));
-    QSignalSpy output(&player, SIGNAL(outputProgress(int)));
+        QSignalSpy pointsChanged(&player, SIGNAL(initPointsChanged()));
+        player.setROI(test.roi);
+        QCOMPARE(player.getROI(), test.roi);
+        player.setProcessOutputVideo(test.generateOutputVideo);
+        waitForEventLoop();
+        QCOMPARE(player.getProcessOutputVideo(), test.generateOutputVideo);
+        player.setDiameterScale(test.diameterScale);
+        QCOMPARE(player.getDiameterScale(), test.diameterScale);
+        player.setDiameterConversionUnits(test.diameterUnits);
+        QCOMPARE(player.getDiameterConversionUnits(), test.diameterUnits);
+        player.setDiameterConversion(test.diameterConversion);
+        QCOMPARE(player.getDiameterConversion(), test.diameterConversion);
+        pointsChanged.wait(MAX_COMPUTE_POINTS_TIME);
+        player.setNewTopPoints(QVariant::fromValue(player.getTopPoints()));
+        player.setNewBottomPoints(QVariant::fromValue(player.getBottomPoints()));
+        waitForEventLoop();
+        QSignalSpy finished(&player, SIGNAL(videoFinished(CameraTask::ProcessingState)));
+        QSignalSpy output(&player, SIGNAL(outputProgress(int)));
 
-    player.play();
-    finished.wait(MAX_PROCESSING_WAIT_TIME);
-    QCOMPARE(finished.count(), 1);
-    QList<QVariant> finishedArgs = finished.takeFirst(); // first signal
-    QCOMPARE(finishedArgs.at(0).toInt(), CameraTask::ProcessingState::SUCCESS);
+        player.play();
+        finished.wait(MAX_PROCESSING_WAIT_TIME);
+        QCOMPARE(finished.count(), 1);
+        QList<QVariant> finishedArgs = finished.takeFirst(); // first signal
+        QCOMPARE(finishedArgs.at(0).toInt(), CameraTask::ProcessingState::SUCCESS);
 
-    output.wait(MAX_OUTPUT_WRITE_TIME);
-    QTest::qWaitFor([&]() {
-        return output.count() > 0 && output.last().at(0) == 100;
-    }, MAX_OUTPUT_WRITE_TIME);
+        output.wait(MAX_OUTPUT_WRITE_TIME);
+        QTest::qWaitFor([&]() {
+            return output.count() > 0 && output.last().at(0) == 100;
+        }, MAX_OUTPUT_WRITE_TIME);
 
-    QVERIFY(!outputDir.isEmpty());
-    QStringList aviMatches = outputDir.entryList().filter(QRegExp(".*avi$"));
-    QStringList csvMatches = outputDir.entryList().filter(QRegExp(".*csv$"));
-    QCOMPARE(aviMatches.length(), 1);
-    QCOMPARE(csvMatches.length(), 1);
-    QCOMPARE(outputDir.count(), 2 + 2); // accounts for "." and ".."
-    verifyResults(baselinePath, outputDir.absoluteFilePath(csvMatches[0]));
+        QVERIFY(!outputDir.isEmpty());
+        QStringList aviMatches = outputDir.entryList().filter(QRegExp(".*avi$"));
+        QStringList csvMatches = outputDir.entryList().filter(QRegExp(".*csv$"));
+        QCOMPARE(aviMatches.length(), (test.generateOutputVideo ? 1 : 0));
+        QCOMPARE(csvMatches.length(), 1);
+        verifyResults(test.baselinePath, outputDir.absoluteFilePath(csvMatches[0]));
+    }
 }
 
 QTEST_MAIN(MAUI)

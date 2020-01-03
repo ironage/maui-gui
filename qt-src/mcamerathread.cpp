@@ -997,7 +997,10 @@ void MCameraThread::doSetProcessOutputVideo(bool process)
 
 bool MCameraThread::doGetProcessOutputVideo()
 {
-    return task->getDoProcessOutputVideo();
+    if (task) {
+        return task->getDoProcessOutputVideo();
+    }
+    return true;
 }
 
 void MCameraThread::doSetSetupState(CameraTask::SetupState state)

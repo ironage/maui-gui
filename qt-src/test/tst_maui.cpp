@@ -229,6 +229,8 @@ struct ResultsComparison
     double diameterConversion;
     QString diameterUnits;
     bool generateOutputVideo = false;
+    int startFrame = -1;
+    int endFrame = -1;
 };
 
 void MAUI::test_diameterVideo1()
@@ -237,7 +239,7 @@ void MAUI::test_diameterVideo1()
     const QString baselineDir = "../../videos/baseline/";
     const int MAX_PROCESSING_WAIT_TIME = 30000;
     const int MAX_OUTPUT_WRITE_TIME = 15000;
-    const int MAX_COMPUTE_POINTS_TIME = 2000;
+    const int MAX_COMPUTE_POINTS_TIME = 5000;
 
     MCVPlayer player;
     // wait for the matlab initialization
@@ -264,6 +266,23 @@ void MAUI::test_diameterVideo1()
             "cm",
             false
         });
+    comparisons.push_back(
+        {
+            QFINDTESTDATA(videoDir + "sample02.avi"),
+            QFINDTESTDATA(baselineDir + "sample02_diameter_baseline.csv"),
+            QSize(1024, 768),
+            223,
+            "sample02",
+            "avi",
+            QRect(506, 178, 98, 263),
+            QRect(833, 239, 0, 188),
+            1.0,
+            "cm",
+            false,
+            53,
+            119
+        });
+
 
     for (ResultsComparison& test : comparisons) {
         // load a video
@@ -299,10 +318,22 @@ void MAUI::test_diameterVideo1()
         QVERIFY(outputDir.isEmpty());
 
         QSignalSpy pointsChanged(&player, SIGNAL(initPointsChanged()));
+        waitForEventLoop();
+        if (test.startFrame >= 0) {
+            player.setStartFrame(test.startFrame);
+            player.seek(test.startFrame);
+        }
+        if (test.endFrame >= 0) {
+            player.setEndFrame(test.endFrame);
+        }
         player.setROI(test.roi);
         QCOMPARE(player.getROI(), test.roi);
+        player.setRecomputeROIMode(true);
+        QVERIFY(player.getRecomputeROIMode());
         player.setProcessOutputVideo(test.generateOutputVideo);
-        waitForEventLoop();
+        QTest::qWaitFor([&]() {
+            return player.getProcessOutputVideo() == test.generateOutputVideo;
+        }, 1000);
         QCOMPARE(player.getProcessOutputVideo(), test.generateOutputVideo);
         player.setDiameterScale(test.diameterScale);
         QCOMPARE(player.getDiameterScale(), test.diameterScale);
@@ -320,11 +351,17 @@ void MAUI::test_diameterVideo1()
         QCOMPARE(finished.count(), 1);
         QList<QVariant> finishedArgs = finished.takeFirst(); // first signal
         QCOMPARE(finishedArgs.at(0).toInt(), CameraTask::ProcessingState::SUCCESS);
-
-        output.wait(MAX_OUTPUT_WRITE_TIME);
-        QTest::qWaitFor([&]() {
-            return output.count() > 0 && output.last().at(0) == 100;
-        }, MAX_OUTPUT_WRITE_TIME);
+        qDebug() << "processed success!";
+        if (test.generateOutputVideo) {
+            QTest::qWaitFor([&]() {
+                if (output.count() > 0) {
+                    qDebug() << "output result: " << output.last().at(0).toInt();
+                }
+                return output.count() > 0 && output.last().at(0).toInt() == 100;
+            }, MAX_OUTPUT_WRITE_TIME);
+            QVERIFY(output.count() > 1);
+            QCOMPARE(output.last().at(0).toInt(), 100);
+        }
 
         QVERIFY(!outputDir.isEmpty());
         QStringList aviMatches = outputDir.entryList().filter(QRegExp(".*avi$"));
@@ -332,6 +369,7 @@ void MAUI::test_diameterVideo1()
         QCOMPARE(aviMatches.length(), (test.generateOutputVideo ? 1 : 0));
         QCOMPARE(csvMatches.length(), 1);
         verifyResults(test.baselinePath, outputDir.absoluteFilePath(csvMatches[0]));
+        player.removeVideoFile(inputUrl.toString());
     }
 }
 

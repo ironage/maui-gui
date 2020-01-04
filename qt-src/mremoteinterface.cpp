@@ -162,7 +162,9 @@ void MRemoteInterface::replyFinished(QNetworkReply *reply)
     if (!reply) return;
     reply->deleteLater();
 
-    qDebug() << "reply code: " + QString::number(reply->error());
+    if (reply->error() != QNetworkReply::NoError) {
+        qDebug() << "reply code: " + QString::number(reply->error());
+    }
     if (reply->error()) {
         QString errorString = reply->errorString();
         QString replyBody = reply->readAll();
@@ -178,7 +180,13 @@ void MRemoteInterface::replyFinished(QNetworkReply *reply)
         }
         emit validationFailed(message);
     } else {
-        qDebug() << "reply success: " << reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt();
+        if (reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt() != 200) {
+            qDebug() << "reply success: " << reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt();
+        }
+        if (!firstResponseProcessed) {
+            qDebug() << "connection ok for request: " << request.type;
+            firstResponseProcessed = true;
+        }
         //qDebug() << reply->header(QNetworkRequest::ContentLengthHeader).toULongLong();
         QByteArray replyBody = reply->readAll();
         //qDebug() << "reply: " << replyBody;
@@ -212,6 +220,7 @@ void MRemoteInterface::validate(QString username, QString password, QString meth
     QByteArray nonce = QByteArray::fromRawData(stdNonce.c_str(), nonceQString.size());
 
     QJsonObject json;
+    // version 1
     json.insert("username", encryptForServer(username, nonce, sharedKey));
     json.insert("password", encryptForServer(password, nonce, sharedKey));
     json.insert("version", 2);
@@ -219,6 +228,8 @@ void MRemoteInterface::validate(QString username, QString password, QString meth
     json.insert("nonce", encryptForServer(nonceQString, sharedKey));
     json.insert("jump", encryptForServer("Abyssus abyssum invocat", nonce, sharedKey));
 
+    // version 2 additions
+    json.insert("maui_version", QString::number(MRemoteInterface::CURRENT_VERSION));
     json.insert("metrics_version", 1);
     QJsonArray json_metrics;
 
@@ -279,7 +290,9 @@ void MRemoteInterface::handleVerifyResponse(QByteArray &data)
             QString jumpR = decryptFromServer(fromJsonArray(jump.toArray()), sharedKey, nonceR);
             if (version.toInt() >= 2) {
                 QString metricsResponse = response.value("stats").toString();
-                qDebug() << "metrics response: " << metricsResponse;
+                if (!metricsResponse.startsWith("Metrics success")) {
+                    qDebug() << "Metrics reply: " << metricsResponse;
+                }
             }
             if (nameR != settings.getUsername() || jumpR != "Omnia cum pretio") {
                 emit validationFailed("Encryption failure.");

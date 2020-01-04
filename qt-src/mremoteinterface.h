@@ -110,6 +110,7 @@ private:
     QString changelog;
     QQueue<Request> requestQueue;
     QQueue<Metric> metrics;
+    bool firstResponseProcessed = false;
 };
 
 #endif // MREMOTEINTERFACE_H

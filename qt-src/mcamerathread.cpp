@@ -614,11 +614,11 @@ void CameraTask::drawLine(cv::Mat &dest, const std::vector<cv::Point>& points, c
 void CameraTask::initializeOutput()
 {
     MLogMetaData metaData = log.getMetaData();
-    std::string outputDirName(metaData.getOutputDir().isEmpty() ? metaData.getFilePath().toStdString() : metaData.getOutputDir().toStdString());
-    if (!QDir(outputDirName.c_str()).exists()) {
-        QDir().mkdir(outputDirName.c_str());
+    QString outputDirName(metaData.getOutputDir().isEmpty() ? metaData.getFilePath() : metaData.getOutputDir());
+    if (!QDir(outputDirName).exists()) {
+        QDir().mkdir(outputDirName);
     }
-    outputFileName = QString::fromStdString(outputDirName) + "/" + (QFileInfo(metaData.getFileName()).completeBaseName());
+    outputFileName = outputDirName + "/" + (QFileInfo(metaData.getFileName()).completeBaseName());
 }
 
 void CameraTask::processOutputVideo() {

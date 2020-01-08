@@ -71,6 +71,7 @@ Item {
             triggerUpdateInitialDirectory(folder)
             // FIXME: the following regex breaks on remote mounted server locations starting with "//"
             var simpleName = fileUrl.toString();
+            console.log('file simple name: ' + simpleName)
             // unescape html codes like '%23' for '#'
             simpleName = decodeURIComponent(simpleName);
             var searchExpression = new RegExp("^((file:\\/{3})|(qrc:\\/{2})|(http:\\/{2}))(.*)", "g")

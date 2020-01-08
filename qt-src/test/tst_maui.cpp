@@ -52,6 +52,7 @@ void MAUI::initTestCase()
     MRemoteInterface remote;
     orig_user = remote.getUsername();
     orig_pw = remote.getPassword();
+    qDebug() << "testing with user account: " << orig_user;
 }
 
 void MAUI::cleanupTestCase()
@@ -243,6 +244,8 @@ struct ResultsComparison
 
 void MAUI::test_diameterVideo1()
 {
+    QSKIP("skipping compute validation");
+
     const QString videoDir = "../../videos/";
     const QString baselineDir = "../../videos/baseline/";
     const int MAX_PROCESSING_WAIT_TIME = 30000;

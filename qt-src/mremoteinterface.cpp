@@ -13,7 +13,7 @@
 #include <QTimer>
 
 static QByteArray sharedKey = "6mC4zR5SVzug3uiB9L42I164Wn640wt1";
-const double MRemoteInterface::CURRENT_VERSION = 4.7;
+const double MRemoteInterface::CURRENT_VERSION = 4.8;
 
 QString Metric::processFromSetupState(int setupState)
 {

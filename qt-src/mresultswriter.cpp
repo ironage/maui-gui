@@ -48,12 +48,17 @@ QString MDiameterWriter::getHeader() const
             + units + "),intima-intima distance(pixels),intima-intima distance(" + units + ")";
 }
 
+// this fixes a problem with interpretation of file names containing commas
+QString addQuotes(QString text) {
+    return QString("\"") + text + QString("\"");
+}
+
 std::vector<QString> MDiameterWriter::getMetaDataHeader() const
 {
     double invertedConversion = (conversion == 0 ? 1 : 1 / conversion);
     QString conversionString = QString("") + QString::number(invertedConversion) + " pixels = 1 " + metaData.getUnits();
     QString version = "MAUI version " + MRemoteInterface::getDisplayVersion();
-    return std::vector<QString> { metaData.getFileName(), metaData.getFilePath(),
+    return std::vector<QString> { addQuotes(metaData.getFileName()), addQuotes(metaData.getFilePath()),
                 metaData.getTimestamp(), conversionString, version};
 }
 

@@ -63,6 +63,7 @@ void MAUI::cleanupTestCase()
 
 void MAUI::test_remoteAuth()
 {
+//    QSKIP("skipping remote auth");
     MRemoteInterface remote;
     QCOMPARE(remote.getSoftwareVersion(), "Checking...");
 
@@ -145,6 +146,8 @@ void MAUI::test_remoteAuth()
 // maybe check that django isn't caching or flushing something?
 void MAUI::test_remoteChangelog()
 {
+//    QSKIP("skipping changelog verifcation");
+
     MRemoteInterface remote;
     QString defaultChangelogText = "Fetching changes...";
     QCOMPARE(remote.getChangelog(), defaultChangelogText);
@@ -244,7 +247,7 @@ struct ResultsComparison
 
 void MAUI::test_diameterVideo1()
 {
-    QSKIP("skipping compute validation");
+//    QSKIP("skipping compute validation");
 
     const QString videoDir = "../../videos/";
     const QString baselineDir = "../../videos/baseline/";

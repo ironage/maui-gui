@@ -4,7 +4,7 @@ configure -prefix %CD%\build -release -static -static-runtime -target xp -platfo
 **Increment version number in packages/config
 
 ** If the dependencies change or Qt is upgraded, gather shared library dependencies:
-"D:\Qt\5.12.5\msvc2017_64\bin\windeployqt.exe" --qmldir ../qt-src/ ../build-maui-gui-Desktop_Qt_5_12_5_MSVC2017_64bit-Release/release/maui-gui.exe -core -qml -quick -multimedia -network
+"/d/Qt/5.12.5/msvc2017_64/bin/windeployqt.exe" --qmldir ../qt-src/ --release --compiler-runtime --no-translations . -core -qml -quick -multimedia -network
 The version of openssl that needs to be deployed has to match the one used by Qt.Find out with this:
 qDebug() << "requires ssl: " << QSslSocket::supportsSsl() << QSslSocket::sslLibraryBuildVersionNumber() << QSslSocket::sslLibraryVersionString();
 currently is: requires ssl:  true 269488175 "OpenSSL 1.1.1c  28 May 2019"

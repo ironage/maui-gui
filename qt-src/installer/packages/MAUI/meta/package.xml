@@ -3,7 +3,7 @@
     <DisplayName>The MAUI Graphical User Interface</DisplayName>
     <Description>Install MAUI.</Description>
     <Version>1.4.8-1</Version>
-    <ReleaseDate>2020-01-07</ReleaseDate>
+    <ReleaseDate>2020-01-08</ReleaseDate>
     <Licenses>
         <License name="MAUI License Agreement" file="license.txt" />
     </Licenses>

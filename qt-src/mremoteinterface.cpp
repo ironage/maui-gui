@@ -23,7 +23,7 @@ QString Metric::processFromSetupState(int setupState)
         return "diameter";
     } else if (setupState == CameraTask::SetupState::VELOCITY_ROI) {
         return "velocity";
-    } else if (setupState == (CameraTask::SetupState::NORMAL_ROI & CameraTask::SetupState::VELOCITY_ROI)) {
+    } else if (setupState == (CameraTask::SetupState::ALL)) {
         return "diameter and velocity";
     }
     return QString("unknown ") + QString::number(setupState);

@@ -16,6 +16,7 @@
  */
 
 /**
+ * based off of:
  * @file BetterVideoCapture.h
  * @brief A wrapper for either cv::VideoCapture for desktop or CVCaptureAndroid for Android
  * @author Ayberk Özgür
@@ -26,17 +27,8 @@
 #ifndef BETTERVIDEOCAPTURE_H
 #define BETTERVIDEOCAPTURE_H
 
-//#include<opencv2/videoio.hpp>
-//#include<opencv2/video.hpp>
 #include <opencv2/highgui/highgui.hpp>
 
-#ifdef ANDROID
-#include"CVCaptureAndroid.h"
-#endif
-
-/**
- * @brief A better cv::VideoCapture for desktop and Android
- */
 class MVideoCapture {
 
 public:
@@ -46,20 +38,21 @@ public:
 
     bool open(int device);
     bool open(std::string filename);
-    double getProperty(int propIdx);
-    bool setProperty(int propIdx, double propVal);
-    bool grabFrame();
-    unsigned char* retrieveFrame();
+    int getCurrentFrameIndex();
+    int getNumTotalFrames();
+    int getFrameWidth();
+    int getFrameHeight();
+    double getFrameRate();
+    unsigned char* getFrameData(int frameIndex);
     bool isOpened() const;
+    bool isImage() const;
 
 private:
-
-#ifdef ANDROID
-    CVCaptureAndroid* capture;
-#else
     cv::VideoCapture capture;
-    cv::Mat rawImage;
-#endif
+    cv::Mat cachedFrame;
+    bool imageMode;
+    int cachedFrameIndex;
+    int numTotalFrames;
 };
 
 #endif /* BETTERVIDEOCAPTURE_H */

@@ -400,12 +400,12 @@ ApplicationWindow {
                         videoFinishedSuccess.show()
                         remoteInterface.logMetricsEvent("finish")
                     } else if (state === 1) { // MCVPlayer.AUTO_INIT_FAILED
-                        summaryPane.setStartState("paused")
+                        summaryPane.setStartState(frameIndex === 0 ? "ready" : "paused");
                         videoFinishedError.text = "Could not find initial points on the start frame!"
                         videoFinishedError.informativeText = "Try adjusting the region of interest."
                         videoFinishedError.show()
                     } else if (state === 2) { // MCVPlayer.VELOCITY_INIT_FAILED
-                        summaryPane.setStartState("paused")
+                        summaryPane.setStartState(frameIndex === 0 ? "ready" : "paused");
                         videoFinishedError.text = "Could not initialize the velocity!"
                         videoFinishedError.informativeText = "Try adjusting the selected velocity area."
                         videoFinishedError.show()

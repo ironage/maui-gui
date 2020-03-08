@@ -23,24 +23,21 @@
  * @date 2014-10-02
  */
 
-#include"mvideocapture.h"
+#include "mvideocapture.h"
+#include <QDebug>
 
 MVideoCapture::MVideoCapture()
+    : capture()
+    , cachedFrame()
+    , imageMode(false)
+    , cachedFrameIndex(-1)
+    , numTotalFrames(-1)
 {
-#ifdef ANDROID
-    capture = new CVCaptureAndroid();
-#else
-    //capture = new cv::VideoCapture();
-#endif
 }
 
 MVideoCapture::~MVideoCapture()
 {
     capture.release();
-//    if (capture) {
-//        capture->release();
-//    }
-//    delete capture;
 }
 
 bool MVideoCapture::open(int device)
@@ -50,36 +47,94 @@ bool MVideoCapture::open(int device)
 
 bool MVideoCapture::open(std::string filename)
 {
+    // attempt to read an image, if this doesn't succeed, let the VideoCapture have at it
+    cachedFrame = cv::imread(filename);
+    if (cachedFrame.data != nullptr) {
+        imageMode = true;
+        cachedFrameIndex = 0;
+        qDebug() << "opening in image mode";
+        return true;
+    }
+    qDebug() << "opening in video mode";
+    imageMode = false;
     return capture.open(filename);
 }
 
-double MVideoCapture::getProperty(int propIdx)
+int MVideoCapture::getCurrentFrameIndex()
 {
-    return capture.get(propIdx);
+    int frameIndex = 0;
+    if (imageMode) {
+        frameIndex = cachedFrameIndex;
+    }
+    frameIndex = int(capture.get(CV_CAP_PROP_POS_FRAMES));
+    assert(cachedFrameIndex == frameIndex);
+    return frameIndex;
 }
 
-bool MVideoCapture::setProperty(int propIdx,double propVal)
+int MVideoCapture::getNumTotalFrames()
 {
-    return capture.set(propIdx,propVal);
+    if (numTotalFrames < 0) {
+        if (imageMode) {
+             numTotalFrames = 1;
+        } else {
+            numTotalFrames = int(capture.get(CV_CAP_PROP_FRAME_COUNT));
+        }
+        qDebug() << "getNumTotalFrames returns: " << numTotalFrames;
+    }
+    return numTotalFrames;
 }
 
-bool MVideoCapture::grabFrame()
+int MVideoCapture::getFrameWidth()
 {
-    return capture.grab();
+    if (imageMode) {
+        return cachedFrame.size().width;
+    }
+    return int(capture.get(CV_CAP_PROP_FRAME_WIDTH));
 }
 
-unsigned char* MVideoCapture::retrieveFrame()
+int MVideoCapture::getFrameHeight()
 {
-#ifdef ANDROID
-    return capture->retrieveFrame();
-#else
-    capture.retrieve(rawImage);
-    return rawImage.ptr();
-#endif
+    if (imageMode) {
+        return cachedFrame.size().height;
+    }
+    return int(capture.get(CV_CAP_PROP_FRAME_HEIGHT));
+}
+
+double MVideoCapture::getFrameRate()
+{
+    if (imageMode) {
+        return 1;
+    }
+    return capture.get(CV_CAP_PROP_FPS);
+}
+
+unsigned char *MVideoCapture::getFrameData(int frameIndex)
+{
+    if (frameIndex < getNumTotalFrames()) {
+        if (frameIndex == cachedFrameIndex) {
+            return cachedFrame.ptr();
+        } else {
+            assert(!imageMode);
+            if (capture.set(CV_CAP_PROP_POS_FRAMES, double(frameIndex)) && capture.read(cachedFrame)) {
+                cachedFrameIndex = frameIndex;
+                return cachedFrame.ptr();
+            }
+        }
+    }
+    qDebug() << "getFrameData failed for frame " << frameIndex;
+    return nullptr;
 }
 
 bool MVideoCapture::isOpened() const
 {
+    if (imageMode) {
+        return true;
+    }
     return capture.isOpened();
+}
+
+bool MVideoCapture::isImage() const
+{
+    return imageMode;
 }
 

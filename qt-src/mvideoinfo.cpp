@@ -104,8 +104,8 @@ void MVideoInfo::cacheROI(const QRect &newROI)
 
 void MVideoInfo::updateVideoSettings() {
     if (camera) {
-        int videoWidth = int(camera->getProperty(CV_CAP_PROP_FRAME_WIDTH));
-        int videoHeight = int(camera->getProperty(CV_CAP_PROP_FRAME_HEIGHT));
+        int videoWidth = camera->getFrameWidth();
+        int videoHeight = camera->getFrameHeight();
         size = QSize(videoWidth, videoHeight);
 
         double dW = size.width() / 3;
@@ -120,7 +120,7 @@ void MVideoInfo::updateVideoSettings() {
         velocityScaleVertical = QRect(0.9 * size.width(), velocityROI.y() + 0.1 * vH, 0, vH - (vH * 0.1 * 4));
         velocityScaleHorizontal = QRect(velocityROI.x() + (vW * 0.1), 0.9 * size.height(), vW - (vW * 0.1 * 2), 0);
 
-        numFrames = int(camera->getProperty(CV_CAP_PROP_FRAME_COUNT)); // returns zero for non-video files
+        numFrames = camera->getNumTotalFrames();
         curFrame = 0;
         //Create new buffers, camera accessor and thread
         allocateCvImage();

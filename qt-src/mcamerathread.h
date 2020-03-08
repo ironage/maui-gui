@@ -70,7 +70,6 @@ private:
     QVideoFrame* videoFrame;                    ///< Place to draw camera image to
     unsigned char* cvImageBuf;                  ///< Place to export camera image to
     int curFrame;
-    int frameToSeekTo;
     int startFrame;
     int endFrame;
     QRect roi;
@@ -83,7 +82,6 @@ private:
     MDataLog log;
     QString outputFileName;
     unsigned char* cameraFrame;
-    bool cachedFrameIsDirty;
     volatile bool doProcessOutputVideo; // we direct access this and don't want a cached version
     int processingMillisecondsSinceStart;
     void convertUVsp2UVp(unsigned char* __restrict srcptr, unsigned char* __restrict dstptr, int stride);
@@ -141,7 +139,7 @@ protected:
     bool initializeVelocityROI(mwArray* velocityCurrentROI, mwArray* velocityPreviousROI, bool findFirstFrame);
     VelocityResults getVelocityFromFrame(mwArray* velocityCurrentROI, int frame, VelocityState velocityState);
     int getIndexOfFirstMovingFrame();
-    bool getNextFrameData();
+    bool getFrameData(int frame);
     void drawOverlay(int frame, cv::Mat &mat);
     cv::Point makeSafePoint(int x, int y, const cv::Point& offset = cv::Point(0,0));
     void processOutputVideo();

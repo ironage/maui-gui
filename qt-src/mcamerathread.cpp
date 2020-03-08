@@ -29,14 +29,12 @@ CameraTask::CameraTask(MVideoCapture* camera, QVideoFrame* videoFrame,
     , running(true)
     , videoFrame(videoFrame)
     , cvImageBuf(cvImageBuf)
-    , curFrame(-1)
-    , frameToSeekTo(-1)
+    , curFrame(0)
     , startFrame(0)
     , endFrame(0)
     , autoRecomputeROI(false)
     , doneInit(false)
     , cameraFrame(nullptr)
-    , cachedFrameIsDirty(true)
     , doProcessOutputVideo(true)
     , processingMillisecondsSinceStart(0)
 {
@@ -140,7 +138,6 @@ void CameraTask::drawOverlay(int frame, cv::Mat& mat) {
             cv::Point leftAxisPoint = makeSafePoint(0, curVelocityState.xAxisLocation, velocityBase);
             cv::Point rightAxisPoint = makeSafePoint(velocityROI.width(), curVelocityState.xAxisLocation, velocityBase);
             drawLine(mat, {leftAxisPoint, rightAxisPoint}, xAxisColor, 2);
-            cachedFrameIsDirty = true; // now that we have drawn on this frame, force re-load cache next time
         }
     }
 
@@ -153,7 +150,6 @@ void CameraTask::drawOverlay(int frame, cv::Mat& mat) {
         drawLine(mat, existing->getTopWeakLine(), weakColor);
         drawLine(mat, existing->getBottomStrongLine(), strongColor);
         drawLine(mat, existing->getBottomWeakLine(), weakColor);
-        cachedFrameIsDirty = true; // now that we have drawn on this frame, force re-load cache next time
     }
 
     if (curSetupState & VELOCITY_ROI) {
@@ -175,7 +171,6 @@ void CameraTask::drawOverlay(int frame, cv::Mat& mat) {
                 cv::circle(mat, avgNegative, radius, weakColor, thickness);
                 cv::Point maxNegative = makeSafePoint(vr.xTrackingLocationIndividual[i], vr.maxNegative[i], velocityOffset);
                 cv::circle(mat, maxNegative, radius, strongColor, thickness);
-                cachedFrameIsDirty = true; // now that we have drawn on this frame, force re-load cache next time
             }
         } else {
             qDebug() << "Warning: refusing to draw inconsistent velocity results.";
@@ -220,50 +215,28 @@ void CameraTask::doWork()
 
     double frameRate = 1;
     if (camera) {
-        frameRate = camera->getProperty(CV_CAP_PROP_FPS);
+        frameRate = camera->getFrameRate();
         if (frameRate == 0) frameRate = 1;
     }
-    //Assuming desktop, RGB camera image and RGBA QVideoFrame
+    // Assuming desktop, RGB camera image and RGBA QVideoFrame
     cv::Mat screenImage;
     if(videoFrame)
-        screenImage = cv::Mat(height,width,CV_8UC4,videoFrame->bits());
+        screenImage = cv::Mat(height, width, CV_8UC4, videoFrame->bits());
 
     while(running && videoFrame != nullptr && camera != nullptr) {
-         QCoreApplication::processEvents();
+        QCoreApplication::processEvents();
 
-        switch (curPlayState) {
-        case PlayState::Paused:
+        if (curPlayState == PlayState::Paused) {
             QThread::msleep(10);
-            continue; // loop
-        case PlayState::AutoInitCurFrame:
-        case PlayState::AutoInitVelocityInFrame:
-        case PlayState::RedrawCurFrame:
-            break;
-        case PlayState::Seeking:
-            camera->setProperty(CV_CAP_PROP_POS_FRAMES, frameToSeekTo);
-            break;
-        case PlayState::Playing:
-            break;
+            continue;
+        }
+        getFrameData(curFrame);
+        if (curPlayState == PlayState::Seeking) {
+            curPlayState = PlayState::Paused;
         }
 
-        curFrame = int(camera->getProperty(CV_CAP_PROP_POS_FRAMES)); // opencv frame is 0 indexed
-        if (curPlayState == PlayState::AutoInitCurFrame
-                || curPlayState == PlayState::AutoInitVelocityInFrame
-                || curPlayState == PlayState::RedrawCurFrame) {
-            if (!cameraFrame || cachedFrameIsDirty) {
-                if (!getNextFrameData()) continue;
-                camera->setProperty(CV_CAP_PROP_POS_FRAMES, curFrame); // AutoInit does not advance frames
-            }
-        } else {
-            if (!getNextFrameData()) continue;
-            if (curPlayState == PlayState::Seeking) {
-                curPlayState = PlayState::Paused;
-                camera->setProperty(CV_CAP_PROP_POS_FRAMES, curFrame); // Seek does not advance frames
-            }
-        }
-
-        //Get camera image into screen frame buffer
-        //Assuming desktop, RGB camera image and RGBA QVideoFrame
+        // Get camera image into screen frame buffer
+        // Assuming desktop, RGB camera image and RGBA QVideoFrame
         if(videoFrame) {
             cv::Mat tempMat(height, width, CV_8UC3, cameraFrame);
             cv::Mat roiSection = tempMat(getCVROI(roi));
@@ -286,19 +259,18 @@ void CameraTask::doWork()
                     cv::Mat velocityROISection = tempMat(getCVROI(velocityROI));
                     cv::cvtColor(velocityROISection, velocityROISection, CV_BGR2GRAY);
                     std::unique_ptr<mwArray> matlabVelocityROI(opencvConvertToMX(velocityROISection));
-
-                    if (!getNextFrameData()) {
+                    qDebug() << "starting velocity init";
+                    if (!getFrameData(curFrame + 1)) {
+                        qDebug() << "failed to get velocity frame data";
                         emit videoFinished(CameraTask::ProcessingState::VELOCITY_INIT_FAILED);
                         continue;
                     }
-                    camera->setProperty(CV_CAP_PROP_POS_FRAMES, curFrame); // AutoInit does not advance frames
-
                     cv::Mat velocityROISection2 = tempMat(getCVROI(velocityROI));
                     cv::cvtColor(velocityROISection2, velocityROISection2, CV_BGR2GRAY);
                     std::unique_ptr<mwArray> matlabVelocityROI2(opencvConvertToMX(velocityROISection2));
 
                     initializeVelocityROI(matlabVelocityROI2.get(), matlabVelocityROI.get(), false);
-
+                    getFrameData(curFrame); // reload initial frame for display
                 }
             } else if (curPlayState == PlayState::Playing) {
                 accumulateProcessingTime = true;
@@ -309,8 +281,6 @@ void CameraTask::doWork()
                         if (topPoints.empty() || bottomPoints.empty()) {
                             emit videoFinished(CameraTask::ProcessingState::AUTO_INIT_FAILED);
                             curPlayState = PlayState::Paused;
-                            camera->setProperty(CV_CAP_PROP_POS_FRAMES, curFrame); // this frame needs reprocessing
-                            cachedFrameIsDirty = true;
                             continue;
                         }
                         const int numReturnValues = 6;
@@ -325,11 +295,11 @@ void CameraTask::doWork()
                         cv::cvtColor(velocityROISection, velocityROISection, CV_BGR2GRAY);
                         std::unique_ptr<mwArray> matlabVelocityROI(opencvConvertToMX(velocityROISection));
 
-                        if (!getNextFrameData()) {
+                        if (!getFrameData(curFrame + 1)) {
                             emit videoFinished(CameraTask::ProcessingState::VELOCITY_INIT_FAILED);
+                            curPlayState = PlayState::Paused;
                             continue;
                         }
-                        camera->setProperty(CV_CAP_PROP_POS_FRAMES, curFrame); // AutoInit does not advance frames
 
                         cv::Mat velocityROISection2 = tempMat(getCVROI(velocityROI));
                         cv::cvtColor(velocityROISection2, velocityROISection2, CV_BGR2GRAY);
@@ -338,10 +308,9 @@ void CameraTask::doWork()
                         if (!initializeVelocityROI(matlabVelocityROI2.get(), matlabVelocityROI.get(), true)) {
                             emit videoFinished(CameraTask::ProcessingState::VELOCITY_INIT_FAILED);
                             curPlayState = PlayState::Paused;
-                            camera->setProperty(CV_CAP_PROP_POS_FRAMES, curFrame); // this frame needs reprocessing
-                            cachedFrameIsDirty = true;
                             continue;
                         }
+                        getFrameData(curFrame); // reload initial frame for processing below
                     }
                     doneInit = true;
                 }
@@ -390,7 +359,7 @@ void CameraTask::doWork()
             }
 
             drawOverlay(curFrame + 1, tempMat);
-            cv::cvtColor(tempMat,screenImage,cv::COLOR_RGB2RGBA);
+            cv::cvtColor(tempMat, screenImage, cv::COLOR_RGB2RGBA);
         }
 
         //Export camera image
@@ -413,10 +382,13 @@ void CameraTask::doWork()
 
         emit imageReady(curFrame);
 
-        if (curPlayState == PlayState::Playing && curFrame >= endFrame) {
-            curPlayState = PlayState::Paused;
-            camera->setProperty(CV_CAP_PROP_POS_FRAMES, endFrame);
-            writeResults();
+        if (curPlayState == PlayState::Playing) {
+            if (curFrame + 1 > endFrame) {
+                curPlayState = PlayState::Paused;
+                writeResults();
+            } else {
+                ++curFrame;
+            }
         }
     }
 }
@@ -427,9 +399,7 @@ void CameraTask::play()
         log.clear();
         curPlayState = PlayState::Playing;
         doneInit = false;
-        if (camera) {
-            camera->setProperty(CV_CAP_PROP_POS_FRAMES, startFrame);
-        }
+        curFrame = startFrame;
     }
 }
 
@@ -442,19 +412,15 @@ void CameraTask::continueProcessing() {
 void CameraTask::pause()
 {
     curPlayState = PlayState::Paused;
-    if (camera) {
-        camera->setProperty(CV_CAP_PROP_POS_FRAMES, curFrame); // review frame
-    }
 }
 
 void CameraTask::seek(int frameNumber)
 {
-    if (frameToSeekTo != frameNumber) {
-        frameToSeekTo = frameNumber;
-        curPlayState = PlayState::Seeking;
-    } else {
-        //curPlayState = PlayState::Paused;
+    if (curPlayState == PlayState::Paused && frameNumber == curFrame) {
+        return;
     }
+    curFrame = frameNumber;
+    curPlayState = PlayState::Seeking;
 }
 
 void CameraTask::setStartFrame(int frameNumber)
@@ -465,8 +431,12 @@ void CameraTask::setStartFrame(int frameNumber)
 
 void CameraTask::setEndFrame(int frameNumber)
 {
-    endFrame = frameNumber;
-    seek(frameNumber);
+    if (camera && frameNumber >= camera->getNumTotalFrames()) {
+        endFrame = camera->getNumTotalFrames() - 1;
+    } else {
+        endFrame = frameNumber;
+    }
+    seek(endFrame);
 }
 
 void CameraTask::setROI(QRect newROI)
@@ -624,9 +594,8 @@ void CameraTask::initializeOutput()
 void CameraTask::processOutputVideo() {
     double frameRate = 1;
     if (camera) {
-        frameRate = camera->getProperty(CV_CAP_PROP_FPS);
+        frameRate = camera->getFrameRate();
         if (frameRate == 0) frameRate = 1;
-        camera->setProperty(CV_CAP_PROP_POS_FRAMES, startFrame);
     }
     cv::Size videoSize(width, height);
     // the following line didn't work correctly for some videos
@@ -637,14 +606,12 @@ void CameraTask::processOutputVideo() {
     bool success = outputVideo.open(outputName, ex, frameRate, videoSize, true);
     qDebug() << "opening output video: " << QString::fromStdString(outputName) << " success ? " << success << " (ex: " << ex << ")";
 
+    curFrame = startFrame;
     //Assuming desktop, RGB camera image and RGBA QVideoFrame
     while(running && camera != nullptr && doProcessOutputVideo) {
-        curFrame = int(camera->getProperty(CV_CAP_PROP_POS_FRAMES)); // opencv frame is 0 indexed
-
-        if (!camera->grabFrame()) {
+        if (!getFrameData(curFrame)) {
             break;
         }
-        cameraFrame = camera->retrieveFrame();
 
         cv::Mat tempMat(height, width, CV_8UC3, cameraFrame);
 
@@ -661,10 +628,12 @@ void CameraTask::processOutputVideo() {
         if (curFrame >= endFrame) {
             break;
         }
+        curFrame++;
         QCoreApplication::processEvents(); // check for incoming signals about canceling output video write
     }
     if (camera) {
-        camera->setProperty(CV_CAP_PROP_POS_FRAMES, endFrame);
+        curFrame = endFrame;
+        camera->getFrameData(endFrame);
     }
     if (outputVideo.isOpened()) {
         outputVideo.release(); // flush file and reset
@@ -822,16 +791,13 @@ VelocityResults CameraTask::getVelocityFromFrame(mwArray *velocityCurrentROI,
 
 int CameraTask::getIndexOfFirstMovingFrame()
 {
-    if (!camera || camera->getProperty(CV_CAP_PROP_FRAME_COUNT) < 2) {
+    if (!camera || camera->getNumTotalFrames() < 2) {
         qDebug() << "Error could not initialize type 1 video";
         return -1;
     }
 
-    int origFrame = curFrame; // + 1?
-
     // advance to beginning
-    camera->setProperty(CV_CAP_PROP_POS_FRAMES, 0);
-    if (!getNextFrameData()) return -1;
+    if (!getFrameData(0)) return -1;
     cv::Mat tempMat(height, width, CV_8UC3, cameraFrame);
 
     cv::Mat velocityROISection = tempMat(getCVROI(velocityROI));
@@ -844,8 +810,9 @@ int CameraTask::getIndexOfFirstMovingFrame()
     int curVelocityInitFrame = 2; // current frame starts at 2 since previous frame starts at 1
     int curIndexData [] = { curVelocityInitFrame };
 
+    int velocitySeekFrame = 1;
     while (returnedIndex < 0) {
-        if (!getNextFrameData()) break;
+        if (!getFrameData(velocitySeekFrame)) break;
         cv::Mat velocityROISection2 = tempMat(getCVROI(velocityROI));
         cv::cvtColor(velocityROISection2, velocityROISection2, CV_BGR2GRAY);
         std::unique_ptr<mwArray> matlabVelocityROI2(opencvConvertToMX(velocityROISection2));
@@ -858,27 +825,20 @@ int CameraTask::getIndexOfFirstMovingFrame()
         returnedIndex = getFirst(returnedIndexMat, -1);
         matlabVelocityROI.reset(matlabVelocityROI2.release());
         ++curVelocityInitFrame;
+        ++velocitySeekFrame;
     }
-    camera->setProperty(CV_CAP_PROP_POS_FRAMES, origFrame); // do not advance frames
     qDebug() << "velocity movement returning " << returnedIndex;
     return returnedIndex;
 }
 
-bool CameraTask::getNextFrameData()
+bool CameraTask::getFrameData(int frame)
 {
-    if (!camera->grabFrame()) {
-        if (curPlayState == PlayState::Playing) {
-            camera->setProperty(CV_CAP_PROP_POS_FRAMES, endFrame);
-            writeResults();
-            qDebug() << "Could not grab next video frame";
-        } else {
-            qDebug() << "Something is fatally wrong if we couldn't refresh the current frame! " << curFrame;
-        }
-        curPlayState = PlayState::Paused;
+    unsigned char* frameData = camera->getFrameData(frame);
+    if (!frameData) {
+        qDebug() << "Something is fatally wrong if we couldn't refresh the frame! " << curFrame << " requested: " << frame;
         return false;
     }
-    cameraFrame = camera->retrieveFrame();
-    cachedFrameIsDirty = false;
+    cameraFrame = frameData;
     return true;
 }
 

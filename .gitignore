@@ -1,4 +1,4 @@
-build-maui-gui*
+build-maui*
 releases
 matlab
 qt-src/libs
@@ -7,3 +7,4 @@ qt-src/installer/packages/MAUI/data
 qt-src/installer/packages/QtSupport/data
 qt-src/installer/maui-gui-repo
 videos/
+deploy/

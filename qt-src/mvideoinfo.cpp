@@ -123,17 +123,8 @@ void MVideoInfo::updateVideoSettings() {
         numFrames = camera->getNumTotalFrames();
         curFrame = 0;
         //Create new buffers, camera accessor and thread
-        allocateCvImage();
         allocateVideoFrame();
     }
-}
-
-void MVideoInfo::allocateCvImage()
-{
-    cvImage.release();
-    delete[] cvImageBuf;
-    cvImageBuf = new unsigned char[size.width()*size.height()*3];
-    cvImage = cv::Mat(size.height(),size.width(),CV_8UC3,cvImageBuf);
 }
 
 void MVideoInfo::allocateVideoFrame()
@@ -158,8 +149,6 @@ void MVideoInfo::update()
         videoFrame->unmap();
     delete videoFrame;
     videoFrame = nullptr;
-    delete[] cvImageBuf;
-    cvImageBuf = nullptr;
 
     camera = new MVideoCapture();
     //Open newly created device
@@ -168,7 +157,7 @@ void MVideoInfo::update()
             updateVideoSettings();
             qDebug() << "starting video at size: " << size;
 
-            thread = new MCameraThread(camera,videoFrame,cvImageBuf,size.width(),size.height());
+            thread = new MCameraThread(camera, videoFrame, size.width(), size.height());
             connect(thread, SIGNAL(imageReady(int)), this, SLOT(imageReceived(int)));
             connect(thread, SIGNAL(initPointsDetected(QList<MPoint>,QList<MPoint>)), this, SLOT(initPointsReceived(QList<MPoint>,QList<MPoint>)));
             connect(thread, SIGNAL(videoFinished(CameraTask::ProcessingState)), this, SIGNAL(videoFinished(CameraTask::ProcessingState)));

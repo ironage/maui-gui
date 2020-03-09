@@ -160,7 +160,6 @@ private:
     MInitThread initThread;
     bool m_setupAllVideos;
 
-    void allocateCvImage();
     void allocateVideoFrame();
 private slots:
     void imageReceived(int frameNumber);

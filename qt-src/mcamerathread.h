@@ -25,7 +25,7 @@ class CameraTask : public QObject{
 Q_OBJECT
 
 public:
-    CameraTask(MVideoCapture* camera, QVideoFrame* videoFrame, unsigned char* cvImageBuf, int width, int height);
+    CameraTask(MVideoCapture* camera, QVideoFrame* videoFrame, int width, int height);
     virtual ~CameraTask();
     void stop();
 
@@ -68,7 +68,6 @@ private:
     MVideoCapture* camera;                      ///< The camera to get data from
     bool running = false;                       ///< Whether the worker thread is running
     QVideoFrame* videoFrame;                    ///< Place to draw camera image to
-    unsigned char* cvImageBuf;                  ///< Place to export camera image to
     int curFrame;
     int startFrame;
     int endFrame;
@@ -149,7 +148,7 @@ class MCameraThread : public QObject{
 Q_OBJECT
 
 public:
-    MCameraThread(MVideoCapture* camera, QVideoFrame* videoFrame, unsigned char* cvImageBuf, int width, int height);
+    MCameraThread(MVideoCapture* camera, QVideoFrame* videoFrame, int width, int height);
     virtual ~MCameraThread();
     void start();
     void stop();

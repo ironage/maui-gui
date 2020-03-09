@@ -20,7 +20,7 @@
 
 
 CameraTask::CameraTask(MVideoCapture* camera, QVideoFrame* videoFrame,
-                       unsigned char* cvImageBuf, int width, int height)
+                       int width, int height)
     : curPlayState(Paused)
     , curSetupState(ALL)
     , width(width)
@@ -28,7 +28,6 @@ CameraTask::CameraTask(MVideoCapture* camera, QVideoFrame* videoFrame,
     , camera(camera)
     , running(true)
     , videoFrame(videoFrame)
-    , cvImageBuf(cvImageBuf)
     , curFrame(0)
     , startFrame(0)
     , endFrame(0)
@@ -358,13 +357,11 @@ void CameraTask::doWork()
                 log.add(std::move(frameResults));
             }
 
-            drawOverlay(curFrame + 1, tempMat);
-            cv::cvtColor(tempMat, screenImage, cv::COLOR_RGB2RGBA);
-        }
-
-        //Export camera image
-        if (cvImageBuf) {
-            memcpy(cvImageBuf, cameraFrame, size_t(height*width*3));
+            // deep copy so we can write an overlay without affecting the cached copy
+            cv::Mat imageCopy = tempMat.clone();
+            drawOverlay(curFrame + 1, imageCopy);
+            //Export camera image
+            cv::cvtColor(imageCopy, screenImage, cv::COLOR_RGB2RGBA);
         }
 
         millis = int(timer.restart());
@@ -700,6 +697,7 @@ bool CameraTask::initializeVelocityROI(mwArray *velocityCurrentROI, mwArray *vel
 
         int velocityXLocation = getFirst(velocityXLocationMat, -1);
         int videoType = getFirst(videoTypeMat, -1);
+        qDebug() << "initializeVelocityROI found video type: " << videoType << " findFirstFrame ? " << findFirstFrame;
 
         int indexOfFirstMovingFrame = 1; // for type 2 videos this is always 1
         if (videoType == 1 && findFirstFrame) {
@@ -791,6 +789,7 @@ VelocityResults CameraTask::getVelocityFromFrame(mwArray *velocityCurrentROI,
 
 int CameraTask::getIndexOfFirstMovingFrame()
 {
+    qDebug() << "getIndexOfFirstMovingFrame: start";
     if (!camera || camera->getNumTotalFrames() < 2) {
         qDebug() << "Error could not initialize type 1 video";
         return -1;
@@ -827,6 +826,7 @@ int CameraTask::getIndexOfFirstMovingFrame()
         ++curVelocityInitFrame;
         ++velocitySeekFrame;
     }
+    getFrameData(curFrame);
     qDebug() << "velocity movement returning " << returnedIndex;
     return returnedIndex;
 }
@@ -849,9 +849,9 @@ bool CameraTask::getFrameData(int frame)
 
 
 
-MCameraThread::MCameraThread(MVideoCapture* camera, QVideoFrame* videoFrame, unsigned char* cvImageBuf, int width, int height)
+MCameraThread::MCameraThread(MVideoCapture* camera, QVideoFrame* videoFrame, int width, int height)
 {
-    task = new CameraTask(camera,videoFrame,cvImageBuf,width,height);
+    task = new CameraTask(camera, videoFrame, width, height);
     task->moveToThread(&workerThread);
     connect(&workerThread, SIGNAL(started()), task, SLOT(doWork()));
     connect(task, SIGNAL(imageReady(int)), this, SIGNAL(imageReady(int)));

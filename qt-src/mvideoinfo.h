@@ -106,10 +106,7 @@ private:
     MLogMetaData logMetaData;
     const QVideoFrame::PixelFormat VIDEO_OUTPUT_FORMAT = QVideoFrame::PixelFormat::Format_ARGB32;
 
-    cv::Mat cvImage;
-    unsigned char* cvImageBuf = nullptr;
     QVideoFrame* videoFrame = nullptr;
-    void allocateCvImage();
     void allocateVideoFrame();
 signals:
     void roiChanged();

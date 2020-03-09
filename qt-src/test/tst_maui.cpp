@@ -63,7 +63,7 @@ void MAUI::cleanupTestCase()
 
 void MAUI::test_remoteAuth()
 {
-//    QSKIP("skipping remote auth");
+    QSKIP("skipping remote auth");
     MRemoteInterface remote;
     QCOMPARE(remote.getSoftwareVersion(), "Checking...");
 
@@ -146,7 +146,7 @@ void MAUI::test_remoteAuth()
 // maybe check that django isn't caching or flushing something?
 void MAUI::test_remoteChangelog()
 {
-//    QSKIP("skipping changelog verifcation");
+    QSKIP("skipping changelog verifcation");
 
     MRemoteInterface remote;
     QString defaultChangelogText = "Fetching changes...";
@@ -216,6 +216,10 @@ void verifyResults(QString baselinePath, QString resultsPath, bool isCombinedRes
             }
             baselineParts.pop_front();
             resultParts.pop_front();
+            if (baselineParts != resultParts) {
+                qDebug() << "verify fails on line " << lineCount << " baseline: \n" << baselineParts
+                             << "\n results: \n" << resultParts;
+            }
             QCOMPARE(baselineParts, resultParts);
         }
         ++lineCount;
@@ -376,6 +380,7 @@ void MAUI::test_diameterVideo1()
         QCOMPARE(player.getSetupState(), stateToSet);
 
         QTemporaryDir dir;
+        //QDir dir(QDir::homePath() + "/maui-test-files/");
         QVERIFY(dir.isValid());
         player.setOutputDir(dir.path());
         QCOMPARE(player.getOutputDir(), dir.path());

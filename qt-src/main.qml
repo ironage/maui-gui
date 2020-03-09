@@ -405,10 +405,12 @@ ApplicationWindow {
                         videoFinishedError.informativeText = "Try adjusting the region of interest."
                         videoFinishedError.show()
                     } else if (state === 2) { // MCVPlayer.VELOCITY_INIT_FAILED
-                        summaryPane.setStartState(frameIndex === 0 ? "ready" : "paused");
-                        videoFinishedError.text = "Could not initialize the velocity!"
-                        videoFinishedError.informativeText = "Try adjusting the selected velocity area."
-                        videoFinishedError.show()
+                        if (!velocityROI.dragActive) {
+                            summaryPane.setStartState(frameIndex === 0 ? "ready" : "paused");
+                            videoFinishedError.text = "Could not initialize the velocity!"
+                            videoFinishedError.informativeText = "Try adjusting the selected velocity area."
+                            videoFinishedError.show()
+                        }
                     } else {
                         summaryPane.setStartState("ready")
                         console.log("unhandled state when video finished: " + state)

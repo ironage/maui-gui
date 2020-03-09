@@ -11,6 +11,7 @@ Rectangle {
     property alias roiY: roi.y
     property alias roiWidth: roi.width
     property alias roiHeight: roi.height
+    property alias dragActive: roi_area.pressed
 
     property bool adjustable: true
     property int cornerWidth: 16

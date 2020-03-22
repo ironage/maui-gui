@@ -416,7 +416,6 @@ void MAUI::test_diameterVideo1()
         QCOMPARE(player.getNumFrames(), test.numFrames);
         QCOMPARE(player.getCurFrame(), 0);
         QCOMPARE(player.getPlaybackState(), QMediaPlayer::PausedState);
-        QCOMPARE(player.getSetupState(), CameraTask::SetupState::ALL);
 
         bool computeDiameter = !test.roi.isNull();
         bool computeVelocity = !test.velocityROI.isNull();

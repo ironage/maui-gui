@@ -40,6 +40,9 @@ CameraTask::CameraTask(MVideoCapture* camera, QVideoFrame* videoFrame,
     qRegisterMetaType<CameraTask::ProcessingState>();
     qRegisterMetaType<CameraTask::SetupState>();
     matlabArrays = new mwArray[ARRAY_COUNT];
+    if (camera && camera->isImage()) {
+        curSetupState = NORMAL_ROI; // velocity requires at least 2 frames
+    }
 }
 
 CameraTask::~CameraTask()

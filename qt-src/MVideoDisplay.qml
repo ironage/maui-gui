@@ -101,7 +101,7 @@ Item {
         id: cv_player
         onPositionChanged: {
             if (duration > 0) {
-                m_root.progress = (position / duration)
+                m_root.progress = ((position + 0.5) / duration)
             } else {
                 m_root.progress = 0
             }

@@ -381,6 +381,7 @@ void CameraTask::doWork()
 
         if (curPlayState == PlayState::Playing) {
             if (curFrame + 1 > endFrame) {
+                QCoreApplication::processEvents(); // send emitted frame progress for completion
                 curPlayState = PlayState::Paused;
                 writeResults();
             } else {

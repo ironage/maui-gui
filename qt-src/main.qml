@@ -333,7 +333,11 @@ ApplicationWindow {
                 onProgressChanged: {
                     if (summaryPane.isPlaying) {
                         m_video_control.moveTo(progress)
-                        inputPane.setCurrentProgress(progress)
+                        var totalProgress = progress_max - progress_min;
+                        if (totalProgress <= 0) {
+                            totalProgress = 1;
+                        }
+                        inputPane.setCurrentProgress((progress - progress_min) / totalProgress)
                     }
                 }
                 onWidthChanged: {
@@ -397,6 +401,7 @@ ApplicationWindow {
                     window.controlsEnabled = true
                     if (state === 0) { // MCVPlayer.SUCCESS
                         summaryPane.setStartState("ready")
+                        inputPane.setCurrentProgress(1.0) // ensure visuals to 100%
                         videoFinishedSuccess.show()
                         remoteInterface.logMetricsEvent("finish")
                     } else if (state === 1) { // MCVPlayer.AUTO_INIT_FAILED

@@ -142,6 +142,7 @@ protected:
     void drawOverlay(int frame, cv::Mat &mat);
     cv::Point makeSafePoint(int x, int y, const cv::Point& offset = cv::Point(0,0));
     void processOutputVideo();
+    void processOutputImage();
 };
 
 class MCameraThread : public QObject{

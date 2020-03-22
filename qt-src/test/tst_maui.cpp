@@ -170,7 +170,7 @@ void waitForEventLoop(int max_wait_ms = 1000)
 {
     bool did_run = false;
     // timers are dispatched at the next event loop cycle
-    QTimer::singleShot(0, [&]() {
+    QTimer::singleShot(10, [&]() {
         did_run = true;
     });
     QTest::qWaitFor([&]() {
@@ -178,7 +178,7 @@ void waitForEventLoop(int max_wait_ms = 1000)
     }, max_wait_ms);
 }
 
-void verifyResults(QString baselinePath, QString resultsPath, bool isCombinedResults)
+void verifyResults(QString baselinePath, QString resultsPath, bool isCombinedResults, double tolerance)
 {
     QFile baselineFile(baselinePath);
     QFile resultsFile(resultsPath);
@@ -217,10 +217,36 @@ void verifyResults(QString baselinePath, QString resultsPath, bool isCombinedRes
             baselineParts.pop_front();
             resultParts.pop_front();
             if (baselineParts != resultParts) {
-                qDebug() << "verify fails on line " << lineCount << " baseline: \n" << baselineParts
-                             << "\n results: \n" << resultParts;
+                bool didCompareWithTolerance = true;
+                if (baselineParts.size() != resultParts.size()) {
+                    qDebug() << "incompatible result sizes: ";
+                    didCompareWithTolerance = false;
+                }
+
+                for (int i = 0; i < baselineParts.size(); ++i) {
+                    QString baselinePart = baselineParts[i];
+                    QString resultPart = resultParts[i];
+                    if (baselinePart != resultPart) {
+                        bool canConvert = false;
+                        double baselineDouble = baselinePart.toDouble(&canConvert);
+                        if (!canConvert) {
+                            didCompareWithTolerance = false;
+                            break;
+                        }
+                        double resultDouble = resultPart.toDouble(&canConvert);
+                        if (!canConvert) {
+                            didCompareWithTolerance = false;
+                            break;
+                        }
+                        QVERIFY(resultDouble - tolerance <= baselineDouble && resultDouble + tolerance >= baselineDouble);
+                    }
+                }
+                if (!didCompareWithTolerance) {
+                    qDebug() << "verify fails on line " << lineCount << " baseline: \n" << baselineParts
+                                 << "\n results: \n" << resultParts;
+                    QCOMPARE(baselineParts, resultParts);
+                }
             }
-            QCOMPARE(baselineParts, resultParts);
         }
         ++lineCount;
     }
@@ -247,6 +273,7 @@ struct ResultsComparison
     QRect velocityScale = QRect();
     double velocityConversion = 1;
     QString velocityUnits = "cm/s";
+    double resultsTolerance = 0;
 };
 
 void MAUI::test_diameterVideo1()
@@ -254,6 +281,7 @@ void MAUI::test_diameterVideo1()
 //    QSKIP("skipping compute validation");
 
     const QString videoDir = "../../videos/";
+    const QString imageDir = "../../videos/images/";
     const QString baselineDir = "../../videos/baseline/";
     const int MAX_PROCESSING_WAIT_TIME = 30000;
     const int MAX_OUTPUT_WRITE_TIME = 15000;
@@ -270,6 +298,29 @@ void MAUI::test_diameterVideo1()
     QVERIFY(initArgs.at(0).toInt() == MInitTask::InitStats::SUCCESS);
 
     std::vector<ResultsComparison> comparisons;
+
+    std::vector<QString> image_type_copies = {"bmp", "jpg", "png", "tiff"};
+    for (auto& type : image_type_copies) {
+        // these images are converted from the original bmp and should give the same results
+        ResultsComparison input = {
+            QFINDTESTDATA(imageDir + "11.32.19 hrs __[0568752]." + type),
+            QFINDTESTDATA(baselineDir + "11.32.19 hrs __[0568752]_diameter_baseline.csv"),
+            QSize(640, 453),
+            1,
+            "11.32.19 hrs __[0568752]",
+            type,
+            QRect(151, 104, 96, 155),
+            QRect(654, 248, 0, 124),
+            3.1,
+            "mm",
+            false,
+            };
+        if (type == "jpg") {
+            input.resultsTolerance = 0.1; // we're going to allow a bit of play becasue of the lower resolution
+        }
+        comparisons.push_back(input);
+    }
+
     comparisons.push_back(
         {
             QFINDTESTDATA(videoDir + "sample01.avi"),
@@ -359,7 +410,8 @@ void MAUI::test_diameterVideo1()
         QVERIFY(args.at(1).toUrl() == inputUrl);
         QCOMPARE(args.at(2).toString(), test.videoName);
         QCOMPARE(args.at(3).toString(), test.videoExtension);
-        QVERIFY(args.at(4).toString().endsWith("videos"));
+        QString path = args.at(4).toString();
+        QVERIFY(path.endsWith("videos") || path.endsWith("images"));
         QCOMPARE(player.getSize(), test.videoSize);
         QCOMPARE(player.getNumFrames(), test.numFrames);
         QCOMPARE(player.getCurFrame(), 0);
@@ -449,7 +501,7 @@ void MAUI::test_diameterVideo1()
         QStringList csvMatches = outputDir.entryList().filter(QRegExp(".*csv$"));
         QCOMPARE(aviMatches.length(), (test.generateOutputVideo ? 1 : 0));
         QVERIFY(csvMatches.length() >= 1); // combined outputs 3 csv files
-        verifyResults(test.baselinePath, outputDir.absoluteFilePath(csvMatches[0]), computeDiameter && computeVelocity);
+        verifyResults(test.baselinePath, outputDir.absoluteFilePath(csvMatches[0]), computeDiameter && computeVelocity, test.resultsTolerance);
         player.removeVideoFile(inputUrl.toString());
     }
 }

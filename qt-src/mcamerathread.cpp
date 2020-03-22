@@ -638,6 +638,33 @@ void CameraTask::processOutputVideo() {
     }
 }
 
+void CameraTask::processOutputImage()
+{
+    cv::Size videoSize(width, height);
+    std::string outputName = outputFileName.toStdString() + "_tracking" + log.getMetaData().getWriteTime().toStdString() + ".png";
+    qDebug() << "opening output image: " << QString::fromStdString(outputName);
+
+    curFrame = startFrame;
+    if (!getFrameData(curFrame)) {
+        qDebug() << "Could not write output image because the input frame is not available: " << startFrame;
+        return;
+    }
+    cv::Mat tempMat(height, width, CV_8UC3, cameraFrame);
+    drawOverlay(curFrame + 1, tempMat);
+    try {
+        imwrite(outputName, tempMat); // use default png compression
+    }
+    catch (const std::runtime_error& ex) {
+        qDebug() << "Exception converting image to PNG format: " << ex.what();
+    }
+    if (endFrame - startFrame > 0) {
+        int progress = ((curFrame - startFrame) * 100) / (endFrame - startFrame);
+        emit outputProgress(progress);
+    } else {
+        qDebug() << "End frame is zero, not showing progress.";
+    }
+}
+
 double CameraTask::getFirst(mwArray &data, double defaultValue)
 {
     size_t numElements = data.NumberOfElements();
@@ -652,7 +679,11 @@ void CameraTask::writeResults()
     initializeOutput();
     log.write(outputFileName, curSetupState);
     if (doProcessOutputVideo) {
-        processOutputVideo();
+        if (startFrame == endFrame || (camera && camera->isImage())) {
+            processOutputImage();
+        } else {
+            processOutputVideo();
+        }
     }
     emit videoFinished(CameraTask::ProcessingState::SUCCESS);
 }

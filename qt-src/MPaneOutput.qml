@@ -25,7 +25,7 @@ Item {
 
         MCheckbox {
             id: outputVideoCheckbox
-            text: "Output video results"
+            text: "Output visual results"
             checkboxWidth: 18
             checkboxHeight: 18
             middlePadding: (Style.h_padding / 2)

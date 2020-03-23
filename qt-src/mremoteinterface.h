@@ -77,9 +77,10 @@ public slots:
     QString getPassword();
     QString getSoftwareVersion();
     QString getChangelog();
+    void die();
+
 private slots:
     void replyFinished(QNetworkReply *reply);
-    void die();
     void processNextRequest();
 
 private:

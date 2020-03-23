@@ -12,7 +12,6 @@ import com.maui.custom 1.0  // MPoint, MRemoteInterface
 ApplicationWindow {
     id: window
     visible: true
-    //visibility: "FullScreen"
     color: Style.ui_form_bg
     width: 900
     height: 600
@@ -21,10 +20,36 @@ ApplicationWindow {
     minimumHeight: 300
     title: "Measurements from Arterial Ultrasound Imaging (MAUI)"
     property bool controlsEnabled: true
+    property bool userClosedWindow: false
 
     onClosing: {
-        validationTimer.stop()
-        remoteInterface.finishSession();
+        if (window.userClosedWindow === false) {
+            validationTimer.stop();
+            remoteInterface.finishSession();
+            close.accepted = false;
+            window.userClosedWindow = true;
+            window.hide(); // pretend we closed right away
+            // but give the network request a chance to succeed
+            exitTimer.start()
+        }
+    }
+
+    Timer {
+        id: exitTimer
+        triggeredOnStart: false
+        interval: 4000
+        repeat: false
+        running: false
+        onTriggered: {
+            console.log("exit timer triggered");
+            window.doExit();
+        }
+    }
+
+    function doExit() {
+        console.log("exiting application");
+        window.close();
+        remoteInterface.die();
     }
 
     MFinishWindow {
@@ -129,6 +154,7 @@ ApplicationWindow {
         }
         onSessionFinished: {
             console.log("session complete")
+            window.doExit();
         }
         onValidationNewVersionAvailable: {
             settingsPane.updateAvailable()

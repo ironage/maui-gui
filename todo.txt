@@ -1,9 +1,7 @@
 TODO: 
 
-- Investigate a bug with “bmp” image inputs not generating any output.
-- Add baseline bmp and png images to tests.
-- Feature request for output to image format instead of assuming “avi”; add an option for “png” which will output a series of images.
-- Make sure that statistics are sent when software is closed else they'll be lost.
+- run a (python?) script to give a summary of stats and post to slack weekly?
+- make a django admin view to view current stats?
 - Upgrade server Django version to something more secure. Requires Apache config.
 - upgrade opencv to get performance enhancements
 
@@ -19,6 +17,10 @@ DONE:
 - Organize Admin view of statistics by user and date.
 - Text of combined velocity and diameter statistic is "unknown 3"
 - Investigate potential regression in 4.7 vs 4.8, I can do this if someone wants to send the input image where this was noticed.
+- Investigate a bug with “bmp” image inputs not generating any output.
+- Add baseline bmp and png images to tests.
+- Feature request for output to image format instead of assuming “avi”; add an option for “png” which will output a series of images.
+- Make sure that statistics are sent when software is closed else they'll be lost.
 
 
 Velocity Items TODO:

@@ -4,12 +4,16 @@
 #include "msettings.h"
 
 #include <QJsonObject>
+#include <QMutex>
 #include <QNetworkAccessManager>
 #include <QNetworkReply>
 #include <QNetworkRequest>
 #include <QObject>
 #include <QTimer>
 #include <QQueue>
+#include <QUrl>
+
+#include <vector>
 
 struct Metric
 {
@@ -81,7 +85,7 @@ public slots:
 
 private slots:
     void replyFinished(QNetworkReply *reply);
-    void processNextRequest();
+    void sslErrors(QNetworkReply *reply, const QList<QSslError> &errors);
 
 private:
     enum RequestType {
@@ -91,17 +95,21 @@ private:
         CHANGELOG
     };
     struct Request {
-        Request(RequestType t, QNetworkRequest r, QJsonObject j) : type(t), request(r), postData(j) {}
+        Request(RequestType t, QNetworkRequest r, QJsonObject j) : type(t), request(r), reply(nullptr), postData(j), numRedirects(0) {}
+        Request() : type(RequestType::NONE), request(), reply(nullptr), postData(), numRedirects(0) {}
         RequestType type;
         QNetworkRequest request;
+        QNetworkReply* reply;
         QJsonObject postData;
-        bool active = false;
+        size_t numRedirects;
     };
     void validate(QString username, QString password, QString method);
     void handleVerifyResponse(QByteArray &data);
     void handleVersionResponse(QByteArray &data);
     void handleChangelogResponse(QByteArray &data);
     void processLatestVersion(QJsonValue &version);
+    void sendRequest(Request request);
+
     static QJsonArray encryptForServer(QString value, QByteArray key, QByteArray key2 = "");
     static QString decryptFromServer(QByteArray value, QByteArray key, QByteArray key2 = "");
     MSettings settings;
@@ -109,7 +117,8 @@ private:
     QTimer killTimer;
     QString avaliableVersion;
     QString changelog;
-    QQueue<Request> requestQueue;
+    QMutex queueMutex;
+    std::vector<Request> pendingRequests;
     QQueue<Metric> metrics;
     bool firstResponseProcessed = false;
 };

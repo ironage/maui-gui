@@ -1,5 +1,6 @@
 #include <QtTest>
 #include <QCoreApplication>
+#include <QScopeGuard>
 
 // add necessary includes here
 
@@ -19,6 +20,7 @@ private slots:
     void cleanupTestCase();
     void test_remoteAuth();
     void test_remoteChangelog();
+    void test_remoteEndpoints();
     void test_diameterVideo1();
 
 private:
@@ -29,6 +31,7 @@ private:
     const int MAX_LIBRARY_LOAD_TIMEOUT = 10000;
     const int MAX_VIDEO_LOAD_TIMEOUT = 3000;
 
+    QString fetchChangelog(MRemoteInterface& remote);
 };
 
 MAUI::MAUI()
@@ -39,6 +42,18 @@ MAUI::MAUI()
 MAUI::~MAUI()
 {
 
+}
+
+void waitForEventLoop(int max_wait_ms = 1000)
+{
+    bool did_run = false;
+    // timers are dispatched at the next event loop cycle
+    QTimer::singleShot(10, [&]() {
+        did_run = true;
+    });
+    QTest::qWaitFor([&]() {
+        return did_run;
+    }, max_wait_ms);
 }
 
 void MAUI::initTestCase()
@@ -63,7 +78,7 @@ void MAUI::cleanupTestCase()
 
 void MAUI::test_remoteAuth()
 {
-    QSKIP("skipping remote auth");
+//    QSKIP("skipping remote auth");
     MRemoteInterface remote;
     QCOMPARE(remote.getSoftwareVersion(), "Checking...");
 
@@ -142,40 +157,66 @@ void MAUI::test_remoteAuth()
     QVERIFY(sessionFinished.count() == 0);
 }
 
-// FIXME: this test sometimes fails when running against a "runserver" invoked test environment on localhost
-// maybe check that django isn't caching or flushing something?
+QString MAUI::fetchChangelog(MRemoteInterface& remote)
+{
+    MSettings settings;
+    qint64 begin = QDateTime::currentMSecsSinceEpoch();
+    QSignalSpy changelogUpdated(&remote, SIGNAL(changelogChanged()));
+    assert(changelogUpdated.isValid());
+    remote.requestChangelog();
+    int initialCount = changelogUpdated.count();
+    QTest::qWaitFor([&]() {
+        QCoreApplication::processEvents();
+        return changelogUpdated.count() > initialCount;
+    }, MAX_NETWORK_TIMEOUT);
+
+    assert(changelogUpdated.count() == initialCount + 1);
+    qDebug() << "fetched changelog from " << settings.getBaseUrl() << " in " << QDateTime::currentMSecsSinceEpoch() - begin << "ms";
+    return remote.getChangelog();
+}
+
 void MAUI::test_remoteChangelog()
 {
-    QSKIP("skipping changelog verifcation");
+//    QSKIP("skipping changelog verifcation");
 
     MRemoteInterface remote;
     QString defaultChangelogText = "Fetching changes...";
     QCOMPARE(remote.getChangelog(), defaultChangelogText);
 
-    QSignalSpy changelogUpdated(&remote, SIGNAL(changelogChanged()));
-    QVERIFY(changelogUpdated.isValid());
-    remote.requestChangelog();
-    QTest::qWaitFor([&]() {
-        return changelogUpdated.count() > 0;
-    }, MAX_NETWORK_TIMEOUT);
-
-    QVERIFY(changelogUpdated.count() == 1);
-    QString changelog = remote.getChangelog();
+    QString changelog = fetchChangelog(remote);
     QVERIFY(changelog != defaultChangelogText);
     QVERIFY(changelog.length() > 100);
     QVERIFY(changelog.contains("version " + QString::number(MRemoteInterface::CURRENT_VERSION), Qt::CaseSensitivity::CaseInsensitive));
 }
 
-void waitForEventLoop(int max_wait_ms = 1000)
+void MAUI::test_remoteEndpoints()
 {
-    bool did_run = false;
-    // timers are dispatched at the next event loop cycle
-    QTimer::singleShot(10, [&]() {
-        did_run = true;
-    });
-    QTest::qWaitFor([&]() {
-        return did_run;
-    }, max_wait_ms);
+    MSettings settings;
+    QString origBase = settings.getBaseUrl();
+    QCOMPARE(origBase, "https://app.hedgehogmedical.com/");
+    auto cleanup = qScopeGuard([&] { settings.setBaseUrl(origBase); });
+    MRemoteInterface remote;
+    QSignalSpy changelogUpdated(&remote, SIGNAL(changelogChanged()));
+    QVERIFY(changelogUpdated.isValid());
+    int initialReplies = changelogUpdated.count();
+
+    QString changelog = fetchChangelog(remote);
+
+    std::vector<QString> urlsToCheck = {
+        "https://app.hedgehogmedical.com/redirected-changelog/", // a server test point
+        "https://app.hedgehogmedical.com/",
+        "http://app.hedgehogmedical.com/",    // should follow redirect to https version
+        "http://hedgehogmedical.com/users/",  // test server backwards compatibility to transparently forward requests to app.hedgehogmedical.com
+        "https://hedgehogmedical.com/users/" // same with https version
+    };
+
+    for (QString& url : urlsToCheck) {
+        settings.setBaseUrl(url);
+        QCOMPARE(url, settings.getBaseUrl());
+        QString newChangelog = fetchChangelog(remote);
+        QCOMPARE(changelog, newChangelog);
+    }
+    QCOMPARE(changelogUpdated.count(), initialReplies + 1 + int(urlsToCheck.size()));
 }
 
 void verifyResults(QString baselinePath, QString resultsPath, bool isCombinedResults, double tolerance)
@@ -278,7 +319,7 @@ struct ResultsComparison
 
 void MAUI::test_diameterVideo1()
 {
-//    QSKIP("skipping compute validation");
+    QSKIP("skipping compute validation");
 
     const QString videoDir = "../../videos/";
     const QString imageDir = "../../videos/images/";

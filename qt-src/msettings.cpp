@@ -84,13 +84,20 @@ void MSettings::newSalt()
 QString MSettings::getBaseUrl()
 {
     // changed from v4.7 "baseUrl" to baseUrlSecure to use https
-    QString stored = settings.value("baseUrlSecure", "").toString();
+    // changed from v4.8 "baseUrlSecure" to "baseUrlSecureApp" from https://www.hedgehogmedical.com/users/ to https://app.hedgehogmedical.com/
+    QString stored = settings.value("baseUrlSecureApp", "").toString();
     if (stored.isEmpty()) {
-        stored = "https://www.hedgehogmedical.com/users/";
-        settings.setValue("baseUrl", stored);
+        stored = "https://app.hedgehogmedical.com/";
+        settings.setValue("baseUrlSecureApp", stored);
     }
-    // stored = "http://localhost:8000/"; // FIXME: local dev
+    //stored = "http://localhost:8000/"; // FIXME: local dev
+    //stored = "http://hedgehogmedical.com/users/"; // FIXME: local dev
     return stored;
+}
+
+void MSettings::setBaseUrl(QString newUrl)
+{
+    settings.setValue("baseUrlSecureApp", newUrl);
 }
 
 bool MSettings::getMetricsEnabled()

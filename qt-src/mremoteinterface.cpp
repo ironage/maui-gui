@@ -3,13 +3,15 @@
 
 #include "qblowfish.h"
 
+#include <QByteArray>
 #include <QCoreApplication>
 #include <QCryptographicHash>
-#include <QByteArray>
 #include <QDebug>
 #include <QJsonArray>
 #include <QJsonDocument>
+#include <QMutexLocker>
 #include <QProcess>
+#include <QScopeGuard>
 #include <QTimer>
 
 static QByteArray sharedKey = "6mC4zR5SVzug3uiB9L42I164Wn640wt1";
@@ -48,7 +50,8 @@ QByteArray fromJsonArray(QJsonArray ja) {
 MRemoteInterface::MRemoteInterface(QObject *parent) : QObject(parent), changelog("Fetching changes...")
 {
     avaliableVersion = "Checking...";
-    connect(&networkManager, SIGNAL(finished(QNetworkReply*)),this, SLOT(replyFinished(QNetworkReply*)));
+    connect(&networkManager, SIGNAL(finished(QNetworkReply*)), this, SLOT(replyFinished(QNetworkReply*)));
+    connect(&networkManager, SIGNAL(sslErrors(QNetworkReply*, const QList<QSslError>&)), this, SLOT(sslErrors(QNetworkReply*, const QList<QSslError>&)));
 }
 
 QString MRemoteInterface::getDisplayVersion()
@@ -74,9 +77,7 @@ void MRemoteInterface::requestChangelog()
 
     QJsonObject json;
     json.insert("request", "changelog");
-
-    requestQueue.enqueue(Request(RequestType::CHANGELOG, request, json));
-    processNextRequest();
+    sendRequest(Request(RequestType::CHANGELOG, request, json));
 }
 
 void MRemoteInterface::validateWithExistingCredentials()
@@ -156,11 +157,21 @@ QString MRemoteInterface::getChangelog() {
 
 void MRemoteInterface::replyFinished(QNetworkReply *reply)
 {
-    QTimer::singleShot(0, this, SLOT(processNextRequest())); // queue up the next request after this
-    if (requestQueue.isEmpty()) return;
-    Request request = requestQueue.dequeue();
     if (!reply) return;
-    reply->deleteLater();
+    auto cleanup = qScopeGuard([&] { reply->deleteLater(); });
+
+    QMutexLocker guard(&queueMutex);
+    if (pendingRequests.empty()) return;
+    Request request;
+
+    for (size_t i = 0; i < pendingRequests.size(); ++i) {
+        if (pendingRequests[i].reply != nullptr && pendingRequests[i].reply == reply) {
+            request = pendingRequests[i];
+            pendingRequests.erase(pendingRequests.begin() + int(i));
+            break;
+        }
+    }
+    guard.unlock();
 
     if (reply->error() != QNetworkReply::NoError) {
         qDebug() << "reply code: " + QString::number(reply->error());
@@ -180,6 +191,22 @@ void MRemoteInterface::replyFinished(QNetworkReply *reply)
         }
         emit validationFailed(message);
     } else {
+
+        if (reply->attribute(QNetworkRequest::RedirectionTargetAttribute).isValid()) {
+            // Qt's automatic redirect policies do not seem to be working, so we do it manually :(
+            QUrl redirection = reply->attribute(QNetworkRequest::RedirectionTargetAttribute).toUrl();
+            qDebug() << "redirection: " << redirection << " and " << reply->url().resolved(redirection);
+            if (request.numRedirects < 10) {
+                request.numRedirects++;
+                request.reply = nullptr;
+                request.request.setUrl(reply->url().resolved(redirection));
+                sendRequest(request);
+            } else {
+                qDebug() << "Max redirections reached: " << request.numRedirects << "not continuing";
+            }
+            return;
+        }
+
         if (reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt() != 200) {
             qDebug() << "reply success: " << reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt();
         }
@@ -189,7 +216,7 @@ void MRemoteInterface::replyFinished(QNetworkReply *reply)
         }
         //qDebug() << reply->header(QNetworkRequest::ContentLengthHeader).toULongLong();
         QByteArray replyBody = reply->readAll();
-        //qDebug() << "reply: " << replyBody;
+//        qDebug() << "reply: " << replyBody;
         switch (request.type) {
         case RequestType::VERIFY:
             handleVerifyResponse(replyBody);
@@ -207,6 +234,17 @@ void MRemoteInterface::replyFinished(QNetworkReply *reply)
             qDebug() << "Unhandled default network response!";
             break;
         }
+    }
+}
+
+void MRemoteInterface::sslErrors(QNetworkReply *reply, const QList<QSslError> &errors)
+{
+    qDebug() << "sslErrors encountered: ";
+    if (reply) {
+        qDebug() << "while processing: " << reply->url();
+    }
+    for (auto& err : errors) {
+        qDebug() << "Error: " << err.errorString();
     }
 }
 
@@ -249,9 +287,7 @@ void MRemoteInterface::validate(QString username, QString password, QString meth
         }
     }
     json.insert("metrics", json_metrics);
-
-    requestQueue.enqueue(Request(RequestType::VERIFY, request, json));
-    processNextRequest();
+    sendRequest(Request(RequestType::VERIFY, request, json));
 }
 
 void MRemoteInterface::handleVerifyResponse(QByteArray &data)
@@ -394,11 +430,11 @@ QString MRemoteInterface::decryptFromServer(QByteArray value, QByteArray key, QB
     return QString::fromStdString(value.toStdString());
 }
 
-void MRemoteInterface::processNextRequest()
+void MRemoteInterface::sendRequest(Request request)
 {
-    if (requestQueue.isEmpty()) return;
-    Request &request = requestQueue.head();
-    if (request.active) return; // already in progress, we'll queue up the next request when it's finished
-    request.active = true;
-    networkManager.post(request.request, QJsonDocument(request.postData).toJson());
+    QMutexLocker guard(&queueMutex);
+    if (request.reply) return;
+    request.request.setAttribute(QNetworkRequest::RedirectPolicyAttribute, QNetworkRequest::RedirectPolicy::ManualRedirectPolicy);
+    request.reply = networkManager.post(request.request, QJsonDocument(request.postData).toJson());
+    pendingRequests.push_back(request);
 }

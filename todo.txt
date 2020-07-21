@@ -1,8 +1,10 @@
 TODO: 
 
 - run a (python?) script to give a summary of stats and post to slack weekly?
+	- matplotlib
 - make a django admin view to view current stats?
-- Upgrade server Django version to something more secure. Requires Apache config.
+	- the graphs module and colorful require django > 1.11
+- create analytics admin page
 - upgrade opencv to get performance enhancements
 
 -zoom
@@ -13,6 +15,7 @@ TODO:
 -write log files to disk
 
 
+
 DONE:
 - Organize Admin view of statistics by user and date.
 - Text of combined velocity and diameter statistic is "unknown 3"
@@ -21,7 +24,11 @@ DONE:
 - Add baseline bmp and png images to tests.
 - Feature request for output to image format instead of assuming “avi”; add an option for “png” which will output a series of images.
 - Make sure that statistics are sent when software is closed else they'll be lost.
-
+- Upgrade server Django version to something more secure. Requires Apache config.
+- enable networking client redirects
+- update http destination settings for auth dest: https://app.hedgehogmedical.com/
+- release MAUI with fixes
+- reduce server strictness on 30 second auth
 
 Velocity Items TODO:
 - Data to Process pane:

@@ -319,7 +319,7 @@ struct ResultsComparison
 
 void MAUI::test_diameterVideo1()
 {
-    QSKIP("skipping compute validation");
+    //QSKIP("skipping compute validation");
 
     const QString videoDir = "../../videos/";
     const QString imageDir = "../../videos/images/";

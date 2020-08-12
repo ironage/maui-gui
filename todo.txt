@@ -12,7 +12,11 @@ TODO:
 -checkmark icons for settings progress
 -settings, color chooser
 -help / about
--write log files to disk
+-write log files to disk, to store crash logs
+
+- fix perf regression in 4.9
+- fix crashes introduced in 4.8
+- add memory of ROI settings across sessions and save/load manual inputs
 
 
 

@@ -42,7 +42,8 @@ INCLUDEPATH += "$$MATLAB_INCLUDE_PATH"
 INCLUDEPATH += "$$MATLAB_INCLUDE_PATH"/../../bin/win64
 INCLUDEPATH += "$$MAUI_SRC"
 
-HEADERS +=  "$$MAUI_SRC/mcvplayer.h" \
+HEADERS +=  "$$MAUI_SRC/mbench.h" \
+            "$$MAUI_SRC/mcvplayer.h" \
             "$$MAUI_SRC/mcamerathread.h" \
             "$$MAUI_SRC/mvideocapture.h" \
             "$$MAUI_SRC/mpoint.h" \

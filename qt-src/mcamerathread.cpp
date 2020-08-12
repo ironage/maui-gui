@@ -4,6 +4,7 @@
 #include <QDateTime>
 #include <QDir>
 
+#include "mbench.h"
 #include "mcamerathread.h"
 #include <algorithm>
 #include <memory>
@@ -226,8 +227,8 @@ void CameraTask::doWork()
         screenImage = cv::Mat(height, width, CV_8UC4, videoFrame->bits());
 
     while(running && videoFrame != nullptr && camera != nullptr) {
-        QCoreApplication::processEvents();
 
+        QCoreApplication::processEvents();
         if (curPlayState == PlayState::Paused) {
             QThread::msleep(10);
             continue;
@@ -331,7 +332,6 @@ void CameraTask::doWork()
                                matlabArrays[TOP_STRONG_LINE], matlabArrays[BOTTOM_STRONG_LINE],
                                matlabArrays[TOP_STRONG_POINTS], matlabArrays[BOTTOM_STRONG_POINTS],
                                matlabArrays[TOP_REF_WALL], matlabArrays[BOTTOM_REF_WALL]);
-
                         QPoint offset(std::max(0, roi.x()), std::max(0, roi.y()));
                         frameResults.addWallPart(
                                     getFirst(outerLumenDiameter, 0),

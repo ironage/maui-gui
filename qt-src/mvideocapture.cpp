@@ -24,13 +24,14 @@
  */
 
 #include "mvideocapture.h"
+#include "mbench.h"
 #include <QDebug>
 
 MVideoCapture::MVideoCapture()
     : capture()
     , cachedFrame()
     , imageMode(false)
-    , cachedFrameIndex(-1)
+    , cachedFrameIndex(-2)
     , numTotalFrames(-1)
 {
 }
@@ -115,7 +116,11 @@ unsigned char *MVideoCapture::getFrameData(int frameIndex)
             return cachedFrame.ptr();
         } else {
             assert(!imageMode);
-            if (capture.set(CV_CAP_PROP_POS_FRAMES, double(frameIndex)) && capture.read(cachedFrame)) {
+            bool didSet = true;
+            if (frameIndex != cachedFrameIndex + 1){
+                didSet = capture.set(CV_CAP_PROP_POS_FRAMES, double(frameIndex));
+            }
+            if (didSet && capture.read(cachedFrame)) {
                 cachedFrameIndex = frameIndex;
                 return cachedFrame.ptr();
             }
@@ -137,4 +142,3 @@ bool MVideoCapture::isImage() const
 {
     return imageMode;
 }
-

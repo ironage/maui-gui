@@ -54,6 +54,7 @@ LIBS += -lcomdlg32 -ladvapi32 -lshell32 -lole32 -loleaut32 -luuid -lodbc32 -lodb
 #message($$LIBS)
 
 HEADERS += \
+    mbench.h \
     mcvplayer.h \
     mcamerathread.h \
     mvideocapture.h \

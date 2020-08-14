@@ -14,11 +14,8 @@ TODO:
 -help / about
 -write log files to disk, to store crash logs
 
-- fix perf regression in 4.9
 - fix crashes introduced in 4.8
 - add memory of ROI settings across sessions and save/load manual inputs
-
-
 
 DONE:
 - Organize Admin view of statistics by user and date.
@@ -33,6 +30,9 @@ DONE:
 - update http destination settings for auth dest: https://app.hedgehogmedical.com/
 - release MAUI with fixes
 - reduce server strictness on 30 second auth
+
+- fix perf regression in 4.9
+
 
 Velocity Items TODO:
 - Data to Process pane:

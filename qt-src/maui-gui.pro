@@ -28,6 +28,11 @@ SOURCES += main.cpp \
 QT += core qml quick multimedia network
 CONFIG += c++11
 
+# generate pdb symbols even for release builds
+#QMAKE_LFLAGS_RELEASE+=/MAP
+#QMAKE_CFLAGS_RELEASE += /Zi
+#QMAKE_LFLAGS_RELEASE +=/debug /opt:ref
+
 RESOURCES += qml.qrc
 
 # Additional import path used to resolve QML modules in Qt Creator's code model

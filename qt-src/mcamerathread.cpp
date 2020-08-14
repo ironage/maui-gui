@@ -577,6 +577,8 @@ cv::Rect CameraTask::getCVROI(QRect rect)
 void CameraTask::drawLine(cv::Mat &dest, const std::vector<cv::Point>& points, cv::Scalar color, int thickness)
 {
     size_t numPoints = points.size();
+    if (numPoints == 0)
+            return;
     for (size_t i = 0; i < numPoints - 1; ++i) {
         cv::line(dest, points[i], points[i+1], color, thickness, CV_AA); // antialised line of thickness 1
     }

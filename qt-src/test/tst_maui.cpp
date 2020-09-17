@@ -28,7 +28,7 @@ private:
     QString orig_pw;
 
     const int MAX_NETWORK_TIMEOUT = 5000;
-    const int MAX_LIBRARY_LOAD_TIMEOUT = 10000;
+    const int MAX_LIBRARY_LOAD_TIMEOUT = 15000;
     const int MAX_VIDEO_LOAD_TIMEOUT = 3000;
 
     QString fetchChangelog(MRemoteInterface& remote);
@@ -78,7 +78,7 @@ void MAUI::cleanupTestCase()
 
 void MAUI::test_remoteAuth()
 {
-//    QSKIP("skipping remote auth");
+    QSKIP("skipping remote auth");
     MRemoteInterface remote;
     QCOMPARE(remote.getSoftwareVersion(), "Checking...");
 
@@ -177,7 +177,7 @@ QString MAUI::fetchChangelog(MRemoteInterface& remote)
 
 void MAUI::test_remoteChangelog()
 {
-//    QSKIP("skipping changelog verifcation");
+    QSKIP("skipping changelog verifcation");
 
     MRemoteInterface remote;
     QString defaultChangelogText = "Fetching changes...";
@@ -191,6 +191,8 @@ void MAUI::test_remoteChangelog()
 
 void MAUI::test_remoteEndpoints()
 {
+    QSKIP("skipping remote endpoint verifcation");
+
     MSettings settings;
     QString origBase = settings.getBaseUrl();
     QCOMPARE(origBase, "https://app.hedgehogmedical.com/");

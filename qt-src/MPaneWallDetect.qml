@@ -9,6 +9,7 @@ Item {
     property alias conversionUnits: scaleUnits.currentText
     property string scale: scaleInput.acceptableInput ? scaleInput.text : 1
     property alias checked: enabledCheckbox.checked
+    signal roiClicked()
 
     function changeScale(newScale) {
         scaleInput.text = newScale
@@ -40,7 +41,7 @@ Item {
             MTextInput {
                 id: scaleInput
                 text: "1"
-                width: 128
+                width: 60
                 height: implicitHeight
                 placeholderText: "Scale"
                 borderColor: acceptableInput ? Style.ui_component_highlight : Style.ui_color_light_red
@@ -55,6 +56,23 @@ Item {
                     ListElement { text: "cm"; }
                     ListElement { text: "mm"; }
                     ListElement { text: "in"; }
+                }
+            }
+            MButton {
+                id: roiSettings
+                imageSource: "qrc:///icons/gear.png"
+                text: "ROI"
+                textStyle: Text.Normal
+                textColor: Style.ui_color_black
+                textFont.pixelSize: 0
+                v_padding: 4
+                imageSourceSize: Qt.size(16, 16)
+                color: Style.ui_color_dark_grey
+                highlight_color: Style.ui_color_light_grey
+                selected_color: Style.ui_color_dark_grey
+
+                onClicked: {
+                    root.roiClicked()
                 }
             }
         }

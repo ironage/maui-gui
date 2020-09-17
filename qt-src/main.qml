@@ -87,6 +87,10 @@ ApplicationWindow {
         onChangeAccount: remoteInterface.changeExistingCredentials(username, password)
     }
 
+    MROIWindow {
+        id: diameterROIWindow
+    }
+
     MRemoteInterface {
         id: remoteInterface
         property bool doneInitialVerify: false
@@ -285,6 +289,7 @@ ApplicationWindow {
                 Layout.bottomMargin: Style.v_padding * 2
                 width: leftPanel.headerWidth
                 enabled: window.controlsEnabled
+                onRoiClicked: diameterROIWindow.show()
             }
 
             MPaneVelocityDetect {

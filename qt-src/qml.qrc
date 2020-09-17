@@ -39,5 +39,6 @@
         <file>icons/download.png</file>
         <file>icons/gear.png</file>
         <file>MUpgradeWindow.qml</file>
+        <file>MROIWindow.qml</file>
     </qresource>
 </RCC>

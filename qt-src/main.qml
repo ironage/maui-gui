@@ -24,7 +24,6 @@ ApplicationWindow {
 
     onClosing: {
         if (window.userClosedWindow === false) {
-            validationTimer.stop();
             close.accepted = false;
             window.userClosedWindow = true;
             window.hide(); // pretend we closed right away

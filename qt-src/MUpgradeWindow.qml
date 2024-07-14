@@ -71,7 +71,6 @@ Window {
                 id: flick
                 width: textBounds.width
                 height: textBounds.height
-                contentWidth: textBounds.paintedWidth
                 contentHeight: changesText.paintedHeight
                 clip: true
 

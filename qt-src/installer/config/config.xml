@@ -10,7 +10,7 @@
     <RunProgramDescription> Run MAUI</RunProgramDescription>
 	<RemoteRepositories>
         <Repository>
-            <Url>https://raw.githubusercontent.com/ironage/maui-gui/master/qt-src/installer/maui-gui-repo/</Url>
+            <Url>https://raw.githubusercontent.com/ironage/maui-gui/master/qt-src/installer/maui-gui-repo</Url>
         </Repository>
     </RemoteRepositories>
 </Installer>

@@ -9,7 +9,7 @@
   <Version>1.0.4-1</Version>
   <ReleaseDate>2020-01-08</ReleaseDate>
   <Default>true</Default>
-  <UpdateFile UncompressedSize="92582439" OS="Any" CompressedSize="25395956"/>
+  <UpdateFile CompressedSize="25395956" OS="Any" UncompressedSize="92582439"/>
   <DownloadableArchives>audio.7z,bearer.7z,iconengines.7z,imageformats.7z,mediaservice.7z,platforms.7z,playlistformats.7z,qmltooling.7z,Qt.7z,QtGraphicalEffects.7z,QtMultimedia.7z,QtQml.7z,QtQuick.7z,QtQuick.2.7z,scenegraph.7z,styles.7z,content.7z</DownloadableArchives>
   <SHA1>ee93cc51923c62480e81531c3c2ce722dcb7d9b1</SHA1>
  </PackageUpdate>
@@ -17,15 +17,15 @@
   <Name>MAUI</Name>
   <DisplayName>The MAUI Graphical User Interface</DisplayName>
   <Description>Install MAUI.</Description>
-  <Version>1.5.0-1</Version>
-  <ReleaseDate>2020-09-16</ReleaseDate>
+  <Version>1.6.0-1</Version>
+  <ReleaseDate>2024-07-14</ReleaseDate>
   <Default>true</Default>
   <Script>installscript.qs</Script>
-  <UpdateFile UncompressedSize="7729394" OS="Any" CompressedSize="5683311"/>
+  <UpdateFile CompressedSize="5660383" OS="Any" UncompressedSize="7616242"/>
   <DownloadableArchives>res.7z,content.7z</DownloadableArchives>
   <Licenses>
-   <License file="license.txt" name="MAUI License Agreement"/>
+   <License name="MAUI License Agreement" file="license.txt"/>
   </Licenses>
-  <SHA1>d8811cd05a187ee458afdc24d5fd5f2a00d38676</SHA1>
+  <SHA1>e050be86a7399e87b307e81a5ca5db1ad099c62c</SHA1>
  </PackageUpdate>
 </Updates>

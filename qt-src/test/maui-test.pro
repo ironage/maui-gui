@@ -52,8 +52,6 @@ HEADERS +=  "$$MAUI_SRC/mbench.h" \
             "$$MAUI_SRC/minitthread.h" \
             "$$MAUI_SRC/mremoteinterface.h" \
             "$$MAUI_SRC/msettings.h" \
-            "$$MAUI_SRC/qblowfish.h" \
-            "$$MAUI_SRC/qblowfish_p.h" \
             "$$MAUI_SRC/MAUIVelocityDllWithAutoInit.h" \
             "$$MAUI_SRC/mresultswriter.h" \
             "$$MAUI_SRC/mvideoinfo.h"
@@ -67,7 +65,6 @@ SOURCES +=  "$$MAUI_SRC/mcvplayer.cpp" \
             "$$MAUI_SRC/minitthread.cpp" \
             "$$MAUI_SRC/mremoteinterface.cpp" \
             "$$MAUI_SRC/msettings.cpp" \
-            "$$MAUI_SRC/qblowfish.cpp" \
             "$$MAUI_SRC/mresultswriter.cpp" \
             "$$MAUI_SRC/mvideoinfo.cpp"
 

@@ -6,7 +6,6 @@ Item {
     id: root
 
     signal versionClicked()
-    signal userClicked()
     property double version: 0
     property size imageSize: Qt.size(16, 16)
     width: childrenRect.width
@@ -60,36 +59,6 @@ Item {
             id: padding
             width: Style.h_padding
             height: 1
-        }
-
-        MButton {
-            id: userButton
-            text: ""
-            textStyle: Text.Normal
-            textColor: Style.ui_color_black
-            textFont.pixelSize: 12
-            v_padding: 4
-            state: "idle"
-            imageSource: "qrc:///icons/user.png"
-            imageSourceSize: root.imageSize
-            onClicked: {
-                root.userClicked()
-            }
-            states: [
-                State {
-                    name: "idle"
-                    PropertyChanges { target: userButton; color: Style.ui_color_dark_grey }
-                    PropertyChanges { target: userButton; highlight_color: Style.ui_color_light_grey }
-                    PropertyChanges { target: userButton; selected_color: Style.ui_color_dark_grey }
-                    PropertyChanges { target: userButton; text: "Account" }
-                }
-            ]
-            transitions: [
-                Transition {
-                    from: "*"; to: "*"
-                    ColorAnimation { target: userButton; properties: "color"; duration: 100 }
-                }
-            ]
         }
     }
 }

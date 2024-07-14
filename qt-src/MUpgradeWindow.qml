@@ -60,6 +60,7 @@ Window {
             }
         }
         Rectangle {
+            id: textBounds
             color: Style.ui_color_light
             border.color: Style.ui_border_color
             border.width: 1
@@ -68,21 +69,21 @@ Window {
 
             Flickable {
                 id: flick
-                width: parent.width
-                height: parent.height
-                contentWidth: changesText.paintedWidth
+                width: textBounds.width
+                height: textBounds.height
+                contentWidth: textBounds.paintedWidth
                 contentHeight: changesText.paintedHeight
                 clip: true
 
                 TextEdit {
                     id: changesText
                     focus: true
+                    width: parent.width
                     padding: Style.h_padding
                     wrapMode: TextEdit.Wrap
                     text: windowRoot.changelog
                     color: Style.ui_color_black
-                    selectionColor: Style.ui_color_light_grey
-                    selectedTextColor: Style.ui_color_silver
+                    selectByMouse: true
                     font.pixelSize: 12
                     readOnly: true
                 }

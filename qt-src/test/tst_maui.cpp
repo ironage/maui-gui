@@ -7,6 +7,13 @@
 #include "mremoteinterface.h"
 #include "mcvplayer.h"
 
+struct LatestVersionInfo
+{
+    QString version;
+    QString changelog;
+};
+
+
 class MAUI : public QObject
 {
     Q_OBJECT
@@ -18,9 +25,7 @@ public:
 private slots:
     void initTestCase();
     void cleanupTestCase();
-    void test_remoteAuth();
     void test_remoteChangelog();
-    void test_remoteEndpoints();
     void test_diameterVideo1();
 
 private:
@@ -31,7 +36,7 @@ private:
     const int MAX_LIBRARY_LOAD_TIMEOUT = 10000;
     const int MAX_VIDEO_LOAD_TIMEOUT = 3000;
 
-    QString fetchChangelog(MRemoteInterface& remote);
+    LatestVersionInfo fetchChangelog(MRemoteInterface& remote);
 };
 
 MAUI::MAUI()
@@ -58,106 +63,13 @@ void waitForEventLoop(int max_wait_ms = 1000)
 
 void MAUI::initTestCase()
 {
-    {
-        MSettings settings;
-        QString serverUnderTest = settings.getBaseUrl();
-        qDebug() << "server under test is located at: " << serverUnderTest;
-    }
-
-    MRemoteInterface remote;
-    orig_user = remote.getUsername();
-    orig_pw = remote.getPassword();
-    qDebug() << "testing with user account: " << orig_user;
 }
 
 void MAUI::cleanupTestCase()
 {
-    MRemoteInterface remote;
-    remote.changeExistingCredentials(orig_user, orig_pw);
 }
 
-void MAUI::test_remoteAuth()
-{
-//    QSKIP("skipping remote auth");
-    MRemoteInterface remote;
-    QCOMPARE(remote.getSoftwareVersion(), "Checking...");
-
-    // we use stored credentials on this computer
-    // if these are empty, run MAUI once and login to setup a user
-    QVERIFY(!remote.getUsername().isEmpty());
-    QVERIFY(!remote.getPassword().isEmpty());
-
-    QSignalSpy validationFailed(&remote, SIGNAL(validationFailed(QString)));
-    QSignalSpy validationNoConnection(&remote, SIGNAL(validationNoConnection()));
-    QSignalSpy validationSuccess(&remote, SIGNAL(validationSuccess()));
-    QSignalSpy validationAccountExpired(&remote, SIGNAL(validationAccountExpired()));
-    QSignalSpy validationBadCredentials(&remote, SIGNAL(validationBadCredentials()));
-    QSignalSpy validationNewVersionAvailable(&remote, SIGNAL(validationNewVersionAvailable(QString)));
-    QSignalSpy noExistingCredentials(&remote, SIGNAL(noExistingCredentials()));
-    QSignalSpy multipleSessionsDetected(&remote, SIGNAL(multipleSessionsDetected()));
-    QSignalSpy sessionFinished(&remote, SIGNAL(sessionFinished()));
-
-    QVERIFY(validationFailed.isValid());
-    QVERIFY(validationNoConnection.isValid());
-    QVERIFY(validationSuccess.isValid());
-    QVERIFY(validationAccountExpired.isValid());
-    QVERIFY(validationBadCredentials.isValid());
-    QVERIFY(validationNewVersionAvailable.isValid());
-    QVERIFY(noExistingCredentials.isValid());
-    QVERIFY(multipleSessionsDetected.isValid());
-    QVERIFY(sessionFinished.isValid());
-
-    // initial validation with stored credentials
-    remote.validateWithExistingCredentials();
-    QTest::qWaitFor([&]() {
-        return validationSuccess.count() > 0 || multipleSessionsDetected.count() > 0;
-    }, MAX_NETWORK_TIMEOUT);
-
-    QVERIFY(validationSuccess.count() == 1 || multipleSessionsDetected.count() == 1);
-    qDebug() << "passing test with login status: " << (validationSuccess.count() > 0 ? "success" : "multiple accounts detected");
-    QVERIFY(validationFailed.count() == 0);
-    QVERIFY(validationNoConnection.count() == 0);
-    QVERIFY(validationAccountExpired.count() == 0);
-    QVERIFY(validationBadCredentials.count() == 0);
-    QVERIFY(validationNewVersionAvailable.count() == 0);
-    QVERIFY(noExistingCredentials.count() == 0);
-    QVERIFY(sessionFinished.count() == 0);
-
-    // this should now be updated from the response
-    QCOMPARE(remote.getSoftwareVersion(), QString::number(MRemoteInterface::CURRENT_VERSION));
-
-    int detections = multipleSessionsDetected.count();
-
-    // trigger multiple sessions
-    remote.validateWithExistingCredentials();
-    QTest::qWaitFor([&]() {
-        return multipleSessionsDetected.count() == (detections + 1);
-    }, MAX_NETWORK_TIMEOUT);
-
-    QVERIFY(validationFailed.count() == 0);
-    QVERIFY(validationNoConnection.count() == 0);
-    QVERIFY(validationAccountExpired.count() == 0);
-    QVERIFY(validationBadCredentials.count() == 0);
-    QVERIFY(validationNewVersionAvailable.count() == 0);
-    QVERIFY(noExistingCredentials.count() == 0);
-    QVERIFY(sessionFinished.count() == 0);
-
-    // try to login with bad credentials
-    remote.validateRequest("some_user@test.com", "invalid_test_password");
-    QTest::qWaitFor([&]() {
-        return validationBadCredentials.count() == 1;
-    }, MAX_NETWORK_TIMEOUT);
-
-    QVERIFY(validationFailed.count() == 0);
-    QVERIFY(validationNoConnection.count() == 0);
-    QVERIFY(validationAccountExpired.count() == 0);
-    QVERIFY(validationBadCredentials.count() == 1);
-    QVERIFY(validationNewVersionAvailable.count() == 0);
-    QVERIFY(noExistingCredentials.count() == 0);
-    QVERIFY(sessionFinished.count() == 0);
-}
-
-QString MAUI::fetchChangelog(MRemoteInterface& remote)
+LatestVersionInfo MAUI::fetchChangelog(MRemoteInterface& remote)
 {
     MSettings settings;
     qint64 begin = QDateTime::currentMSecsSinceEpoch();
@@ -171,8 +83,11 @@ QString MAUI::fetchChangelog(MRemoteInterface& remote)
     }, MAX_NETWORK_TIMEOUT);
 
     assert(changelogUpdated.count() == initialCount + 1);
-    qDebug() << "fetched changelog from " << settings.getBaseUrl() << " in " << QDateTime::currentMSecsSinceEpoch() - begin << "ms";
-    return remote.getChangelog();
+    qDebug() << "fetched changelog from " << settings.getVersionEndpoint() << " in " << QDateTime::currentMSecsSinceEpoch() - begin << "ms";
+    LatestVersionInfo info;
+    info.version = remote.getSoftwareVersion();
+    info.changelog = remote.getChangelog();
+    return info;
 }
 
 void MAUI::test_remoteChangelog()
@@ -180,43 +95,15 @@ void MAUI::test_remoteChangelog()
 //    QSKIP("skipping changelog verifcation");
 
     MRemoteInterface remote;
-    QString defaultChangelogText = "Fetching changes...";
+    QString defaultChangelogText = "This software is now open source.Please see https://github.com/ironage/maui-gui for updates.";
     QCOMPARE(remote.getChangelog(), defaultChangelogText);
 
-    QString changelog = fetchChangelog(remote);
-    QVERIFY(changelog != defaultChangelogText);
-    QVERIFY(changelog.length() > 100);
-    QVERIFY(changelog.contains("version " + QString::number(MRemoteInterface::CURRENT_VERSION), Qt::CaseSensitivity::CaseInsensitive));
-}
-
-void MAUI::test_remoteEndpoints()
-{
-    MSettings settings;
-    QString origBase = settings.getBaseUrl();
-    QCOMPARE(origBase, "https://app.hedgehogmedical.com/");
-    auto cleanup = qScopeGuard([&] { settings.setBaseUrl(origBase); });
-    MRemoteInterface remote;
-    QSignalSpy changelogUpdated(&remote, SIGNAL(changelogChanged()));
-    QVERIFY(changelogUpdated.isValid());
-    int initialReplies = changelogUpdated.count();
-
-    QString changelog = fetchChangelog(remote);
-
-    std::vector<QString> urlsToCheck = {
-        "https://app.hedgehogmedical.com/redirected-changelog/", // a server test point
-        "https://app.hedgehogmedical.com/",
-        "http://app.hedgehogmedical.com/",    // should follow redirect to https version
-        "http://hedgehogmedical.com/users/",  // test server backwards compatibility to transparently forward requests to app.hedgehogmedical.com
-        "https://hedgehogmedical.com/users/" // same with https version
-    };
-
-    for (QString& url : urlsToCheck) {
-        settings.setBaseUrl(url);
-        QCOMPARE(url, settings.getBaseUrl());
-        QString newChangelog = fetchChangelog(remote);
-        QCOMPARE(changelog, newChangelog);
-    }
-    QCOMPARE(changelogUpdated.count(), initialReplies + 1 + int(urlsToCheck.size()));
+    LatestVersionInfo info = fetchChangelog(remote);
+    qDebug() << "version found: " << info.version;
+    qDebug() << "changelog found: " << info.changelog;
+    QCOMPARE(info.version, "5.0");
+    QVERIFY(info.changelog != defaultChangelogText);
+    QVERIFY(info.changelog.length() > 100);
 }
 
 void verifyResults(QString baselinePath, QString resultsPath, bool isCombinedResults, double tolerance)
@@ -319,7 +206,7 @@ struct ResultsComparison
 
 void MAUI::test_diameterVideo1()
 {
-    //QSKIP("skipping compute validation");
+//    QSKIP("skipping compute validation");
 
     const QString videoDir = "../../videos/";
     const QString imageDir = "../../videos/images/";

@@ -21,7 +21,6 @@ SOURCES += main.cpp \
     minitthread.cpp \
     mremoteinterface.cpp \
     msettings.cpp \
-    qblowfish.cpp \
     mresultswriter.cpp \
     mvideoinfo.cpp
 
@@ -69,8 +68,6 @@ HEADERS += \
     minitthread.h \
     mremoteinterface.h \
     msettings.h \
-    qblowfish.h \
-    qblowfish_p.h \
     MAUIVelocityDllWithAutoInit.h \
     mresultswriter.h \
     mvideoinfo.h

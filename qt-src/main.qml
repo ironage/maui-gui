@@ -25,7 +25,6 @@ ApplicationWindow {
     onClosing: {
         if (window.userClosedWindow === false) {
             validationTimer.stop();
-            remoteInterface.finishSession();
             close.accepted = false;
             window.userClosedWindow = true;
             window.hide(); // pretend we closed right away
@@ -81,97 +80,13 @@ ApplicationWindow {
         onStartUpdate: remoteInterface.doUpdate()
     }
 
-    MLoginWindow {
-        id: loginWindow
-        onVerifyAccount: remoteInterface.validateRequest(username, password)
-        onChangeAccount: remoteInterface.changeExistingCredentials(username, password)
-    }
-
     MRemoteInterface {
         id: remoteInterface
-        property bool doneInitialVerify: false
-        property bool requiresVerifyOnContinue: false
-        onNoExistingCredentials: {
-            if (loginWindow.active === false) {
-                loginWindow.preset(username, password)
-            }
-            loginWindow.setMessage("Please login to continue.")
-            loginWindow.show()
-        }
-        onValidationNoConnection: {
-            if (loginWindow.active === false) {
-                loginWindow.preset(username, password)
-            }
-            loginWindow.setMessage("Connection failure.\nPlease check your internet connection and try again.")
-            loginWindow.show()
-            summaryPane.doStop()
-        }
-        onValidationFailed: {
-            if (loginWindow.active === false) {
-                loginWindow.preset(username, password)
-            }
-            loginWindow.setMessage("Login failed.\n" + failureReason)
-            loginWindow.show()
-            summaryPane.doStop()
-        }
-        onValidationBadCredentials: {
-            if (loginWindow.active === false) {
-                loginWindow.preset(username, password)
-            }
-            loginWindow.setMessage("Your username and password did not match.\nPlease try again.")
-            loginWindow.show()
-            summaryPane.doStop()
-        }
-        onValidationAccountExpired: {
-            if (loginWindow.active === false) {
-                loginWindow.preset(username, password)
-            }
-            loginWindow.setMessage("Your account has expired.\nPlease renew your account at hedgehogmedical.com")
-            loginWindow.show()
-            summaryPane.doStop()
-        }
-        onMultipleSessionsDetected: {
-            summaryPane.pauseIfPlaying()
-            window.controlsEnabled = true
-            requiresVerifyOnContinue = true
-
-            loginWindow.preset("", "")
-            loginWindow.setMessage("Multiple user sessions have been detected.\nOnly one active session is allowed per account.")
-            loginWindow.show()
-        }
         onChangelogChanged: {
             settingsPane.shouldRequestChangeset = false
         }
-        onValidationSuccess: {
-            if (!doneInitialVerify) {
-                doneInitialVerify = true
-            } else if (requiresVerifyOnContinue) {
-                //summaryPane.doContinue()
-            }
-            requiresVerifyOnContinue = false
-
-            validationTimer.restart()
-        }
-        onSessionFinished: {
-            console.log("session complete")
-            window.doExit();
-        }
         onValidationNewVersionAvailable: {
             settingsPane.updateAvailable()
-        }
-        function logMetricsEvent(event) {
-            remoteInterface.videoStateChange(event, m_video.readSrcExtension, m_video.frameIndex, m_video.processingMillisecondsSinceStart, m_video.source, m_video.setupState)
-        }
-    }
-    Timer {
-        id: validationTimer
-        triggeredOnStart: false
-        interval: 30000
-        repeat: false
-        running: true
-        onTriggered: {
-            remoteInterface.validateWithExistingCredentials()
-            validationTimer.restart()
         }
     }
 
@@ -199,11 +114,6 @@ ApplicationWindow {
         width: leftPanel.headerWidth
         property bool shouldRequestChangeset: true
 
-        onUserClicked: {
-            loginWindow.preset(remoteInterface.username, remoteInterface.password)
-            loginWindow.setMessage("Current user account details:")
-            loginWindow.showForChange()
-        }
         onVersionClicked: {
             if (shouldRequestChangeset) {
                 remoteInterface.requestChangelog()
@@ -316,22 +226,13 @@ ApplicationWindow {
                 onPlayClicked: {
                     window.controlsEnabled = false
                     m_video.play()
-                    remoteInterface.logMetricsEvent("start")
                 }
                 onContinueClicked: {
-                    if (remoteInterface.requiresVerifyOnContinue) {
-                        loginWindow.preset(remoteInterface.username, remoteInterface.password)
-                        loginWindow.setMessage("Please login to continue.")
-                        loginWindow.show()
-                    } else {
-                        doContinue()
-                        remoteInterface.logMetricsEvent("continue")
-                    }
+                    doContinue()
                 }
                 onPauseClicked: {
                     window.controlsEnabled = true
                     m_video.pause()
-                    remoteInterface.logMetricsEvent("pause")
                 }
             }
         }
